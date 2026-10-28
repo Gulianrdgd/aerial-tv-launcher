@@ -1,0 +1,37 @@
+package nl.julian.aerial.theme
+
+import nl.julian.aerial.R
+
+/** Material Symbols Rounded (Apache-2.0); filled variants for media and weather. */
+object Symbols {
+    val Play = R.drawable.ms_play_arrow
+    val Pause = R.drawable.ms_pause
+    val SkipNext = R.drawable.ms_skip_next
+    val SkipPrevious = R.drawable.ms_skip_previous
+    val Settings = R.drawable.ms_settings
+    val Ethernet = R.drawable.ms_lan
+    val Wifi = R.drawable.ms_wifi
+    val Offline = R.drawable.ms_wifi_off
+    val Bluetooth = R.drawable.ms_bluetooth
+    val BluetoothOff = R.drawable.ms_bluetooth_disabled
+    val Move = R.drawable.ms_open_with
+    val Pin = R.drawable.ms_keep
+    val Unpin = R.drawable.ms_keep_off
+    val Hide = R.drawable.ms_visibility_off
+    val Show = R.drawable.ms_visibility
+    val Info = R.drawable.ms_info
+    val Delete = R.drawable.ms_delete
+    val Home = R.drawable.ms_home
+    val Movie = R.drawable.ms_movie
+    val Landscape = R.drawable.ms_landscape
+    val Timer = R.drawable.ms_timer
+    val Music = R.drawable.ms_music_note
+    val Sun = R.drawable.ms_clear_day
+    val Moon = R.drawable.ms_bedtime
+    val PartlyCloudy = R.drawable.ms_partly_cloudy_day
+    val Cloud = R.drawable.ms_cloud
+    val Fog = R.drawable.ms_foggy
+    val Rain = R.drawable.ms_rainy
+    val Snow = R.drawable.ms_weather_snowy
+    val Storm = R.drawable.ms_thunderstorm
+}

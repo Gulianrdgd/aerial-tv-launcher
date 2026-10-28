@@ -1,85 +1,79 @@
 package nl.julian.aerial.ui
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.dp
-import nl.julian.aerial.theme.FluidEasing
-import nl.julian.aerial.theme.FocusSpring
-import nl.julian.aerial.theme.LocalLauncherColors
-import nl.julian.aerial.theme.glassCore
+import androidx.tv.material3.Border
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Glow
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Surface
+import nl.julian.aerial.theme.LocalSurfaces
+
+/** How a focusable surface changes when it takes focus. */
+enum class FocusStyle {
+    /** Material TV pill/button: the container inverts to a light tone. */
+    Invert,
+    /** Artwork (banners, posters): stays as is, lifted with a light ring. */
+    Ring,
+}
 
 /**
- * The one focusable building block. On focus the surface springs up in scale
- * and gains a diffuse accent glow and a crisp light ring that reads across a room.
- * Only transform, alpha and shadow change — never layout.
+ * The one focusable building block, a tv-material [Surface] with Material's
+ * TV focus behaviour: it scales up, and either inverts its container or
+ * gains a ring. [highlighted] (e.g. while being moved) swaps the ring for
+ * the primary colour.
  */
 @Composable
 fun FocusSurface(
     onClick: () -> Unit,
     shape: Shape,
     modifier: Modifier = Modifier,
-    tint: Color = LocalLauncherColors.current.tile,
-    focusedScale: Float = 1.08f,
+    container: Color = LocalSurfaces.current.high,
+    style: FocusStyle = FocusStyle.Invert,
+    focusedShape: Shape = shape,
+    focusedScale: Float = 1.06f,
     onLongClick: (() -> Unit)? = null,
-    /** Keeps the ring lit and the tile lifted, e.g. while it's being moved. */
     highlighted: Boolean = false,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
+    val cs = MaterialTheme.colorScheme
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val raised = focused || highlighted
-    val scale by animateFloatAsState(
-        when {
-            highlighted -> focusedScale + 0.04f
-            focused -> focusedScale
-            else -> 1f
-        },
-        FocusSpring, label = "scale",
-    )
-    val lift by animateFloatAsState(
-        if (raised) 1f else 0f, tween(450, easing = FluidEasing), label = "lift",
-    )
-    val accent = LocalLauncherColors.current.accent
+    val invert = style == FocusStyle.Invert && !highlighted
+    val ringColor = if (highlighted) cs.primary else cs.onSurface
 
-    Box(
-        modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .dropShadow(
-                shape,
-                Shadow(radius = 28.dp, color = accent.copy(alpha = 0.38f * lift), spread = 2.dp),
-            )
-            .clip(shape)
-            .glassCore(shape, tint)
-            .border(
-                if (highlighted) 3.dp else 2.dp,
-                (if (highlighted) accent else Color.White).copy(alpha = 0.92f * lift),
-                shape,
-            )
-            .combinedClickable(
-                interactionSource = interaction,
-                indication = null,
-                onLongClick = onLongClick,
-                onClick = onClick,
-            ),
+    Surface(
+        onClick = onClick,
+        onLongClick = onLongClick,
+        modifier = modifier,
+        interactionSource = interaction,
+        shape = ClickableSurfaceDefaults.shape(shape = shape, focusedShape = focusedShape),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = container,
+            contentColor = cs.onSurface,
+            focusedContainerColor = if (invert) cs.inverseSurface else container,
+            focusedContentColor = if (invert) cs.inverseOnSurface else cs.onSurface,
+            pressedContainerColor = if (invert) cs.inverseSurface else container,
+            pressedContentColor = if (invert) cs.inverseOnSurface else cs.onSurface,
+        ),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = if (highlighted) focusedScale + 0.04f else focusedScale),
+        border = ClickableSurfaceDefaults.border(
+            border = if (highlighted) Border(BorderStroke(3.dp, ringColor), shape = shape) else Border.None,
+            focusedBorder = if (invert) Border.None
+            else Border(BorderStroke(if (highlighted) 3.dp else 2.dp, ringColor), shape = focusedShape),
+        ),
+        glow = ClickableSurfaceDefaults.glow(
+            focusedGlow = Glow(elevationColor = cs.primary.copy(alpha = 0.45f), elevation = 12.dp),
+        ),
     ) {
         content(focused)
     }

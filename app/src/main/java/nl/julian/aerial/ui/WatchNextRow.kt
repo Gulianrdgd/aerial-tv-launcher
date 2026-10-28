@@ -33,24 +33,24 @@ import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Icon
+import androidx.tv.material3.LocalContentColor
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.emptyFlow
 import nl.julian.aerial.data.WatchNextItem
 import nl.julian.aerial.data.WatchNextRepository
-import nl.julian.aerial.theme.AerialType
-import nl.julian.aerial.theme.LineIcons
-import nl.julian.aerial.theme.LocalLauncherColors
+import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
 private const val VISIBLE_CARDS = 3
@@ -120,11 +120,13 @@ private fun Modifier.bleed(h: Dp) = layout { measurable, constraints ->
 
 @Composable
 private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, onClick: () -> Unit) {
-    val colors = LocalLauncherColors.current
+    val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,
         shape = RoundedCornerShape(radius),
+        focusedShape = RoundedCornerShape(radius + 6.dp),
         modifier = modifier.aspectRatio(16f / 9f),
+        style = FocusStyle.Ring,
         focusedScale = 1.06f,
     ) {
         AsyncImage(
@@ -147,23 +149,24 @@ private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, o
         ) {
             Text(
                 item.title,
-                style = AerialType.pillTitle.copy(fontSize = 17.sp),
+                style = MaterialTheme.typography.titleLarge,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             item.subtitle?.let {
                 Text(
-                    it, style = AerialType.pillSub, color = Color.White.copy(alpha = 0.72f),
+                    it, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.78f),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
             item.progress?.let { p ->
-                Box(
-                    Modifier.padding(top = 10.dp).fillMaxWidth().height(3.dp)
-                        .background(Color.White.copy(alpha = 0.22f), CircleShape)
-                ) {
-                    Box(Modifier.fillMaxWidth(p).height(3.dp).background(colors.accent, CircleShape))
+                // M3 linear progress: primary indicator, gap, track.
+                Row(Modifier.padding(top = 10.dp).fillMaxWidth().height(4.dp)) {
+                    Box(Modifier.weight(p.coerceAtLeast(0.01f)).fillMaxHeight().background(cs.primary, CircleShape))
+                    if (p < 0.99f) {
+                        Box(Modifier.padding(start = 4.dp).weight(1f - p).fillMaxHeight().background(Color.White.copy(alpha = 0.28f), CircleShape))
+                    }
                 }
             }
         }
@@ -172,24 +175,28 @@ private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, o
 
 @Composable
 private fun AccessPill(onClick: () -> Unit, modifier: Modifier) {
-    val colors = LocalLauncherColors.current
+    val cs = MaterialTheme.colorScheme
     Row(modifier.fillMaxWidth()) {
-        FocusSurface(onClick = onClick, shape = CircleShape, modifier = Modifier.height(56.dp), focusedScale = 1.05f) {
+        FocusSurface(onClick = onClick, shape = CircleShape, modifier = Modifier.height(56.dp), focusedScale = 1.05f) { focused ->
             Row(
                 Modifier.fillMaxHeight().padding(start = 8.dp, end = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    Modifier.size(40.dp).background(colors.accent, CircleShape),
+                    Modifier.size(40.dp).background(if (focused) cs.primary else cs.primaryContainer, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(LineIcons.Play, null, tint = colors.onAccent, modifier = Modifier.size(18.dp))
+                    Icon(
+                        painterResource(Symbols.Play), null,
+                        tint = if (focused) cs.onPrimary else cs.onPrimaryContainer, modifier = Modifier.size(22.dp),
+                    )
                 }
                 Column(Modifier.padding(start = 14.dp)) {
-                    Text("Show Continue Watching", style = AerialType.pillTitle, color = colors.content)
+                    Text("Show Continue Watching", style = MaterialTheme.typography.titleSmall)
                     Text(
                         "Allow access to what your apps are playing",
-                        style = AerialType.pillSub, color = colors.contentMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LocalContentColor.current.copy(alpha = 0.72f),
                     )
                 }
             }

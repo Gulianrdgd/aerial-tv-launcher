@@ -15,10 +15,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.data.AppEntry
-import nl.julian.aerial.theme.AerialType
-import nl.julian.aerial.theme.LocalLauncherColors
 
 /** 16:9 rounded app tile: the app's leanback banner, or its icon + name. */
 @Composable
@@ -28,14 +27,16 @@ fun AppTile(
     onLaunch: () -> Unit,
     modifier: Modifier = Modifier,
     onLongPress: (() -> Unit)? = null,
-    /** Lifted with an accent ring while the user is moving it. */
+    /** Lifted with a primary-colour ring while the user is moving it. */
     moving: Boolean = false,
 ) {
-    val colors = LocalLauncherColors.current
     FocusSurface(
         onClick = onLaunch,
         shape = RoundedCornerShape(radius),
+        // Expressive touch: corners open up slightly as the tile lifts.
+        focusedShape = RoundedCornerShape(radius + 6.dp),
         modifier = modifier.aspectRatio(16f / 9f),
+        style = if (app.banner != null) FocusStyle.Ring else FocusStyle.Invert,
         onLongClick = onLongPress,
         highlighted = moving,
     ) {
@@ -57,8 +58,7 @@ fun AppTile(
                 }
                 Text(
                     app.label,
-                    style = AerialType.tileLabel,
-                    color = colors.content,
+                    style = MaterialTheme.typography.labelLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

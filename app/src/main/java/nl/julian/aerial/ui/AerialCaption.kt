@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
 import nl.julian.aerial.theme.FluidEasing
-import nl.julian.aerial.theme.Jakarta
+import nl.julian.aerial.theme.GoogleSansFlex
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,7 +56,7 @@ fun AerialCaption(title: String?, visible: Boolean, modifier: Modifier = Modifie
         Text(
             time,
             style = androidx.compose.ui.text.TextStyle(
-                fontFamily = Jakarta, fontWeight = FontWeight(500), fontSize = 22.sp, shadow = Soft,
+                fontFamily = GoogleSansFlex, fontWeight = FontWeight(500), fontSize = 22.sp, shadow = Soft,
             ),
             color = Color.White.copy(alpha = 0.9f),
             modifier = Modifier.align(Alignment.TopEnd),
@@ -65,7 +65,7 @@ fun AerialCaption(title: String?, visible: Boolean, modifier: Modifier = Modifie
             Text(
                 it,
                 style = androidx.compose.ui.text.TextStyle(
-                    fontFamily = Jakarta, fontWeight = FontWeight(300), fontSize = 30.sp,
+                    fontFamily = GoogleSansFlex, fontWeight = FontWeight(300), fontSize = 30.sp,
                     letterSpacing = 0.01.em, shadow = Soft,
                 ),
                 color = Color.White.copy(alpha = 0.92f),

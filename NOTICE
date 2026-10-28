@@ -9,5 +9,10 @@ licensed under GPL-3.0:
   - the video-wallpaper player approach (SurfaceView + ExoPlayer lifecycle)
   - the installed-app scan and banner cache
 
-Bundled font: Plus Jakarta Sans (app/src/main/res/font), SIL Open Font
-License 1.1, see licenses/OFL-PlusJakartaSans.txt.
+Bundled font: Google Sans Flex (app/src/main/res/font), SIL Open Font
+License 1.1, see licenses/OFL-GoogleSansFlex.txt. "Google Sans" is a
+trademark of Google LLC; the font is included unmodified.
+
+Icons: Material Symbols Rounded (app/src/main/res/drawable/ms_*.xml),
+Copyright Google LLC, Apache License 2.0
+(https://github.com/google/material-design-icons).

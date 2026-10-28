@@ -5,7 +5,10 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -39,9 +43,12 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,11 +61,9 @@ import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.arrange
 import nl.julian.aerial.data.moved
 import nl.julian.aerial.data.pinned
-import nl.julian.aerial.theme.AerialType
 import nl.julian.aerial.theme.Bezel
-import nl.julian.aerial.theme.DynamicTheme
+import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.theme.FluidEasing
-import nl.julian.aerial.theme.LocalLauncherColors
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
@@ -100,7 +105,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean) {
             onSeed = { seed = it },
             onClip = { clipTitle = it.title },
         )
-        DynamicTheme(seed) {
+        AerialTheme(seed) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
                 Scrim()
@@ -113,6 +118,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: ConfigStore, homeTick: Int) {
     val context = LocalContext.current
@@ -205,6 +211,11 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         )
     }
 
+    // Compose's TV default pivots the focused row to ~30% from the top, which
+    // pushes the widget band off-screen as soon as the dock is focused.
+    // Only scroll when the focused item (plus its glow) would be cut off.
+    val minimalScroll = rememberMinimalScroll(margin = 24.dp)
+    CompositionLocalProvider(LocalBringIntoViewSpec provides minimalScroll) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -234,10 +245,10 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         if (gridRows.isNotEmpty()) {
             item(key = "apps-label") {
                 Text(
-                    "ALL APPS",
-                    style = AerialType.sectionLabel,
-                    color = LocalLauncherColors.current.contentMuted,
-                    modifier = Modifier.padding(start = 20.dp, top = 8.dp).reveal(3, homeTick),
+                    "All apps",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(3, homeTick),
                 )
             }
         }
@@ -249,6 +260,8 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         }
     }
 
+    }
+
     menuFor?.let { app ->
         AppMenu(
             app = app,
@@ -258,6 +271,26 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
+}
+
+/** Scrolls only as far as needed to show the focused item with [margin] around it. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun rememberMinimalScroll(margin: Dp): BringIntoViewSpec {
+    val px = with(LocalDensity.current) { margin.toPx() }
+    return remember(px) {
+        object : BringIntoViewSpec {
+            override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+                val start = offset - px
+                val end = offset + size + px
+                return when {
+                    start >= 0f && end <= containerSize -> 0f
+                    start < 0f || size + 2 * px > containerSize -> start
+                    else -> end - containerSize
+                }
+            }
+        }
+    }
 }
 
 /**

@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import nl.julian.aerial.theme.LocalLauncherColors
+import nl.julian.aerial.theme.LocalSurfaces
 
 /**
  * Fallback backdrop (no aerial yet, or offline): near-black with slow-glowing
@@ -35,13 +35,13 @@ fun AmbientBackdrop(modifier: Modifier = Modifier) {
  */
 @Composable
 fun Haze(modifier: Modifier = Modifier) {
-    val tint = LocalLauncherColors.current.panel
+    val tint = LocalSurfaces.current.lowest
     Box(
         modifier.fillMaxSize().background(
             Brush.verticalGradient(
-                0f to tint.copy(alpha = 0.34f),
-                0.5f to tint.copy(alpha = 0.42f),
-                1f to tint.copy(alpha = 0.58f),
+                0f to tint.copy(alpha = 0.30f),
+                0.5f to tint.copy(alpha = 0.40f),
+                1f to tint.copy(alpha = 0.56f),
             )
         )
     )
