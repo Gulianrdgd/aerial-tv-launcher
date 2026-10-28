@@ -44,7 +44,9 @@ object InputsRepository {
                 // component, tuners. Apps such as VLC also register "inputs".
                 .filter { !it.isHidden(context) && (it.isPassthroughInput || PORT.containsMatchIn(it.id) && "/HW" in it.id) }
                 .map { info ->
-                    val (label, device) = parseLabel((info.loadCustomLabel(context) ?: info.loadLabel(context)).toString())
+                    // Philips stores the literal text "null" for ports without a custom name.
+                    val custom = info.loadCustomLabel(context)?.toString()?.takeUnless { it.isBlank() || it.startsWith("null") }
+                    val (label, device) = parseLabel(custom ?: info.loadLabel(context).toString())
                     TvInput(
                         id = info.id,
                         label = label,
@@ -69,12 +71,19 @@ object InputsRepository {
     }.distinctUntilChanged()
 
     /**
-     * The TV's own port order (HDMI 1, 2, 3, …, from the number that ends the
-     * input id), with tuners last; name only breaks ties.
+     * HDMI ports first, then other hardware (component, …), tuners last;
+     * within each group the TV's own port order (the number that ends the
+     * input id). Name only breaks ties.
      */
     internal fun ordered(inputs: List<TvInput>): List<TvInput> = inputs.sortedWith(
         compareBy<TvInput>(
-            { if (it.type == TvInputInfo.TYPE_TUNER) 1 else 0 },
+            {
+                when (it.type) {
+                    TvInputInfo.TYPE_HDMI -> 0
+                    TvInputInfo.TYPE_TUNER -> 2
+                    else -> 1
+                }
+            },
             { PORT.find(it.id)?.value?.toIntOrNull() ?: Int.MAX_VALUE },
             { it.label.lowercase() },
         )
