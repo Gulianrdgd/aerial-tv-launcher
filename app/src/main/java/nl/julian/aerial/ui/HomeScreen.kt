@@ -11,13 +11,13 @@ import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -73,6 +73,7 @@ import nl.julian.aerial.data.moved
 import nl.julian.aerial.data.pinned
 import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.theme.FluidEasing
+import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
@@ -87,8 +88,8 @@ import nl.julian.aerial.wallpaper.AerialBackground
 
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
 private val SCREEN_MARGIN = 48.dp
-/** Side inset of the tile rows inside the screen margin. */
-private val DOCK_INSET = 12.dp
+/** Open aerial between the top bar and the dock. */
+private val DOCK_GAP = 60.dp
 private val TILE_RADIUS = 28.dp
 
 @Composable
@@ -317,20 +318,15 @@ private fun HomeContent(
                 railFocus = railFocus,
             )
         }
-        // The dock floats straight on the aerial under the bar, with open
-        // space above it so the aerial reads as the main thing on screen.
+        // Every section sits on the same translucent panel as the top bar.
+        // Open space above the dock keeps the aerial the main thing on screen.
         item(key = "dock") {
-            TileRow(home.dock, Modifier.then(scrollTopOnFocus).padding(top = 130.dp).padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
-                tile(app, m, true)
+            SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = DOCK_GAP).reveal(1, revealTick)) {
+                TileRow(home.dock, firstFocus = dockFocus) { app, m -> tile(app, m, true) }
             }
         }
         item(key = "watch-next") {
-            WatchNextRow(
-                radius = TILE_RADIUS,
-                // Inset to the dock's edge so all rows share one column grid.
-                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(2, revealTick),
-                bleed = SCREEN_MARGIN + DOCK_INSET,
-            )
+            WatchNextRow(radius = TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
         }
         item(key = "quick") {
             QuickSettings(
@@ -342,23 +338,16 @@ private fun HomeContent(
                     }
                 },
                 onStartScreensaver = onStartScreensaver,
-                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(3, revealTick),
+                modifier = Modifier.reveal(3, revealTick),
             )
         }
         if (gridRows.isNotEmpty()) {
-            item(key = "apps-label") {
-                Text(
-                    "All apps",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(4, revealTick),
-                )
-            }
-        }
-        itemsIndexed(gridRows, key = { i, _ -> "row-$i" }) { i, row ->
-            // Line up with the dock's inner tiles.
-            TileRow(row, Modifier.padding(horizontal = DOCK_INSET).reveal(5 + i, revealTick)) { app, m ->
-                tile(app, m, false)
+            item(key = "apps") {
+                SectionPanel(Modifier.reveal(4, revealTick), title = "All apps") {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        gridRows.forEach { row -> TileRow(row) { app, m -> tile(app, m, false) } }
+                    }
+                }
             }
         }
     }

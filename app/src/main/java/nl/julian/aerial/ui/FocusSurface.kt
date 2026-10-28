@@ -78,8 +78,10 @@ fun FocusSurface(
         scale = ClickableSurfaceDefaults.scale(focusedScale = if (highlighted) focusedScale + 0.04f else focusedScale),
         border = ClickableSurfaceDefaults.border(
             border = if (highlighted) Border(BorderStroke(3.dp, ringColor), shape = shape) else Border.None,
+            // The ring sits a few dp outside the tile: on a white banner
+            // (YouTube, Netflix) a ring on the edge itself disappears.
             focusedBorder = if (invert) Border.None
-            else Border(BorderStroke(if (highlighted) 3.dp else 2.dp, ringColor), shape = focusedShape),
+            else Border(BorderStroke(3.dp, ringColor), inset = RING_GAP, shape = focusedShape),
         ),
         // No glow: a blurred shadow per focus change is costly on TV GPUs,
         // and the scale + ring/inversion already mark focus clearly.
@@ -88,6 +90,9 @@ fun FocusSurface(
         content(focused)
     }
 }
+
+/** Space between a focused tile and its ring. */
+private val RING_GAP = 4.dp
 
 /** Holding OK this long opens the long-press action instead of clicking. */
 private const val LONG_PRESS_MS = 500L

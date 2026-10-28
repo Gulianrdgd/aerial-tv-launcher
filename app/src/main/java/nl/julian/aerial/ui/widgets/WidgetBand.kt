@@ -48,6 +48,8 @@ import nl.julian.aerial.theme.ClockStyle
 import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalSurfaces
+import nl.julian.aerial.theme.PANEL_RADIUS
+import nl.julian.aerial.theme.panelColor
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.FocusSurface
 import nl.julian.aerial.wallpaper.Aerial
@@ -57,7 +59,7 @@ import java.util.Locale
 
 /** Height of the top bar: compact, so the aerial stays the main thing on screen. */
 private val BAR_HEIGHT = 100.dp
-private val BAR_RADIUS = 32.dp
+private val BAR_RADIUS = PANEL_RADIUS
 private val BAR_INSET = 8.dp
 internal val INNER = BAR_RADIUS - BAR_INSET
 /** Every tile in the bar shares this inner padding. */
@@ -90,7 +92,7 @@ fun WidgetBand(
         modifier
             .fillMaxWidth()
             .height(BAR_HEIGHT)
-            .background(LocalSurfaces.current.low.copy(alpha = 0.55f), RoundedCornerShape(BAR_RADIUS))
+            .background(panelColor(), RoundedCornerShape(BAR_RADIUS))
             .padding(BAR_INSET),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -161,21 +163,17 @@ private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier
     ) { focused ->
         Row(Modifier.fillMaxSize().padding(start = TILE_PADDING + 4.dp, end = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
+                // Scenery and source go in the eyebrow, so the title has two
+                // lines instead of being cut off.
                 Text(
-                    "NOW SHOWING", style = EyebrowStyle, maxLines = 1,
+                    clip?.let { "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}" }?.uppercase() ?: "NOW SHOWING",
+                    style = EyebrowStyle, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     color = LocalContentColor.current.copy(alpha = 0.7f),
                 )
                 Text(
-                    clip?.title ?: "Aerials", style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    clip?.title ?: "Aerials", style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
-                clip?.let {
-                    Text(
-                        "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}",
-                        style = MaterialTheme.typography.bodyMedium, maxLines = 1,
-                        color = LocalContentColor.current.copy(alpha = 0.7f),
-                    )
-                }
             }
             Box(
                 Modifier
@@ -227,7 +225,7 @@ private fun ControlRail(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
+        RailButton(Symbols.InputHdmi, "Inputs", onInputs, focus.inputs)
         Box {
             RailButton(Symbols.Notifications, "Notifications", onNotifications, focus.notifications)
             if (notifications > 0) Badge(notifications, Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp))

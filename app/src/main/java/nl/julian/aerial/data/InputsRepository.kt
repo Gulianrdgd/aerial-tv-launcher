@@ -46,7 +46,7 @@ object InputsRepository {
                 .map { info ->
                     // Philips stores the literal text "null" for ports without a custom name.
                     val custom = info.loadCustomLabel(context)?.toString()?.takeUnless { it.isBlank() || it.startsWith("null") }
-                    val (label, device) = parseLabel(custom ?: info.loadLabel(context).toString())
+                    val (label, device) = parseLabel(custom ?: friendlyName(info.loadLabel(context).toString()))
                     TvInput(
                         id = info.id,
                         label = label,
@@ -107,6 +107,18 @@ object InputsRepository {
             else -> InputDevice.Unknown
         }
         return name to device
+    }
+
+    /** TV vendors' internal input names, in words people use. */
+    internal fun friendlyName(raw: String): String {
+        val key = raw.replace(" ", "").uppercase()
+        return when {
+            "DTV" in key || "DVB" in key -> "Antenna (digital)"
+            "ATV" in key -> "Antenna (analog)"
+            "YPBPR" in key || key == "COMPONENT" -> "Component"
+            key == "CVBS" || key == "AV" -> "Composite"
+            else -> raw
+        }
     }
 
     /** Switches the TV to [input] through the system's Live TV / input handler. */

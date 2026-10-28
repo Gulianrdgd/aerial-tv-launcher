@@ -35,6 +35,7 @@ import nl.julian.aerial.data.Scenery
 import nl.julian.aerial.data.bluetoothOnFlow
 import nl.julian.aerial.data.networkFlow
 import nl.julian.aerial.theme.LocalSurfaces
+import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
@@ -55,11 +56,7 @@ fun QuickSettings(
     val net by networkFlow(app).collectAsStateWithLifecycle(NetKind.None)
     val bt by bluetoothOnFlow(app).collectAsStateWithLifecycle(null)
 
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            "Quick settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = 16.dp),
-        )
+    SectionPanel(modifier, title = "Quick settings") {
         Row(
             Modifier.fillMaxWidth().focusRestorer().focusGroup(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),

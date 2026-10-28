@@ -28,4 +28,12 @@ class InputsRepositoryTest {
         assertEquals("Wii" to InputDevice.Console, InputsRepository.parseLabel("Wii&GAME_CONSOLE"))
         assertEquals("HDMI 1" to InputDevice.Unknown, InputsRepository.parseLabel("HDMI 1"))
     }
+
+    @Test
+    fun vendorInputNamesBecomeReadable() {
+        assertEquals("Antenna (digital)", InputsRepository.friendlyName("Tuner(DTV)"))
+        assertEquals("Antenna (analog)", InputsRepository.friendlyName("Tuner(ATV)"))
+        assertEquals("Component", InputsRepository.friendlyName("YPbPr"))
+        assertEquals("HDMI 3", InputsRepository.friendlyName("HDMI 3"))
+    }
 }

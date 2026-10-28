@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -50,10 +49,13 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.emptyFlow
 import nl.julian.aerial.data.WatchNextItem
 import nl.julian.aerial.data.WatchNextRepository
+import nl.julian.aerial.theme.PANEL_PADDING
+import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
 private const val VISIBLE_CARDS = 4
+private const val TITLE = "Continue watching"
 private val GAP = 20.dp
 
 /**
@@ -64,8 +66,6 @@ private val GAP = 20.dp
 fun WatchNextRow(
     radius: Dp,
     modifier: Modifier = Modifier,
-    /** Distance to the screen edges; the row scrolls out to them instead of clipping at its margin. */
-    bleed: Dp = 0.dp,
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -87,15 +87,18 @@ fun WatchNextRow(
     val items by itemsFlow.collectAsStateWithLifecycle(emptyList())
 
     when {
-        !hasAccess -> AccessPill(
-            onClick = { askAccess.launch(WatchNextRepository.PERMISSION) },
-            modifier = modifier,
-        )
-        items.isNotEmpty() -> BoxWithConstraints(modifier.fillMaxWidth()) {
-            val cardWidth = (maxWidth - GAP * (VISIBLE_CARDS - 1)) / VISIBLE_CARDS
+        !hasAccess -> SectionPanel(modifier, title = TITLE) {
+            AccessPill(onClick = { askAccess.launch(WatchNextRepository.PERMISSION) }, modifier = Modifier)
+        }
+        // The row handles its own edge padding (horizontalPadding = 0), so
+        // cards scroll right up to the panel's sides; the vertical padding
+        // leaves room for the focused card's ring.
+        items.isNotEmpty() -> SectionPanel(modifier, title = TITLE, horizontalPadding = 0.dp) {
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val cardWidth = (maxWidth - PANEL_PADDING * 2 - GAP * (VISIBLE_CARDS - 1)) / VISIBLE_CARDS
             LazyRow(
-                Modifier.bleed(bleed).focusRestorer(),
-                contentPadding = PaddingValues(horizontal = bleed),
+                Modifier.focusRestorer(),
+                contentPadding = PaddingValues(horizontal = PANEL_PADDING, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(GAP),
             ) {
                 items(items, key = { it.id }) { item ->
@@ -105,17 +108,9 @@ fun WatchNextRow(
                     )
                 }
             }
+            }
         }
     }
-}
-
-/** Widens the element by [h] on each side without moving its content (rows that scroll to the screen edge). */
-internal fun Modifier.bleed(h: Dp) = layout { measurable, constraints ->
-    val extra = (h * 2).roundToPx()
-    val placeable = measurable.measure(
-        constraints.copy(maxWidth = constraints.maxWidth + extra, minWidth = constraints.minWidth + extra)
-    )
-    layout(placeable.width - extra, placeable.height) { placeable.place(-extra / 2, 0) }
 }
 
 @Composable
