@@ -67,9 +67,9 @@ private fun style(size: Int, weight: Int, tracking: Double = 0.0) = TextStyle(
 
 /**
  * The screensaver overlay, laid out like Chromecast's ambient mode: the
- * artwork's title and source, then a large clock with the weather beside
- * it, bottom left; what's playing bottom right. A soft shade along the
- * bottom keeps the text readable on bright clips.
+ * artwork's title and source with the time and weather below, bottom left;
+ * what's playing, top right. Soft shades keep the text readable on bright
+ * clips.
  */
 @Composable
 fun Ambient(
@@ -89,36 +89,38 @@ fun Ambient(
     Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) {
         Box(
             Modifier.fillMaxSize().background(
-                Brush.verticalGradient(0.55f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.45f))
+                Brush.verticalGradient(
+                    0f to Color.Black.copy(alpha = if (media != null) 0.3f else 0f),
+                    0.2f to Color.Transparent,
+                    0.7f to Color.Transparent,
+                    1f to Color.Black.copy(alpha = 0.4f),
+                )
             )
         )
-        Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(horizontal = 64.dp, vertical = 48.dp),
-            verticalAlignment = Alignment.Bottom,
-        ) {
-            Column(Modifier.weight(1f)) {
+        media?.let {
+            Box(Modifier.align(Alignment.TopEnd).padding(horizontal = 48.dp, vertical = 28.dp)) { AmbientMedia(it) }
+        }
+        Column(Modifier.align(Alignment.BottomStart).padding(horizontal = 56.dp, vertical = 28.dp)) {
                 clip?.let {
                     Text(it.title, style = style(22, 500), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}",
                         style = style(15, 400, 0.02).copy(color = Faint), maxLines = 1,
                     )
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(6.dp))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AmbientClock(clockFormat)
                     weather?.let {
-                        Spacer(Modifier.width(28.dp))
+                        Spacer(Modifier.width(20.dp))
                         Icon(
                             painterResource(skyIcon(it)), contentDescription = it.sky.name,
-                            tint = skyTint(it), modifier = Modifier.size(48.dp),
+                            tint = skyTint(it), modifier = Modifier.size(28.dp),
                         )
-                        Spacer(Modifier.width(10.dp))
-                        Text("${it.temperature}°", style = style(44, 300))
+                        Spacer(Modifier.width(8.dp))
+                        Text("${it.temperature}°", style = style(26, 400))
                     }
                 }
-            }
-            media?.let { AmbientMedia(it) }
         }
     }
 }
@@ -133,7 +135,7 @@ private fun AmbientClock(format: ClockFormat) {
         }
     }
     val time = SimpleDateFormat(if (format.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now)
-    Text(time, style = style(88, 300, -0.02).copy(fontFeatureSettings = "tnum"))
+    Text(time, style = style(26, 500).copy(fontFeatureSettings = "tnum"))
 }
 
 /** What's playing: album art with title and artist, on a dark translucent chip. */

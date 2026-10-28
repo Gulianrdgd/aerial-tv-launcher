@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
@@ -286,6 +287,11 @@ private fun HomeContent(
     // pushes the widget band off-screen as soon as the dock is focused.
     // Only scroll when the focused item (plus its glow) would be cut off.
     val minimalScroll = rememberMinimalScroll(margin = 24.dp)
+    val scrollTopOnFocus = Modifier.onFocusChanged {
+        if (it.hasFocus && listState.firstVisibleItemIndex + listState.firstVisibleItemScrollOffset > 0) {
+            scope.launch { listState.animateScrollToItem(0) }
+        }
+    }
     CompositionLocalProvider(LocalBringIntoViewSpec provides minimalScroll) {
     LazyColumn(
         state = listState,
@@ -293,6 +299,9 @@ private fun HomeContent(
         contentPadding = PaddingValues(start = SCREEN_MARGIN, end = SCREEN_MARGIN, top = 27.dp, bottom = 27.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
+        // The bar and the dock sit at the very top. When focus moves into
+        // either, scroll all the way up so the bar and the open aerial gap
+        // above the dock are in view, not just the focused tile.
         item(key = "widgets") {
             WidgetBand(
                 clockFormat = config.clockFormat,
@@ -304,14 +313,14 @@ private fun HomeContent(
                 onOpenInputs = { returnFocus = railFocus.inputs; inputsOpen = true },
                 onOpenNotifications = { returnFocus = railFocus.notifications; notificationsOpen = true },
                 onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
-                modifier = Modifier.reveal(0, revealTick),
+                modifier = Modifier.reveal(0, revealTick).then(scrollTopOnFocus),
                 railFocus = railFocus,
             )
         }
         // The dock floats straight on the aerial under the bar, with open
         // space above it so the aerial reads as the main thing on screen.
         item(key = "dock") {
-            TileRow(home.dock, Modifier.padding(top = 130.dp).padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
+            TileRow(home.dock, Modifier.then(scrollTopOnFocus).padding(top = 130.dp).padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
                 tile(app, m, true)
             }
         }
