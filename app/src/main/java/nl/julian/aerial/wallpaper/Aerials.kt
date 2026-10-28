@@ -57,7 +57,7 @@ class AerialQueue(private val all: List<Aerial>) {
         return upcoming.removeFirst().also { last = it }
     }
 
-    /** The clip [next] will return, so it can be prefetched. */
+    /** The clip [next] will return. */
     fun peek(): Aerial {
         if (upcoming.isEmpty()) refill()
         return upcoming.first()

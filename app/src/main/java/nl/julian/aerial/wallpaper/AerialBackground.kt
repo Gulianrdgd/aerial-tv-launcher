@@ -39,8 +39,6 @@ import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.seedsSimilar
 import nl.julian.aerial.ui.AmbientBackdrop
 
-/** Start prefetching the next clip this long after the current one appears, so they don't fight for bandwidth. */
-private const val PREFETCH_DELAY_MS = 20_000L
 /** No frame within this window = a dead stream; skip it. */
 private const val STALL_MS = 8_000L
 /** When, after a clip's first frame, the picture is sampled for the UI colours. */
@@ -181,12 +179,11 @@ fun AerialBackground(
         }
     }
 
-    // First frame is up: slow fade in, then quietly fetch the next clip.
+    // First frame is up: slow fade in. Clips load lazily: nothing is
+    // fetched ahead, only what's on screen streams (and lands in the cache).
     LaunchedEffect(firstFrameGen) {
         if (firstFrameGen == 0) return@LaunchedEffect
         reveal.animateTo(1f, tween(1400, easing = FluidEasing))
-        delay(PREFETCH_DELAY_MS)
-        AerialMedia.prefetch(context, liveQueue.peek().uri)
     }
 
     // Sample the picture once per clip (a re-theme recolours the whole UI,

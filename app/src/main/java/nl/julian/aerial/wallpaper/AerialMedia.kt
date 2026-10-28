@@ -1,21 +1,14 @@
 package nl.julian.aerial.wallpaper
 
 import android.content.Context
-import android.net.Uri
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
-import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.File
 import java.net.Socket
@@ -26,14 +19,17 @@ import javax.net.ssl.SSLEngine
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509ExtendedTrustManager
-import java.io.IOException
 
-/** ~5 Apple clips (≈200 MB each). TV storage is tight, so stay modest. */
-private const val CACHE_BYTES = 1L * 1024 * 1024 * 1024
+/**
+ * Room for the last one or two clips (an Apple clip is ≈200 MB): enough
+ * for an instant, offline-capable start, without eating TV storage. The
+ * least recently played clips are evicted first.
+ */
+private const val CACHE_BYTES = 300L * 1024 * 1024
 
 /**
  * Network + disk-cache plumbing for aerials. Every read goes through one
- * LRU SimpleCache, so a clip streamed once (or prefetched) replays from disk:
+ * LRU SimpleCache, so a recently streamed clip replays from disk:
  * instant start and offline playback.
  */
 @OptIn(UnstableApi::class)
@@ -107,25 +103,5 @@ object AerialMedia {
         val c = cache(context)
         val length = ContentMetadata.getContentLength(c.getContentMetadata(uri))
         return length > 0 && c.isCached(uri, 0, length)
-    }
-
-    /** Downloads [uri] into the cache. Cancelling the calling coroutine stops it. */
-    suspend fun prefetch(context: Context, uri: String) = withContext(Dispatchers.IO) {
-        if (isFullyCached(context, uri)) return@withContext
-        val writer = CacheWriter(
-            dataSourceFactory(context).createDataSource(),
-            DataSpec(Uri.parse(uri)),
-            null,
-            null,
-        )
-        val handle = coroutineContext[Job]?.invokeOnCompletion { writer.cancel() }
-        try {
-            writer.cache()
-        } catch (e: IOException) {
-            // Cancelled, offline, or the CDN hiccuped; the clip will just stream.
-            Log.d("Aerial", "prefetch stopped: ${e.message}")
-        } finally {
-            handle?.dispose()
-        }
     }
 }

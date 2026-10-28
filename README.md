@@ -2,7 +2,7 @@
 
 An Android TV / Google TV launcher. It has a Monet-style home screen of frosted glass panels over Apple TV-style aerial video, and the UI colours follow whatever is playing.
 
-- **Aerials:** 265 streamed 1080p clips from Apple, Fire TV and the community. They're cached on disk (1 GB), and the next clip is fetched in the background.
+- **Aerials:** 265 streamed 1080p clips from Apple, Fire TV and the community. They load lazily: only the clip on screen streams, and the last one or two are kept in a 300 MB cache.
 - **Dynamic colour:** the playing frame is sampled every few seconds and the whole UI re-tints to match.
 - **Top band:** clock; Now Playing with transport controls, or the aerial currently showing (select to skip); weather with a 2-hour rain forecast (Open-Meteo, located from the TV's timezone); and a toolbar for inputs, notifications and settings.
 - **Input switcher:** every HDMI/antenna input the TV reports, in a side panel.
