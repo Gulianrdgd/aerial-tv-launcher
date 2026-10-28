@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180 leanback banner: dusk gradient with a horizon line -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:pathData="M0,0h320v180h-320z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0" android:startY="0"
+                android:endX="0" android:endY="180"
+                android:startColor="#FF1B2448"
+                android:centerColor="#FF6B4E8C"
+                android:endColor="#FFE8A36B" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#B3101530"
+        android:pathData="M0,130 L60,104 L110,120 L170,92 L230,118 L280,100 L320,112 L320,180 L0,180 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M120,60 m-8,0 a8,8 0,1 1,16 0 a8,8 0,1 1,-16 0" />
+</vector>
