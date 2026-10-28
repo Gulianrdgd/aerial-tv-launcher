@@ -225,7 +225,7 @@ private fun ControlRail(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RailButton(Symbols.InputHdmi, "Inputs", onInputs, focus.inputs)
+        RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
         Box {
             RailButton(Symbols.Notifications, "Notifications", onNotifications, focus.notifications)
             if (notifications > 0) Badge(notifications, Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp))
