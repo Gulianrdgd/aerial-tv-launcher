@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1280 640" width="1280" height="640">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B1030"/>
+      <stop offset="0.6" stop-color="#2A2560"/>
+      <stop offset="1" stop-color="#5B3F86"/>
+    </linearGradient>
+    <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="980" cy="470" r="520">
+      <stop offset="0" stop-color="#FFB37A" stop-opacity="0.75"/>
+      <stop offset="0.35" stop-color="#E8738F" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#5B3F86" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="earth" gradientUnits="userSpaceOnUse" cx="980" cy="470" r="700">
+      <stop offset="0" stop-color="#2B4F9A"/>
+      <stop offset="0.35" stop-color="#16285C"/>
+      <stop offset="1" stop-color="#070C24"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7FA8FF" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#7FA8FF" stop-opacity="0.5"/>
+      <stop offset="0.72" stop-color="#FFC48A"/>
+      <stop offset="0.88" stop-color="#FF8FA3"/>
+      <stop offset="1" stop-color="#7FA8FF" stop-opacity="0.2"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.25" stop-color="#FFF1D6"/>
+      <stop offset="0.6" stop-color="#FFC07A" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#FF9A6A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#sky)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <g fill="#FFFFFF">
+    <circle cx="160" cy="70" r="2.4" opacity="0.8"/><circle cx="420" cy="40" r="1.8" opacity="0.6"/>
+    <circle cx="700" cy="96" r="2" opacity="0.7"/><circle cx="1180" cy="60" r="2.4" opacity="0.8"/>
+    <circle cx="1020" cy="150" r="1.6" opacity="0.5"/><circle cx="880" cy="40" r="1.5" opacity="0.5"/>
+    <circle cx="1240" cy="230" r="1.6" opacity="0.5"/><circle cx="600" cy="200" r="1.4" opacity="0.4"/>
+  </g>
+
+  <!-- Earth's horizon across the bottom -->
+  <circle cx="640" cy="2200" r="1740" fill="url(#earth)"/>
+  <circle cx="640" cy="2200" r="1742" fill="none" stroke="url(#rim)" stroke-width="8"/>
+  <circle cx="640" cy="2200" r="1756" fill="none" stroke="#FFB48A" stroke-width="24" opacity="0.12"/>
+  <g fill="#FFD7A0">
+    <circle cx="180" cy="560" r="2.4" opacity="0.7"/><circle cx="196" cy="568" r="1.6" opacity="0.5"/>
+    <circle cx="300" cy="540" r="2" opacity="0.6"/><circle cx="420" cy="590" r="2.2" opacity="0.6"/>
+    <circle cx="560" cy="548" r="1.6" opacity="0.5"/><circle cx="100" cy="612" r="1.8" opacity="0.5"/>
+    <circle cx="690" cy="600" r="1.6" opacity="0.4"/>
+  </g>
+  <circle cx="980" cy="472" r="150" fill="url(#sun)"/>
+  <circle cx="980" cy="472" r="20" fill="#FFFFFF"/>
+
+  <!-- logo + text -->
+  <image xlink:href="logo.svg" x="96" y="138" width="168" height="168"/>
+  <text x="300" y="232" font-family="Google Sans Flex, Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="600" font-size="96" fill="#FFFFFF" letter-spacing="-1">Aerial</text>
+  <text x="304" y="292" font-family="Google Sans Flex, Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="400" font-size="34" fill="#E6E1FF">Android TV launcher with Apple TV aerials</text>
+  <text x="304" y="350" font-family="Google Sans Flex, Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="500" font-size="22" fill="#B9B3E0" letter-spacing="1">MATERIAL YOU  ·  KOTLIN  ·  JETPACK COMPOSE  ·  OPEN SOURCE</text>
+  <text x="304" y="398" font-family="Google Sans Flex, Helvetica Neue, Helvetica, Arial, sans-serif" font-weight="400" font-size="22" fill="#9C96C8">github.com/Gulianrdgd/aerial-tv-launcher</text>
+</svg>
