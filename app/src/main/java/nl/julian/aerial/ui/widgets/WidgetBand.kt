@@ -59,9 +59,9 @@ import java.util.Date
 import java.util.Locale
 
 /** Height of the top bar: compact, so the aerial stays the main thing on screen. */
-private val BAR_HEIGHT = 100.dp
+private val BAR_HEIGHT = 124.dp
 private val BAR_RADIUS = PANEL_RADIUS
-private val BAR_INSET = 8.dp
+private val BAR_INSET = 12.dp
 internal val INNER = BAR_RADIUS - BAR_INSET
 /** Every tile in the bar shares this inner padding. */
 internal val TILE_PADDING = 18.dp
@@ -95,13 +95,13 @@ fun WidgetBand(
             .height(BAR_HEIGHT)
             .panel(RoundedCornerShape(BAR_RADIUS))
             .padding(BAR_INSET),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // While something plays, clock and weather tuck in to their essentials
         // so the Now Playing card gets the room.
         val compact = media != null
-        val clockWidth by animateDpAsState(if (compact) 136.dp else 200.dp, tween(500, easing = FluidEasing), label = "clockW")
+        val clockWidth by animateDpAsState(if (compact) 140.dp else 216.dp, tween(500, easing = FluidEasing), label = "clockW")
         val weatherWidth by animateDpAsState(if (compact) 128.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
         ClockTile(clockFormat, compact, Modifier.fillMaxHeight().width(clockWidth))
         when {
@@ -164,10 +164,10 @@ private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier
     ) { focused ->
         Row(Modifier.fillMaxSize().padding(start = TILE_PADDING + 4.dp, end = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                // Scenery and source go in the eyebrow, so the title has two
-                // lines instead of being cut off.
+                // The scenery goes in the eyebrow, so the title has two lines
+                // instead of being cut off.
                 Text(
-                    clip?.let { "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}" }?.uppercase() ?: "NOW SHOWING",
+                    clip?.let { sceneryLabel(it.kind) }?.uppercase() ?: "NOW SHOWING",
                     style = EyebrowStyle, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     color = LocalContentColor.current.copy(alpha = 0.7f),
                 )
@@ -198,12 +198,6 @@ internal fun sceneryLabel(kind: String) = when (kind) {
     "water" -> "Underwater"
     "space" -> "From space"
     else -> "Ambient"
-}
-
-internal fun collectionLabel(source: String) = when (source) {
-    "A" -> "Apple TV"
-    "Z" -> "Fire TV"
-    else -> "Community"
 }
 
 /**

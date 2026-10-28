@@ -65,10 +65,6 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(scenery = it.scenery.next()) } },
         )
         MenuRow(
-            Symbols.Movie, "Collection", value = config.aerialSource.label,
-            onClick = { update { it.copy(aerialSource = it.aerialSource.next()) } },
-        )
-        MenuRow(
             Symbols.Timer, "Screensaver",
             value = if (config.idleMinutes == 0) "Off" else "After ${config.idleMinutes} min without input",
             onClick = {

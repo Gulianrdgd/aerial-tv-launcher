@@ -18,11 +18,11 @@ Aerial is a custom launcher (home screen replacement) for Android TV and Google 
 
 The bar at the top holds the clock, the aerial that's playing (select it to skip to the next one), the weather and three buttons for inputs, notifications and settings. When music is playing, the aerial tile turns into a Now Playing card with album art and play controls, and the clock and weather shrink to make room for it.
 
-Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, a row of quick settings, and the rest of your apps.
+Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, the rest of your apps, and a row of quick settings.
 
 Hold OK on an app to open, move, pin, hide or uninstall it, or to open its app info. Pressing Home while you're already home jumps back to the top.
 
-After two minutes without input the panels fade out and the aerial plays full screen, much like Chromecast's ambient mode: the clip's name, the time and the weather sit in the bottom left, and whatever is playing shows in the top right. Any button brings the home screen back.
+After two minutes without input the panels fade out and the aerial plays full screen, much like Chromecast's ambient mode: the clip's name and scenery, the time and the weather sit in the bottom left, and whatever is playing shows in the top right. Any button brings the home screen back.
 
 ![Aerial screensaver with clip name, time and weather](docs/screenshots/screensaver.png)
 
@@ -42,7 +42,7 @@ Clips stream when they're shown and nothing is downloaded ahead. The last one or
 
 ![Launcher settings panel](docs/screenshots/settings.png)
 
-The settings panel opens from the gear in the top bar. It covers scenery and collection, how soon the screensaver starts, 12 or 24 hour time, Celsius or Fahrenheit, the weather location, tile style (app banners or tiles tinted to the aerial), and hidden apps. It also links to the Android TV settings for date, time and timezone.
+The settings panel opens from the gear in the top bar. It covers the scenery, how soon the screensaver starts, 12 or 24 hour time, Celsius or Fahrenheit, the weather location, tile style (app banners or tiles tinted to the aerial), and hidden apps. It also links to the Android TV settings for date, time and timezone.
 
 Weather comes from Open-Meteo, which needs no account. Aerial guesses your city from the TV's timezone, and you can type a different one.
 

@@ -22,7 +22,6 @@ object Symbols {
     val Info = R.drawable.ms_info
     val Delete = R.drawable.ms_delete
     val Home = R.drawable.ms_home
-    val Movie = R.drawable.ms_movie
     val Landscape = R.drawable.ms_landscape
     val Timer = R.drawable.ms_timer
     val Music = R.drawable.ms_music_note

@@ -56,8 +56,6 @@ private const val SAMPLE_DELAY_MS = 1_500L
 @Composable
 fun AerialBackground(
     modifier: Modifier = Modifier,
-    /** Which collections to play; empty = all of them. */
-    sources: Set<String> = emptySet(),
     /** Which scenery to play (city, nature, …); null = everything. */
     kind: String? = null,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
@@ -70,10 +68,10 @@ fun AerialBackground(
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val queue = remember(sources, kind) {
+    val queue = remember(kind) {
         val all = Aerials.load(context)
-        val picked = all.filter { (sources.isEmpty() || it.source in sources) && (kind == null || it.kind == kind) }
-        // A combination with no clips (e.g. community + space) falls back to everything.
+        val picked = all.filter { kind == null || it.kind == kind }
+        // A scenery with no clips falls back to everything.
         AerialQueue(picked.ifEmpty { all })
     }
     var current by remember { mutableStateOf<Aerial?>(null) }

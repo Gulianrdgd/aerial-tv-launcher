@@ -47,7 +47,6 @@ import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.GoogleSansFlex
 import nl.julian.aerial.theme.Symbols
-import nl.julian.aerial.ui.widgets.collectionLabel
 import nl.julian.aerial.ui.widgets.is24Hour
 import nl.julian.aerial.ui.widgets.sceneryLabel
 import nl.julian.aerial.ui.widgets.skyIcon
@@ -104,7 +103,7 @@ fun Ambient(
                 clip?.let {
                     Text(it.title, style = style(22, 500), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}",
+                        sceneryLabel(it.kind),
                         style = style(15, 400, 0.02).copy(color = Faint), maxLines = 1,
                     )
                     Spacer(Modifier.height(6.dp))

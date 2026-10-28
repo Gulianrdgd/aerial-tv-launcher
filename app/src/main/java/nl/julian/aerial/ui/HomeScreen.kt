@@ -90,7 +90,7 @@ import nl.julian.aerial.wallpaper.AerialBackground
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
 private val SCREEN_MARGIN = 48.dp
 /** Open aerial between the top bar and the dock. */
-private val DOCK_GAP = 60.dp
+private val DOCK_GAP = 40.dp
 
 @Composable
 fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
@@ -131,7 +131,6 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
         // Wait for the saved settings, or the first clip ignores the chosen scenery.
         config?.let { cfg ->
         AerialBackground(
-            sources = cfg.aerialSource.keys,
             kind = cfg.scenery.kind,
             onSeed = { seed = it },
             onClip = { clip = it },
@@ -328,6 +327,15 @@ private fun HomeContent(
         item(key = "watch-next") {
             WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
         }
+        if (gridRows.isNotEmpty()) {
+            item(key = "apps") {
+                SectionPanel(Modifier.reveal(3, revealTick), title = "All apps") {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        gridRows.forEach { row -> TileRow(row) { app, m -> tile(app, m, false) } }
+                    }
+                }
+            }
+        }
         item(key = "quick") {
             QuickSettings(
                 scenery = config.scenery,
@@ -338,17 +346,8 @@ private fun HomeContent(
                     }
                 },
                 onStartScreensaver = onStartScreensaver,
-                modifier = Modifier.reveal(3, revealTick),
+                modifier = Modifier.reveal(4, revealTick),
             )
-        }
-        if (gridRows.isNotEmpty()) {
-            item(key = "apps") {
-                SectionPanel(Modifier.reveal(4, revealTick), title = "All apps") {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        gridRows.forEach { row -> TileRow(row) { app, m -> tile(app, m, false) } }
-                    }
-                }
-            }
         }
     }
 

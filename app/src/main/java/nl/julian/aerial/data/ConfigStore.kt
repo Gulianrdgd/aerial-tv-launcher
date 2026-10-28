@@ -10,14 +10,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** Aerial collections, matching the `s` field of aerials.json. */
-enum class AerialSource(val label: String, val keys: Set<String>) {
-    All("All", emptySet()),
-    Apple("Apple TV", setOf("A")),
-    Amazon("Fire TV", setOf("Z")),
-    Community("Community", setOf("C1", "C2")),
-}
-
 /** What the aerials show, matching the `k` tag in aerials.json. */
 enum class Scenery(val label: String, val kind: String?) {
     All("Everything", null),
@@ -39,7 +31,6 @@ data class LauncherConfig(
     /** Manual order of the app grid; apps not listed follow alphabetically. */
     val order: List<String> = emptyList(),
     val hidden: Set<String> = emptySet(),
-    val aerialSource: AerialSource = AerialSource.All,
     val scenery: Scenery = Scenery.All,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,

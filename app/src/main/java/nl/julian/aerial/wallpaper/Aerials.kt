@@ -4,11 +4,8 @@ import android.content.Context
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/**
- * [source] is the collection key: A = Apple, Z = Amazon, C1/C2 = community.
- * [kind] is the scenery: city, nature, water (underwater), space, or "" (neither, e.g. a fireplace).
- */
-data class Aerial(val title: String, val uri: String, val source: String = "A", val kind: String = "")
+/** [kind] is the scenery: city, nature, water (underwater), space, or "" (neither, e.g. a fireplace). */
+data class Aerial(val title: String, val uri: String, val kind: String = "")
 
 /**
  * The bundled aerial manifest: 289 1080p H.264 clips (Apple, Amazon Fire TV,
@@ -16,7 +13,7 @@ data class Aerial(val title: String, val uri: String, val source: String = "A", 
  */
 object Aerials {
     @Serializable
-    private data class Entry(val t: String = "", val u: String, val s: String = "A", val k: String = "")
+    private data class Entry(val t: String = "", val u: String, val k: String = "")
 
     @Volatile
     private var cache: List<Aerial>? = null
@@ -26,7 +23,7 @@ object Aerials {
         Json { ignoreUnknownKeys = true }.decodeFromString<List<Entry>>(json)
             // Amazon's "… Motion" pieces are abstract motion art, not aerial footage.
             .filterNot { it.t.endsWith(" Motion") }
-            .map { Aerial(it.t, it.u, it.s, it.k) }
+            .map { Aerial(it.t, it.u, it.k) }
     }.getOrDefault(emptyList()).also { cache = it }
 }
 
