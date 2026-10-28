@@ -1,5 +1,11 @@
 # Aerial: an Android TV launcher with Apple TV aerials
 
+[![Latest release](https://img.shields.io/github/v/release/Gulianrdgd/aerial-tv-launcher?label=release)](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Gulianrdgd/aerial-tv-launcher/total)](https://github.com/Gulianrdgd/aerial-tv-launcher/releases)
+[![License: GPL-3.0](https://img.shields.io/github/license/Gulianrdgd/aerial-tv-launcher)](LICENSE)
+![Android TV](https://img.shields.io/badge/Android%20TV-8.0%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
+
 Aerial is a custom launcher (home screen replacement) for Android TV and Google TV. Slow aerial video plays behind everything, the way it does on an Apple TV, and the panels on top follow Material You: their colours are picked from whatever clip is on screen. It has no ads and no sponsored rows.
 
 [Download the latest APK](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest) and sideload it with adb (see [Install](#install)).
