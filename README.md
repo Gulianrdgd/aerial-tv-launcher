@@ -16,6 +16,12 @@ After two minutes without input the panels fade out and the aerial plays full sc
 
 ![Screensaver](docs/screenshots/screensaver.png)
 
+## Inputs
+
+The inputs button in the top bar lists the TV's HDMI ports and other inputs in port order, with the names you gave them on the TV and an icon for the kind of device behind them.
+
+![Inputs](docs/screenshots/inputs.png)
+
 ## Aerials
 
 There are 265 clips at 1080p, from Apple's TV screensaver, from Fire TV and from community collections. Each one is tagged as city, nature, underwater or space, so you can pick the scenery in Settings or in the quick settings row.
