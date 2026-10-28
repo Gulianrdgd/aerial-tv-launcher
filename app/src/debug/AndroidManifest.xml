@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Debug builds only: fake media session for testing Now Playing.
+             adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a play|pause|stop -->
+        <receiver
+            android:name=".debug.FakeMediaReceiver"
+            android:exported="true" />
+    </application>
+</manifest>

@@ -61,4 +61,6 @@ dependencies {
     implementation(libs.material.color.utilities)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    testImplementation(libs.junit)
 }

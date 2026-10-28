@@ -22,6 +22,7 @@ import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,6 +33,8 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.NetKind
+import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.data.bluetoothOnFlow
 import nl.julian.aerial.data.networkFlow
 import nl.julian.aerial.theme.AerialType
@@ -54,15 +57,21 @@ private val INNER = OUTER - INSET
  */
 @Composable
 fun WidgetBand(modifier: Modifier = Modifier) {
-    Bezel(modifier.fillMaxWidth().height(168.dp), outerRadius = OUTER, inset = INSET) {
+    Bezel(modifier.fillMaxWidth().height(160.dp), outerRadius = OUTER, inset = INSET) {
         Row(
             Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ClockTile(Modifier.fillMaxHeight().aspectRatio(1.06f))
-            StatusPills(Modifier.width(220.dp).fillMaxHeight())
-            Spacer(Modifier.weight(1f))
+            val context = LocalContext.current.applicationContext
+            val media by remember { NowPlayingRepository.nowPlaying(context) }.collectAsStateWithLifecycle(null)
+            val weather by remember { WeatherRepository.weather() }.collectAsStateWithLifecycle(null)
+
+            ClockTile(Modifier.fillMaxHeight().aspectRatio(0.96f))
+            StatusPills(Modifier.width(188.dp).fillMaxHeight())
+            media?.let { NowPlayingCard(it, INNER, Modifier.weight(1f).fillMaxHeight()) }
+                ?: Spacer(Modifier.weight(1f))
+            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().aspectRatio(0.84f)) }
             SettingsKey()
         }
     }
@@ -179,7 +188,7 @@ private fun SettingsKey() {
     FocusSurface(
         onClick = { ctx.startSafely(Intent(Settings.ACTION_SETTINGS)) },
         shape = CircleShape,
-        modifier = Modifier.padding(end = 6.dp).size(64.dp),
+        modifier = Modifier.padding(horizontal = 2.dp).size(58.dp),
         focusedScale = 1.12f,
     ) {
         Icon(

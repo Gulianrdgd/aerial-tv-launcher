@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.InputMode
@@ -36,6 +39,7 @@ import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.theme.AerialType
 import nl.julian.aerial.theme.Bezel
 import nl.julian.aerial.theme.DynamicTheme
+import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalLauncherColors
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.widgets.WidgetBand
@@ -43,8 +47,8 @@ import nl.julian.aerial.wallpaper.AerialBackground
 import nl.julian.aerial.ui.widgets.startSafely
 
 private const val COLUMNS = 5
-/** TV overscan-safe side margin. */
-private val SCREEN_MARGIN = 56.dp
+/** TV overscan-safe side margin (Android TV guideline: 48dp). */
+private val SCREEN_MARGIN = 48.dp
 private val DOCK_OUTER = 40.dp
 private val DOCK_INSET = 12.dp
 
@@ -61,7 +65,7 @@ private val DEFAULT_DOCK = listOf(
 )
 
 @Composable
-fun HomeScreen(homeTick: Int) {
+fun HomeScreen(homeTick: Int, idle: Boolean) {
     val context = LocalContext.current
     var rescanTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -72,12 +76,22 @@ fun HomeScreen(homeTick: Int) {
     }
 
     var seed by remember { mutableStateOf<Int?>(null) }
+    var clipTitle by remember { mutableStateOf<String?>(null) }
+    // Idle: everything but the aerial fades away (slowly out, quickly back).
+    val uiAlpha by animateFloatAsState(
+        if (idle) 0f else 1f,
+        tween(if (idle) 1600 else 500, easing = FluidEasing),
+        label = "ui",
+    )
     Box(Modifier.fillMaxSize()) {
-        AerialBackground(onSeed = { seed = it })
-        Scrim()
-        DynamicTheme(seed) {
-            apps?.let { HomeContent(it, homeTick) }
+        AerialBackground(onSeed = { seed = it }, onClip = { clipTitle = it.title })
+        Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
+            Scrim()
+            DynamicTheme(seed) {
+                apps?.let { HomeContent(it, homeTick) }
+            }
         }
+        AerialCaption(clipTitle, visible = idle)
     }
 }
 
@@ -114,8 +128,8 @@ private fun HomeContent(apps: List<AppEntry>, homeTick: Int) {
         state = listState,
         modifier = Modifier.fillMaxSize(),
         // TV overscan-safe margins, then generous breathing room.
-        contentPadding = PaddingValues(start = SCREEN_MARGIN, end = SCREEN_MARGIN, top = 32.dp, bottom = 48.dp),
-        verticalArrangement = Arrangement.spacedBy(28.dp),
+        contentPadding = PaddingValues(start = SCREEN_MARGIN, end = SCREEN_MARGIN, top = 27.dp, bottom = 27.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         item(key = "widgets") {
             WidgetBand(Modifier.reveal(0, homeTick))

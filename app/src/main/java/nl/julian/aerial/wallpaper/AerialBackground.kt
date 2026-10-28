@@ -60,6 +60,8 @@ fun AerialBackground(
     modifier: Modifier = Modifier,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
     onSeed: (Int) -> Unit = {},
+    /** Called when a clip starts, e.g. to caption it. */
+    onClip: (Aerial) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -153,6 +155,7 @@ fun AerialBackground(
         if (reveal.value > 0f) reveal.animateTo(0f, tween(600, easing = FluidEasing))
         val genBefore = firstFrameGen
         Log.i("Aerial", "play ${clip.title}: ${clip.uri}")
+        onClip(clip)
         p.setMediaItem(MediaItem.fromUri(clip.uri))
         p.prepare()
         delay(STALL_MS)

@@ -63,6 +63,96 @@ object LineIcons {
         moveTo(8f, 5.5f); lineTo(18.5f, 12f); lineTo(8f, 18.5f); close()
     }
 
+    val Pause = icon("pause") {
+        moveTo(9f, 6f); lineTo(9f, 18f)
+        moveTo(15f, 6f); lineTo(15f, 18f)
+    }
+
+    val SkipNext = icon("skip_next") {
+        moveTo(6.5f, 6.5f); lineTo(14.5f, 12f); lineTo(6.5f, 17.5f); close()
+        moveTo(17.5f, 6.5f); lineTo(17.5f, 17.5f)
+    }
+
+    val SkipPrevious = icon("skip_previous") {
+        moveTo(17.5f, 6.5f); lineTo(9.5f, 12f); lineTo(17.5f, 17.5f); close()
+        moveTo(6.5f, 6.5f); lineTo(6.5f, 17.5f)
+    }
+
+    // --- Weather ---
+
+    /** Cloud outline, [dy] shifts it vertically so rain/snow fit underneath. */
+    private fun PathBuilder.cloud(dy: Float) {
+        moveTo(7.5f, 17f + dy); lineTo(17f, 17f + dy)
+        curveTo(19.2f, 17f + dy, 20.5f, 15.4f + dy, 20.5f, 13.6f + dy)
+        curveTo(20.5f, 11.8f + dy, 19.1f, 10.4f + dy, 17.4f, 10.3f + dy)
+        curveTo(16.8f, 7.8f + dy, 14.6f, 6f + dy, 12f, 6f + dy)
+        curveTo(9.2f, 6f + dy, 6.9f, 8f + dy, 6.5f, 10.6f + dy)
+        curveTo(4.8f, 10.9f + dy, 3.5f, 12.3f + dy, 3.5f, 14f + dy)
+        curveTo(3.5f, 15.7f + dy, 5f, 17f + dy, 7.5f, 17f + dy)
+        close()
+    }
+
+    private fun PathBuilder.ring(cx: Float, cy: Float, r: Float) {
+        moveTo(cx + r, cy)
+        arcTo(r, r, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = cx - r, y1 = cy)
+        arcTo(r, r, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = cx + r, y1 = cy)
+    }
+
+    val Sun = icon("sun") {
+        ring(12f, 12f, 4f)
+        for (i in 0 until 8) {
+            val a = Math.toRadians(i * 45.0)
+            val c = Math.cos(a).toFloat()
+            val sn = Math.sin(a).toFloat()
+            moveTo(12f + 7f * c, 12f + 7f * sn); lineTo(12f + 9f * c, 12f + 9f * sn)
+        }
+    }
+
+    val Moon = icon("moon") {
+        moveTo(19.5f, 14.5f)
+        arcTo(8f, 8f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 9.5f, y1 = 4.5f)
+        arcTo(6.5f, 6.5f, 0f, isMoreThanHalf = false, isPositiveArc = false, x1 = 19.5f, y1 = 14.5f)
+        close()
+    }
+
+    val Cloud = icon("cloud") { cloud(0f) }
+
+    val PartlyCloudy = icon("partly_cloudy") {
+        // Sun peeking from behind the cloud's upper left
+        moveTo(5.2f, 9.2f)
+        arcTo(3.6f, 3.6f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 11.8f, y1 = 6.4f)
+        moveTo(8.5f, 1.8f); lineTo(8.5f, 2.8f)
+        moveTo(3.2f, 4f); lineTo(3.9f, 4.7f)
+        moveTo(1.8f, 8.5f); lineTo(2.8f, 8.5f)
+        moveTo(13.8f, 4f); lineTo(13.1f, 4.7f)
+        cloud(2f)
+    }
+
+    val Rain = icon("rain") {
+        cloud(-3f)
+        moveTo(8f, 17f); lineTo(7f, 20f)
+        moveTo(12f, 17f); lineTo(11f, 20f)
+        moveTo(16f, 17f); lineTo(15f, 20f)
+    }
+
+    val Snow = icon("snow") {
+        cloud(-3f)
+        moveTo(8f, 18f); lineTo(8f, 18.1f)
+        moveTo(12f, 19.5f); lineTo(12f, 19.6f)
+        moveTo(16f, 18f); lineTo(16f, 18.1f)
+    }
+
+    val Storm = icon("storm") {
+        cloud(-3f)
+        moveTo(12.5f, 15f); lineTo(10.5f, 18.5f); lineTo(13.5f, 18.5f); lineTo(11.5f, 22f)
+    }
+
+    val Fog = icon("fog") {
+        moveTo(4f, 8f); lineTo(20f, 8f)
+        moveTo(6f, 12f); lineTo(18f, 12f)
+        moveTo(4f, 16f); lineTo(20f, 16f)
+    }
+
     val Gear = icon("gear") {
         // Eight-tooth outline around a hub
         moveTo(10.3f, 3.5f); lineTo(13.7f, 3.5f); lineTo(14.3f, 5.9f); lineTo(16.1f, 6.9f)
