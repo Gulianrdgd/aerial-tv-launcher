@@ -33,7 +33,11 @@ import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.theme.topHighlight
 
-/** Sky glyph; beside it the place, then the temperature with the next two hours of rain. Display only. */
+/**
+ * Sky glyph; beside it the place, the temperature with the next two hours
+ * of rain, and a one-line rain outlook. [compact] (while media plays) drops
+ * the place and outlook but keeps the rain bars. Display only.
+ */
 @Composable
 fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, compact: Boolean = false) {
     val cs = MaterialTheme.colorScheme
@@ -45,19 +49,26 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (compact) Arrangement.Center else Arrangement.Start,
     ) {
-        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(32.dp))
-        Spacer(Modifier.width(10.dp))
         if (compact) {
-            Text("${weather.temperature}°", style = MaterialTheme.typography.titleLarge, color = cs.onSurface)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(30.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                }
+                if (weather.rain.isNotEmpty()) RainBars(weather.rain)
+            }
             return@Row
         }
+        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(36.dp))
+        Spacer(Modifier.width(12.dp))
         Column {
             Text(
                 weather.place.uppercase(), style = EyebrowStyle, color = cs.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${weather.temperature}°", style = MaterialTheme.typography.titleLarge, color = cs.onSurface)
+                Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
                 if (weather.rain.isNotEmpty()) {
                     Spacer(Modifier.width(10.dp))
                     RainBars(weather.rain)

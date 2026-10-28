@@ -61,9 +61,9 @@ import java.util.Date
 import java.util.Locale
 
 /** Height of the top bar: compact, so the aerial stays the main thing on screen. */
-private val BAR_HEIGHT = 96.dp
+private val BAR_HEIGHT = 140.dp
 private val BAR_RADIUS = PANEL_RADIUS
-private val BAR_INSET = 10.dp
+private val BAR_INSET = 12.dp
 internal val INNER = BAR_RADIUS - BAR_INSET
 /** Every tile in the bar shares this inner padding. */
 internal val TILE_PADDING = 16.dp
@@ -100,12 +100,11 @@ fun WidgetBand(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // While something plays, clock and weather tuck in to their essentials
-        // so the Now Playing card gets the room.
+        // While something plays the weather narrows (dropping the place) so
+        // the Now Playing card gets the room.
         val compact = media != null
-        val clockWidth by animateDpAsState(if (compact) 160.dp else 216.dp, tween(500, easing = FluidEasing), label = "clockW")
-        val weatherWidth by animateDpAsState(if (compact) 112.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
-        ClockTile(clockFormat, compact, Modifier.fillMaxHeight().width(clockWidth))
+        val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
+        ClockTile(clockFormat, Modifier.fillMaxHeight().width(176.dp))
         when {
             media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
             else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
@@ -118,11 +117,10 @@ fun WidgetBand(
 /**
  * Clock, Material 3 Expressive: hours and minutes each in their own filled
  * pill (primary and tertiary containers, so they follow the aerial's
- * colours), with the date beside them. While media plays the date is
- * dropped so the Now Playing card gets the room.
+ * colours), with the date underneath.
  */
 @Composable
-private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier) {
+private fun ClockTile(format: ClockFormat, modifier: Modifier) {
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     // Ticks exactly on the minute boundary, not every second.
@@ -136,22 +134,22 @@ private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier)
     val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
 
-    Row(
+    Column(
         modifier
             .background(tileColor(), RoundedCornerShape(INNER))
             .topHighlight(RoundedCornerShape(INNER))
-            .padding(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
     ) {
-        DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
-        DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
-        if (!compact) {
-            Column(Modifier.padding(start = 8.dp)) {
-                Text(SimpleDateFormat("EEE", Locale.getDefault()).format(now), style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1)
-                Text(SimpleDateFormat("d MMM", Locale.getDefault()).format(now), style = MaterialTheme.typography.titleSmall, color = cs.onSurface, maxLines = 1)
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
+            DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
         }
+        Text(
+            SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(now),
+            style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1,
+        )
     }
 }
 
@@ -159,8 +157,8 @@ private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier)
 private fun DigitPill(text: String, container: Color, content: Color) {
     Box(
         Modifier
-            .fillMaxHeight()
-            .widthIn(min = 56.dp)
+            .height(60.dp)
+            .widthIn(min = 64.dp)
             .background(container, RoundedCornerShape(14.dp))
             .padding(horizontal = 10.dp),
         contentAlignment = Alignment.Center,
@@ -198,7 +196,7 @@ private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier
             }
             Box(
                 Modifier
-                    .size(36.dp)
+                    .size(40.dp)
                     .background(if (focused) MaterialTheme.colorScheme.primary else LocalSurfaces.current.highest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {

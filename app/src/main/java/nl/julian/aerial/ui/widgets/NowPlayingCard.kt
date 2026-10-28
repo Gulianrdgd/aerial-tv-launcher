@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,19 +56,20 @@ import kotlin.math.sin
 @Composable
 fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
-    val inset = 8.dp
+    val inset = 10.dp
     Row(
         modifier.background(tileColor(), RoundedCornerShape(radius)).topHighlight(RoundedCornerShape(radius)).padding(inset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(60.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
+        Box(Modifier.size(84.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
             if (media.art != null) {
                 Image(media.art, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else if (media.artUri != null) {
                 AsyncImage(media.artUri, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
         }
-        Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
+        // Title and artist get the full width; progress and buttons share the line below.
+        Column(Modifier.weight(1f).padding(start = 14.dp)) {
             Text(
                 media.title, style = MaterialTheme.typography.titleSmall, color = cs.onSurface,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -78,12 +80,15 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
-            WavyProgress(media, Modifier.padding(top = 4.dp).fillMaxWidth().height(10.dp))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
-            PlayPauseButton(media.playing) { media.playPause() }
-            SkipButton(Symbols.SkipNext, "Next") { media.next() }
+            Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                WavyProgress(media, Modifier.weight(1f).height(10.dp))
+                Spacer(Modifier.width(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
+                    PlayPauseButton(media.playing) { media.playPause() }
+                    SkipButton(Symbols.SkipNext, "Next") { media.next() }
+                }
+            }
         }
     }
 }
@@ -135,14 +140,14 @@ private fun PlayPauseButton(playing: Boolean, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(corner),
         container = cs.primary,
-        modifier = Modifier.width(46.dp).height(32.dp),
+        modifier = Modifier.width(52.dp).height(36.dp),
         focusedScale = 1.1f,
     ) { focused ->
         Icon(
             painterResource(if (playing) Symbols.Pause else Symbols.Play),
             contentDescription = if (playing) "Pause" else "Play",
             tint = if (focused) cs.inverseOnSurface else cs.onPrimary,
-            modifier = Modifier.align(Alignment.Center).size(20.dp),
+            modifier = Modifier.align(Alignment.Center).size(22.dp),
         )
     }
 }
@@ -153,7 +158,7 @@ private fun SkipButton(@DrawableRes icon: Int, label: String, onClick: () -> Uni
         onClick = onClick,
         shape = CircleShape,
         container = LocalSurfaces.current.highest,
-        modifier = Modifier.size(30.dp),
+        modifier = Modifier.size(34.dp),
         focusedScale = 1.12f,
     ) {
         Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(18.dp))
