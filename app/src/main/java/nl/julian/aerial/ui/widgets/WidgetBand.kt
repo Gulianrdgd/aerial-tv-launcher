@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -219,8 +220,10 @@ internal fun sceneryLabel(kind: String) = when (kind) {
 }
 
 /**
- * M3 Expressive toolbar: one rounded container holding the inputs,
- * notifications and settings buttons.
+ * Inputs, notifications and settings as one segmented control: a single
+ * tile split into three equal parts by hairline separators, each an icon
+ * with a small label. The outer corners follow the tile; on focus only
+ * that part inverts.
  */
 @Composable
 private fun ControlRail(
@@ -230,22 +233,39 @@ private fun ControlRail(
     onSettings: () -> Unit,
     focus: RailFocus,
 ) {
+    val tile = RoundedCornerShape(INNER)
+    // Inner corners stay small; outer ones match the tile (inset by the 4dp padding).
+    val outer = INNER - 4.dp
+    val inner = 8.dp
     Row(
         Modifier
             .fillMaxHeight()
-            .background(tileColor(), RoundedCornerShape(INNER))
-            .topHighlight(RoundedCornerShape(INNER))
-            .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .background(tileColor(), tile)
+            .topHighlight(tile)
+            .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
-        Box {
-            RailButton(Symbols.Notifications, "Notifications", onNotifications, focus.notifications)
-            if (notifications > 0) Badge(notifications, Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp))
-        }
-        RailButton(Symbols.Settings, "Settings", onSettings, focus.settings)
+        RailSegment(
+            Symbols.Input, "Inputs", onInputs, focus.inputs,
+            RoundedCornerShape(topStart = outer, bottomStart = outer, topEnd = inner, bottomEnd = inner),
+        )
+        SegmentDivider()
+        RailSegment(
+            Symbols.Notifications, "Alerts", onNotifications, focus.notifications,
+            RoundedCornerShape(inner), badge = notifications,
+        )
+        SegmentDivider()
+        RailSegment(
+            Symbols.Settings, "Settings", onSettings, focus.settings,
+            RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer),
+        )
     }
+}
+
+/** Hairline between two segments, like the edge of the glass panels. */
+@Composable
+private fun SegmentDivider() {
+    Box(Modifier.width(1.dp).fillMaxHeight(0.5f).background(Color.White.copy(alpha = 0.10f)))
 }
 
 class RailFocus(
@@ -255,16 +275,32 @@ class RailFocus(
 )
 
 @Composable
-private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit, focus: FocusRequester) {
+private fun RailSegment(
+    @DrawableRes icon: Int,
+    label: String,
+    onClick: () -> Unit,
+    focus: FocusRequester,
+    shape: Shape,
+    badge: Int = 0,
+) {
     FocusSurface(
         onClick = onClick,
-        shape = CircleShape,
-        container = LocalSurfaces.current.highest,
-        // 48dp: the comfortable focus target from across the room.
-        modifier = Modifier.size(48.dp).focusRequester(focus),
-        focusedScale = 1.12f,
+        shape = shape,
+        container = Color.Transparent,
+        modifier = Modifier.width(68.dp).fillMaxHeight().focusRequester(focus),
+        focusedScale = 1.04f,
     ) {
-        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(24.dp))
+        Column(
+            Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box {
+                Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(26.dp))
+                if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-6).dp))
+            }
+            Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+        }
     }
 }
 

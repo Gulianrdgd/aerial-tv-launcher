@@ -89,8 +89,9 @@ fun FocusSurface(
         // and the scale + ring/inversion already mark focus clearly.
         glow = ClickableSurfaceDefaults.glow(focusedGlow = Glow.None),
     ) {
-        // Container tiles get the raised top edge; artwork tiles stay clean.
-        if (style == FocusStyle.Invert) Box(Modifier.matchParentSize().topHighlight(shape))
+        // Container tiles get the raised top edge; artwork tiles and transparent
+        // segments (which sit on a tile that has its own) stay clean.
+        if (style == FocusStyle.Invert && container.alpha > 0f) Box(Modifier.matchParentSize().topHighlight(shape))
         content(focused)
     }
 }

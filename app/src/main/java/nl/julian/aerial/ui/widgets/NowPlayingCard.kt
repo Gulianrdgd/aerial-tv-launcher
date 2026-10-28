@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -68,7 +67,7 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
                 AsyncImage(media.artUri, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
         }
-        // Title and artist get the full width; progress and buttons share the line below.
+        // Title, artist and progress each get the full width; the buttons sit below.
         Column(Modifier.weight(1f).padding(start = 14.dp)) {
             Text(
                 media.title, style = MaterialTheme.typography.titleSmall, color = cs.onSurface,
@@ -80,14 +79,15 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
-            Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                WavyProgress(media, Modifier.weight(1f).height(10.dp))
-                Spacer(Modifier.width(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
-                    PlayPauseButton(media.playing) { media.playPause() }
-                    SkipButton(Symbols.SkipNext, "Next") { media.next() }
-                }
+            WavyProgress(media, Modifier.padding(top = 4.dp).fillMaxWidth().height(10.dp))
+            Row(
+                Modifier.padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
+                PlayPauseButton(media.playing) { media.playPause() }
+                SkipButton(Symbols.SkipNext, "Next") { media.next() }
             }
         }
     }
@@ -140,7 +140,7 @@ private fun PlayPauseButton(playing: Boolean, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(corner),
         container = cs.primary,
-        modifier = Modifier.width(52.dp).height(36.dp),
+        modifier = Modifier.width(48.dp).height(32.dp),
         focusedScale = 1.1f,
     ) { focused ->
         Icon(
@@ -158,7 +158,7 @@ private fun SkipButton(@DrawableRes icon: Int, label: String, onClick: () -> Uni
         onClick = onClick,
         shape = CircleShape,
         container = LocalSurfaces.current.highest,
-        modifier = Modifier.size(34.dp),
+        modifier = Modifier.size(32.dp),
         focusedScale = 1.12f,
     ) {
         Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(18.dp))
