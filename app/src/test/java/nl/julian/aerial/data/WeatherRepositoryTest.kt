@@ -38,4 +38,13 @@ class WeatherRepositoryTest {
         assertEquals(true, wet.rainExpected)
         assertEquals(false, Weather("A", 10, Sky.Clear, true).rainExpected)
     }
+
+    @Test
+    fun rainOutlookSummarisesTheNextTwoHours() {
+        fun w(vararg mm: Float) = Weather("A", 10, Sky.Rain, true, rain = mm.toList())
+        assertEquals("Dry for 2 h", w(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f).rainOutlook)
+        assertEquals("Rain in 30 min", w(0f, 0.05f, 0.4f, 1f, 0f, 0f, 0f, 0f).rainOutlook)
+        assertEquals("Dry in 45 min", w(0.5f, 0.3f, 0.2f, 0f, 0f, 0f, 0f, 0f).rainOutlook)
+        assertEquals("Rain for 2 h", w(1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f).rainOutlook)
+    }
 }

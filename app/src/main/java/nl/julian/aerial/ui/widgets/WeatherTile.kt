@@ -58,31 +58,38 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${weather.temperature}°", style = MaterialTheme.typography.titleLarge, color = cs.onSurface)
-                Spacer(Modifier.width(10.dp))
-                if (weather.rainExpected) {
+                if (weather.rain.isNotEmpty()) {
+                    Spacer(Modifier.width(10.dp))
                     RainBars(weather.rain)
-                } else {
-                    Text("Dry for 2 h", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant, maxLines = 1)
                 }
             }
+            Text(
+                weather.rainOutlook, style = MaterialTheme.typography.labelMedium, maxLines = 1,
+                color = if (weather.rainExpected) RainBlue else cs.onSurfaceVariant,
+            )
         }
     }
 }
 
-/** Eight quarter-hour bars for the next two hours; empty quarters are dots. */
+private val RainBlue = Color(0xFF9CCBFF)
+
+/**
+ * The next two hours in eight quarter-hour bars: rain in blue, rising
+ * with the amount (2 mm per quarter, heavy rain, fills the bar; even
+ * drizzle gets a third so it's visible); dry quarters are small dots.
+ */
 @Composable
 private fun RainBars(rain: List<Float>) {
-    val cs = MaterialTheme.colorScheme
-    val dry = cs.onSurfaceVariant.copy(alpha = 0.35f)
-    Canvas(Modifier.width(72.dp).height(14.dp).semantics { contentDescription = "Rain expected in the next 2 hours" }) {
+    val dry = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+    Canvas(Modifier.width(72.dp).height(16.dp).semantics { contentDescription = "Rain over the next 2 hours" }) {
         val n = rain.size.coerceAtLeast(1)
         val gap = 3.dp.toPx()
         val w = (size.width - gap * (n - 1)) / n
         rain.forEachIndexed { i, mm ->
-            // 2 mm per quarter (heavy rain) fills the bar.
-            val h = if (mm < 0.1f) w else (mm / 2f).coerceIn(0.2f, 1f) * size.height
+            val wet = mm >= 0.1f
+            val h = if (wet) (mm / 2f).coerceIn(0.33f, 1f) * size.height else w
             drawRoundRect(
-                color = if (mm < 0.1f) dry else cs.tertiary,
+                color = if (wet) RainBlue else dry,
                 topLeft = Offset(i * (w + gap), size.height - h),
                 size = Size(w, h),
                 cornerRadius = CornerRadius(w / 2),

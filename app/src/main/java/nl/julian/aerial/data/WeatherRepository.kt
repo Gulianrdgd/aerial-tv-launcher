@@ -29,8 +29,22 @@ data class Weather(
     val rain: List<Float> = emptyList(),
 ) {
     /** True when any meaningful rain (≥ 0.1 mm per quarter) is expected in the next 2 hours. */
-    val rainExpected: Boolean get() = rain.any { it >= 0.1f }
+    val rainExpected: Boolean get() = rain.any { it >= RAIN_MM }
+
+    /** One line about the next two hours: "Rain in 30 min", "Dry in 45 min", "Dry for 2 h", … */
+    val rainOutlook: String get() {
+        val wet = rain.map { it >= RAIN_MM }
+        val firstWet = wet.indexOf(true)
+        return when {
+            firstWet < 0 -> "Dry for 2 h"
+            firstWet > 0 -> "Rain in ${firstWet * 15} min"
+            else -> wet.indexOf(false).let { dryAt -> if (dryAt < 0) "Rain for 2 h" else "Dry in ${dryAt * 15} min" }
+        }
+    }
 }
+
+/** Less than this per quarter hour is drizzle you won't notice. */
+private const val RAIN_MM = 0.1f
 
 /**
  * Current conditions from Open-Meteo (no API key, no account). The place is

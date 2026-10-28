@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.core.animateDpAsState
@@ -28,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -101,7 +103,7 @@ fun WidgetBand(
         // While something plays, clock and weather tuck in to their essentials
         // so the Now Playing card gets the room.
         val compact = media != null
-        val clockWidth by animateDpAsState(if (compact) 120.dp else 172.dp, tween(500, easing = FluidEasing), label = "clockW")
+        val clockWidth by animateDpAsState(if (compact) 160.dp else 216.dp, tween(500, easing = FluidEasing), label = "clockW")
         val weatherWidth by animateDpAsState(if (compact) 112.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
         ClockTile(clockFormat, compact, Modifier.fillMaxHeight().width(clockWidth))
         when {
@@ -114,9 +116,10 @@ fun WidgetBand(
 }
 
 /**
- * Clock: the date as an eyebrow over the time, both centred in a
- * fixed-width tile so nothing shifts as the minutes change. The colon is
- * picked out in the primary colour.
+ * Clock, Material 3 Expressive: hours and minutes each in their own filled
+ * pill (primary and tertiary containers, so they follow the aerial's
+ * colours), with the date beside them. While media plays the date is
+ * dropped so the Now Playing card gets the room.
  */
 @Composable
 private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier) {
@@ -132,20 +135,37 @@ private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier)
     val h24 = format.is24Hour(context)
     val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
-    val date = SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(now).uppercase()
-    val time = buildAnnotatedString {
-        append(hours)
-        withStyle(SpanStyle(color = cs.primary)) { append(":") }
-        append(minutes)
-    }
 
-    Column(
-        modifier.background(tileColor(), RoundedCornerShape(INNER)).topHighlight(RoundedCornerShape(INNER)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Row(
+        modifier
+            .background(tileColor(), RoundedCornerShape(INNER))
+            .topHighlight(RoundedCornerShape(INNER))
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (!compact) Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
-        Text(time, style = if (compact) ClockStyle.copy(fontSize = 34.sp, lineHeight = 36.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
+        DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
+        DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
+        if (!compact) {
+            Column(Modifier.padding(start = 8.dp)) {
+                Text(SimpleDateFormat("EEE", Locale.getDefault()).format(now), style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1)
+                Text(SimpleDateFormat("d MMM", Locale.getDefault()).format(now), style = MaterialTheme.typography.titleSmall, color = cs.onSurface, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DigitPill(text: String, container: Color, content: Color) {
+    Box(
+        Modifier
+            .fillMaxHeight()
+            .widthIn(min = 56.dp)
+            .background(container, RoundedCornerShape(14.dp))
+            .padding(horizontal = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = ClockStyle, color = content, maxLines = 1)
     }
 }
 

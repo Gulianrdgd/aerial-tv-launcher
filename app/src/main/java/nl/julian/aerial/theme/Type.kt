@@ -50,22 +50,25 @@ val AerialShapes = Shapes(
 )
 
 /**
- * Clock digits: the bar's focal point, so larger and lighter than anything
- * around them (light, not hairline, so they still read from the sofa). Cut
- * at a large optical size, with tabular figures so the time doesn't shift
- * as it changes.
+ * Clock digits, Material 3 Expressive style as on the Pixel lock screen:
+ * bold, with Google Sans Flex's roundness axis turned all the way up, and
+ * tabular figures so the time doesn't shift as it changes.
  */
 private val ClockFont = FontFamily(
     Font(
         R.font.google_sans_flex,
-        weight = FontWeight(260),
-        variationSettings = FontVariation.Settings(FontVariation.weight(260), FontVariation.Setting("opsz", 72f)),
+        weight = FontWeight(650),
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(650),
+            FontVariation.Setting("ROND", 100f),
+            FontVariation.Setting("opsz", 48f),
+        ),
     )
 )
 
 val ClockStyle = TextStyle(
-    fontFamily = ClockFont, fontWeight = FontWeight(260),
-    fontSize = 40.sp, lineHeight = 42.sp, letterSpacing = (-0.02).em,
+    fontFamily = ClockFont, fontWeight = FontWeight(650),
+    fontSize = 32.sp, lineHeight = 36.sp,
     fontFeatureSettings = "tnum",
 )
 
