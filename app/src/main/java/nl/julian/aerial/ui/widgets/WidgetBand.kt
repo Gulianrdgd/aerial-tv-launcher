@@ -102,10 +102,10 @@ fun WidgetBand(
         val middle = playing != null || showAerial
         // While music shows the weather narrows (dropping the place) so the
         // Now Playing card gets the room. With nothing in the middle the
-        // weather takes the free space.
+        // clock and weather split the free space equally.
         val compact = playing != null
         val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
-        ClockTile(clockFormat, Modifier.fillMaxHeight().width(176.dp))
+        ClockTile(clockFormat, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)))
         when {
             playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
             showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
