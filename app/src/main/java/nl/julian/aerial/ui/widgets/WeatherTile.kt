@@ -33,7 +33,7 @@ import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.theme.topHighlight
 
-/** Sky glyph and temperature, with the place and the next two hours of rain beside them. Display only. */
+/** Sky glyph; beside it the place, then the temperature with the next two hours of rain. Display only. */
 @Composable
 fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, compact: Boolean = false) {
     val cs = MaterialTheme.colorScheme
@@ -45,10 +45,10 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (compact) Arrangement.Center else Arrangement.Start,
     ) {
-        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(36.dp))
+        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(32.dp))
         Spacer(Modifier.width(10.dp))
         if (compact) {
-            Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+            Text("${weather.temperature}°", style = MaterialTheme.typography.titleLarge, color = cs.onSurface)
             return@Row
         }
         Column {
@@ -56,11 +56,14 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
                 weather.place.uppercase(), style = EyebrowStyle, color = cs.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
-            Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
-            if (weather.rainExpected) {
-                RainBars(weather.rain)
-            } else {
-                Text("Dry for 2 h", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${weather.temperature}°", style = MaterialTheme.typography.titleLarge, color = cs.onSurface)
+                Spacer(Modifier.width(10.dp))
+                if (weather.rainExpected) {
+                    RainBars(weather.rain)
+                } else {
+                    Text("Dry for 2 h", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant, maxLines = 1)
+                }
             }
         }
     }
@@ -71,7 +74,7 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
 private fun RainBars(rain: List<Float>) {
     val cs = MaterialTheme.colorScheme
     val dry = cs.onSurfaceVariant.copy(alpha = 0.35f)
-    Canvas(Modifier.padding(top = 2.dp).width(88.dp).height(16.dp).semantics { contentDescription = "Rain expected in the next 2 hours" }) {
+    Canvas(Modifier.width(72.dp).height(14.dp).semantics { contentDescription = "Rain expected in the next 2 hours" }) {
         val n = rain.size.coerceAtLeast(1)
         val gap = 3.dp.toPx()
         val w = (size.width - gap * (n - 1)) / n

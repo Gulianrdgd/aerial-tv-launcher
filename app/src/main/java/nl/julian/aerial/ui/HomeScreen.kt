@@ -90,7 +90,7 @@ import nl.julian.aerial.wallpaper.AerialBackground
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
 private val SCREEN_MARGIN = 48.dp
 /** Open aerial between the top bar and the dock. */
-private val DOCK_GAP = 40.dp
+private val DOCK_GAP = 64.dp
 
 @Composable
 fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {

@@ -55,12 +55,12 @@ import kotlin.math.sin
 @Composable
 fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
-    val inset = 10.dp
+    val inset = 8.dp
     Row(
         modifier.background(tileColor(), RoundedCornerShape(radius)).topHighlight(RoundedCornerShape(radius)).padding(inset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(76.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
+        Box(Modifier.size(60.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
             if (media.art != null) {
                 Image(media.art, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else if (media.artUri != null) {
@@ -78,7 +78,7 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
-            WavyProgress(media, Modifier.padding(top = 8.dp).fillMaxWidth().height(10.dp))
+            WavyProgress(media, Modifier.padding(top = 4.dp).fillMaxWidth().height(10.dp))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
@@ -135,14 +135,14 @@ private fun PlayPauseButton(playing: Boolean, onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(corner),
         container = cs.primary,
-        modifier = Modifier.width(52.dp).height(36.dp),
+        modifier = Modifier.width(46.dp).height(32.dp),
         focusedScale = 1.1f,
     ) { focused ->
         Icon(
             painterResource(if (playing) Symbols.Pause else Symbols.Play),
             contentDescription = if (playing) "Pause" else "Play",
             tint = if (focused) cs.inverseOnSurface else cs.onPrimary,
-            modifier = Modifier.align(Alignment.Center).size(22.dp),
+            modifier = Modifier.align(Alignment.Center).size(20.dp),
         )
     }
 }
@@ -153,7 +153,7 @@ private fun SkipButton(@DrawableRes icon: Int, label: String, onClick: () -> Uni
         onClick = onClick,
         shape = CircleShape,
         container = LocalSurfaces.current.highest,
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier.size(30.dp),
         focusedScale = 1.12f,
     ) {
         Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(18.dp))

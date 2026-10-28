@@ -59,12 +59,12 @@ import java.util.Date
 import java.util.Locale
 
 /** Height of the top bar: compact, so the aerial stays the main thing on screen. */
-private val BAR_HEIGHT = 124.dp
+private val BAR_HEIGHT = 96.dp
 private val BAR_RADIUS = PANEL_RADIUS
-private val BAR_INSET = 12.dp
+private val BAR_INSET = 10.dp
 internal val INNER = BAR_RADIUS - BAR_INSET
 /** Every tile in the bar shares this inner padding. */
-internal val TILE_PADDING = 18.dp
+internal val TILE_PADDING = 16.dp
 
 /** Tile background: the theme's container, letting a little aerial through. */
 @Composable
@@ -95,14 +95,14 @@ fun WidgetBand(
             .height(BAR_HEIGHT)
             .panel(RoundedCornerShape(BAR_RADIUS))
             .padding(BAR_INSET),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // While something plays, clock and weather tuck in to their essentials
         // so the Now Playing card gets the room.
         val compact = media != null
-        val clockWidth by animateDpAsState(if (compact) 140.dp else 216.dp, tween(500, easing = FluidEasing), label = "clockW")
-        val weatherWidth by animateDpAsState(if (compact) 128.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
+        val clockWidth by animateDpAsState(if (compact) 120.dp else 172.dp, tween(500, easing = FluidEasing), label = "clockW")
+        val weatherWidth by animateDpAsState(if (compact) 112.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
         ClockTile(clockFormat, compact, Modifier.fillMaxHeight().width(clockWidth))
         when {
             media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
@@ -145,7 +145,7 @@ private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier)
         verticalArrangement = Arrangement.Center,
     ) {
         if (!compact) Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
-        Text(time, style = if (compact) ClockStyle.copy(fontSize = 40.sp, lineHeight = 44.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
+        Text(time, style = if (compact) ClockStyle.copy(fontSize = 34.sp, lineHeight = 36.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
     }
 }
 
@@ -178,14 +178,14 @@ private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier
             }
             Box(
                 Modifier
-                    .size(44.dp)
+                    .size(36.dp)
                     .background(if (focused) MaterialTheme.colorScheme.primary else LocalSurfaces.current.highest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painterResource(Symbols.SkipNext), contentDescription = "Next aerial",
                     tint = if (focused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
@@ -217,8 +217,8 @@ private fun ControlRail(
             .fillMaxHeight()
             .background(tileColor(), RoundedCornerShape(INNER))
             .topHighlight(RoundedCornerShape(INNER))
-            .padding(horizontal = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
