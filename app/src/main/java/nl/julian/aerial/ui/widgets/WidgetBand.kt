@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -45,11 +43,9 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.ClockFormat
-import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.ClockStyle
 import nl.julian.aerial.theme.EyebrowStyle
-import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.PANEL_RADIUS
 import nl.julian.aerial.theme.panel
@@ -74,13 +70,12 @@ internal val TILE_PADDING = 16.dp
 internal fun tileColor() = LocalSurfaces.current.high.copy(alpha = 0.88f)
 
 /**
- * The top bar: one compact translucent bar holding the tiles: clock, Now Playing (or, when nothing plays, the aerial on screen),
- * weather, and a toolbar with inputs, notifications and settings.
+ * The top bar: one translucent bar holding the tiles: clock, the aerial on
+ * screen, weather, and a toolbar with inputs, notifications and settings.
  */
 @Composable
 fun WidgetBand(
     clockFormat: ClockFormat,
-    media: NowPlaying?,
     clip: Aerial?,
     weather: Weather?,
     notificationCount: Int,
@@ -101,16 +96,9 @@ fun WidgetBand(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // While something plays the weather narrows (dropping the place) so
-        // the Now Playing card gets the room.
-        val compact = media != null
-        val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
         ClockTile(clockFormat, Modifier.fillMaxHeight().width(176.dp))
-        when {
-            media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
-            else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
-        }
-        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(weatherWidth), compact) }
+        NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
+        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(196.dp)) }
         ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
     }
 }

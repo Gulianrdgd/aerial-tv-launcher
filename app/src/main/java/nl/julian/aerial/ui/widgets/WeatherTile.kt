@@ -2,7 +2,6 @@ package nl.julian.aerial.ui.widgets
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,11 +34,10 @@ import nl.julian.aerial.theme.topHighlight
 
 /**
  * Sky glyph; beside it the place, the temperature with the next two hours
- * of rain, and a one-line rain outlook. [compact] (while media plays) drops
- * the place and outlook but keeps the rain bars. Display only.
+ * of rain, and a one-line rain outlook. Display only.
  */
 @Composable
-fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, compact: Boolean = false) {
+fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
     Row(
         modifier
@@ -47,19 +45,7 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
             .topHighlight(RoundedCornerShape(radius))
             .padding(horizontal = TILE_PADDING),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (compact) Arrangement.Center else Arrangement.Start,
     ) {
-        if (compact) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(30.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
-                }
-                if (weather.rain.isNotEmpty()) RainBars(weather.rain)
-            }
-            return@Row
-        }
         Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(36.dp))
         Spacer(Modifier.width(12.dp))
         Column {

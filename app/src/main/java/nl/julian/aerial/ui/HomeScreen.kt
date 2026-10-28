@@ -63,7 +63,6 @@ import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.InputsRepository
 import nl.julian.aerial.data.NotificationsRepository
-import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.data.Scenery
@@ -144,7 +143,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clip, media, weather, onSkipAerial = { skipTick++ }, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clip, weather, onSkipAerial = { skipTick++ }, onStartScreensaver)
                 }
             }
         }
@@ -169,7 +168,6 @@ private fun HomeContent(
     homeTick: Int,
     revealTick: Int,
     clip: Aerial?,
-    media: NowPlaying?,
     weather: Weather?,
     onSkipAerial: () -> Unit,
     onStartScreensaver: () -> Unit,
@@ -305,7 +303,6 @@ private fun HomeContent(
         item(key = "widgets") {
             WidgetBand(
                 clockFormat = config.clockFormat,
-                media = media,
                 clip = clip,
                 weather = weather,
                 notificationCount = notifications.size,

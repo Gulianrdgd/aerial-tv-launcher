@@ -16,7 +16,7 @@ Aerial is a custom launcher (home screen replacement) for Android TV and Google 
 
 ## What's on the home screen
 
-The bar at the top holds the clock, the aerial that's playing (select it to skip to the next one), the weather and three buttons for inputs, notifications and settings. When music is playing, the aerial tile turns into a Now Playing card with album art and play controls, and the clock and weather shrink to make room for it.
+The bar at the top holds the clock, the aerial that's playing (select it to skip to the next one), the weather and three buttons for inputs, notifications and settings.
 
 Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, the rest of your apps, and a row of quick settings.
 
