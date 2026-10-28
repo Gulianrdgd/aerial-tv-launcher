@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -22,7 +23,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -43,8 +43,8 @@ import nl.julian.aerial.ui.AmbientBackdrop
 private const val PREFETCH_DELAY_MS = 20_000L
 /** No frame within this window = a dead stream; skip it. */
 private const val STALL_MS = 8_000L
-/** How often the playing frame is re-sampled for the UI colours. */
-private const val SAMPLE_EVERY_MS = 8_000L
+/** When, after a clip's first frame, the picture is sampled for the UI colours. */
+private const val SAMPLE_DELAY_MS = 1_500L
 
 /**
  * Apple TV-style aerial video behind the home screen: muted, aspect-filled,
@@ -87,7 +87,11 @@ fun AerialBackground(
         current = queue.next()
     }
 
-    LaunchedEffect(skip) { if (skip > 0) current = queue.next() }
+    // Callbacks and effects that outlive a scenery change must use the
+    // current queue, not the one that existed when they were created.
+    val liveQueue by rememberUpdatedState(queue)
+
+    LaunchedEffect(skip) { if (skip > 0) current = liveQueue.next() }
 
     val reveal = remember { Animatable(0f) }
     var surfaceView by remember { mutableStateOf<SurfaceView?>(null) }
@@ -148,11 +152,11 @@ fun AerialBackground(
                 }
             }
             override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_ENDED) current = queue.next()
+                if (state == Player.STATE_ENDED) current = liveQueue.next()
             }
             override fun onPlayerError(error: PlaybackException) {
                 Log.w("Aerial", "play error ${error.errorCodeName}: ${current?.uri}")
-                current = queue.next()
+                current = liveQueue.next()
             }
         }
         p.addListener(listener)
@@ -173,7 +177,7 @@ fun AerialBackground(
         val resumed = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
         if (firstFrameGen == genBefore && resumed) {
             Log.w("Aerial", "no frame in ${STALL_MS}ms, skipping: ${clip.uri}")
-            current = queue.next()
+            current = liveQueue.next()
         }
     }
 
@@ -182,24 +186,20 @@ fun AerialBackground(
         if (firstFrameGen == 0) return@LaunchedEffect
         reveal.animateTo(1f, tween(1400, easing = FluidEasing))
         delay(PREFETCH_DELAY_MS)
-        AerialMedia.prefetch(context, queue.peek().uri)
+        AerialMedia.prefetch(context, liveQueue.peek().uri)
     }
 
-    // Re-sample the picture while it's on screen; only report real palette shifts.
+    // Sample the picture once per clip (a re-theme recolours the whole UI,
+    // which is too much work to repeat every few seconds on a TV chip).
+    // Skip palette shifts too small to notice.
+    var lastSeed by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(firstFrameGen) {
         if (firstFrameGen == 0) return@LaunchedEffect
-        var last: Int? = null
-        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            while (true) {
-                delay(400) // let the fade-in start so the frame is the new clip
-                val view = surfaceView
-                val seed = view?.let { FrameSampler.seed(it) }
-                if (seed != null && (last == null || !seedsSimilar(last!!, seed))) {
-                    last = seed
-                    onSeed(seed)
-                }
-                delay(SAMPLE_EVERY_MS)
-            }
+        delay(SAMPLE_DELAY_MS) // well into the fade-in, so the frame is the new clip
+        val seed = surfaceView?.let { FrameSampler.seed(it) } ?: return@LaunchedEffect
+        if (lastSeed == null || !seedsSimilar(lastSeed!!, seed)) {
+            lastSeed = seed
+            onSeed(seed)
         }
     }
 

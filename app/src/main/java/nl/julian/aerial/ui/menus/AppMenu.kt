@@ -14,8 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.data.AppEntry
@@ -28,8 +26,8 @@ enum class AppAction { Open, Move, Pin, Unpin, Hide, Info, Uninstall }
 @Composable
 fun AppMenu(app: AppEntry, inDock: Boolean, onAction: (AppAction) -> Unit, onDismiss: () -> Unit) {
     val first = remember { FocusRequester() }
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().swallowStrayOkRelease(), contentAlignment = Alignment.Center) {
+    Overlay(onDismiss) {
+        Box {
             Column(
                 Modifier
                     .width(360.dp)

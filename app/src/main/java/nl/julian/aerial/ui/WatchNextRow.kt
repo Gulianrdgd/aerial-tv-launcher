@@ -53,7 +53,7 @@ import nl.julian.aerial.data.WatchNextRepository
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
-private const val VISIBLE_CARDS = 3
+private const val VISIBLE_CARDS = 4
 private val GAP = 20.dp
 
 /**

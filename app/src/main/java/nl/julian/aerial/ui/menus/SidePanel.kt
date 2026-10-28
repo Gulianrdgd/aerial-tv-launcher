@@ -17,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.theme.LocalSurfaces
@@ -35,11 +33,8 @@ fun SidePanel(
     initialFocus: FocusRequester?,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(
-            Modifier.fillMaxSize().swallowStrayOkRelease().padding(horizontal = 24.dp, vertical = 16.dp),
-            contentAlignment = Alignment.CenterEnd,
-        ) {
+    Overlay(onDismiss, contentAlignment = Alignment.CenterEnd) {
+        Box(Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
             Column(
                 Modifier
                     .width(380.dp)

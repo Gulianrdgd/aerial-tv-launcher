@@ -39,9 +39,9 @@ fun Haze(modifier: Modifier = Modifier) {
     Box(
         modifier.fillMaxSize().background(
             Brush.verticalGradient(
-                0f to tint.copy(alpha = 0.18f),
-                0.5f to tint.copy(alpha = 0.26f),
-                1f to tint.copy(alpha = 0.42f),
+                0f to tint.copy(alpha = 0.08f),
+                0.5f to tint.copy(alpha = 0.14f),
+                1f to tint.copy(alpha = 0.30f),
             )
         )
     )

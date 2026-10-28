@@ -42,7 +42,6 @@ import kotlinx.coroutines.delay
 import nl.julian.aerial.data.ClockFormat
 import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
-import nl.julian.aerial.theme.Bezel
 import nl.julian.aerial.theme.ClockStyle
 import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.LocalSurfaces
@@ -53,16 +52,21 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val OUTER = 36.dp
-private val INSET = 10.dp
-internal val INNER = OUTER - INSET
-/** Every tile in the band shares this inner padding. */
-internal val TILE_PADDING = 20.dp
+/** Height of the top bar: compact, so the aerial stays the main thing on screen. */
+private val BAR_HEIGHT = 100.dp
+private val BAR_RADIUS = 32.dp
+private val BAR_INSET = 8.dp
+internal val INNER = BAR_RADIUS - BAR_INSET
+/** Every tile in the bar shares this inner padding. */
+internal val TILE_PADDING = 18.dp
+
+/** Tile background: the theme's container, letting a little aerial through. */
+@Composable
+internal fun tileColor() = LocalSurfaces.current.high.copy(alpha = 0.88f)
 
 /**
- * Monet's top band, a bento of equal-height tiles: clock, Now Playing (or,
- * when nothing plays, the aerial on screen), weather, and a vertical
- * toolbar with inputs, notifications and settings.
+ * The top bar: one compact translucent bar holding the tiles: clock, Now Playing (or, when nothing plays, the aerial on screen),
+ * weather, and a toolbar with inputs, notifications and settings.
  */
 @Composable
 fun WidgetBand(
@@ -79,20 +83,22 @@ fun WidgetBand(
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
 ) {
-    Bezel(modifier.fillMaxWidth().height(180.dp), outerRadius = OUTER, inset = INSET) {
-        Row(
-            Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ClockTile(clockFormat, Modifier.fillMaxHeight().width(232.dp))
-            when {
-                media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
-                else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
-            }
-            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(150.dp)) }
-            ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(BAR_HEIGHT)
+            .background(LocalSurfaces.current.low.copy(alpha = 0.55f), RoundedCornerShape(BAR_RADIUS))
+            .padding(BAR_INSET),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ClockTile(clockFormat, Modifier.fillMaxHeight().width(200.dp))
+        when {
+            media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
+            else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
         }
+        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(196.dp)) }
+        ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
     }
 }
 
@@ -115,7 +121,7 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier) {
     val h24 = format.is24Hour(context)
     val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
-    val date = SimpleDateFormat("EEEE d MMM", Locale.getDefault()).format(now).uppercase()
+    val date = SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(now).uppercase()
     val time = buildAnnotatedString {
         append(hours)
         withStyle(SpanStyle(color = cs.primary)) { append(":") }
@@ -123,9 +129,7 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier) {
     }
 
     Column(
-        modifier
-            .background(LocalSurfaces.current.high, RoundedCornerShape(INNER))
-            .padding(horizontal = TILE_PADDING),
+        modifier.background(tileColor(), RoundedCornerShape(INNER)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -140,16 +144,22 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier) {
  */
 @Composable
 private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier) {
-    FocusSurface(onClick = onSkip, shape = RoundedCornerShape(INNER), modifier = modifier, focusedScale = 1.03f) { focused ->
-        Row(Modifier.fillMaxSize().padding(horizontal = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
+    FocusSurface(
+        onClick = onSkip,
+        shape = RoundedCornerShape(INNER),
+        container = tileColor(),
+        modifier = modifier,
+        focusedScale = 1.03f,
+    ) { focused ->
+        Row(Modifier.fillMaxSize().padding(start = TILE_PADDING + 4.dp, end = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(
                     "NOW SHOWING", style = EyebrowStyle, maxLines = 1,
                     color = LocalContentColor.current.copy(alpha = 0.7f),
                 )
                 Text(
-                    clip?.title ?: "Aerials", style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    clip?.title ?: "Aerials", style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 clip?.let {
                     Text(
@@ -190,8 +200,8 @@ private fun collectionLabel(source: String) = when (source) {
 }
 
 /**
- * M3 Expressive vertical toolbar: one rounded container holding the
- * inputs, notifications and settings buttons.
+ * M3 Expressive toolbar: one rounded container holding the inputs,
+ * notifications and settings buttons.
  */
 @Composable
 private fun ControlRail(
@@ -201,13 +211,13 @@ private fun ControlRail(
     onSettings: () -> Unit,
     focus: RailFocus,
 ) {
-    Column(
+    Row(
         Modifier
             .fillMaxHeight()
-            .background(LocalSurfaces.current.high, CircleShape)
-            .padding(6.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .background(tileColor(), RoundedCornerShape(INNER))
+            .padding(horizontal = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
         Box {
@@ -229,7 +239,7 @@ private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Uni
     FocusSurface(
         onClick = onClick,
         shape = CircleShape,
-        container = LocalSurfaces.current.high,
+        container = LocalSurfaces.current.highest,
         // 48dp: the comfortable focus target from across the room.
         modifier = Modifier.size(48.dp).focusRequester(focus),
         focusedScale = 1.12f,

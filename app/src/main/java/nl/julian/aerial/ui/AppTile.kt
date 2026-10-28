@@ -31,7 +31,7 @@ fun AppTile(
     radius: Dp,
     onLaunch: () -> Unit,
     modifier: Modifier = Modifier,
-    tinted: Boolean = true,
+    tinted: Boolean = false,
     onLongPress: (() -> Unit)? = null,
     /** Lifted with a primary-colour ring while the user is moving it. */
     moving: Boolean = false,
@@ -56,15 +56,15 @@ fun AppTile(
             )
         } else {
             Column(
-                Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp),
+                Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
             ) {
                 if (app.icon != null) {
                     Image(
                         bitmap = app.icon,
                         contentDescription = null,
-                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)),
+                        modifier = Modifier.size(32.dp).clip(RoundedCornerShape(9.dp)),
                     )
                 }
                 Text(

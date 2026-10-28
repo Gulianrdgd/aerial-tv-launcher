@@ -6,8 +6,18 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import android.os.SystemClock
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
@@ -54,8 +64,7 @@ fun FocusSurface(
 
     Surface(
         onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = modifier,
+        modifier = modifier.then(if (onLongClick != null) Modifier.okPressAndHold(onClick, onLongClick) else Modifier),
         interactionSource = interaction,
         shape = ClickableSurfaceDefaults.shape(shape = shape, focusedShape = focusedShape),
         colors = ClickableSurfaceDefaults.colors(
@@ -72,10 +81,48 @@ fun FocusSurface(
             focusedBorder = if (invert) Border.None
             else Border(BorderStroke(if (highlighted) 3.dp else 2.dp, ringColor), shape = focusedShape),
         ),
-        glow = ClickableSurfaceDefaults.glow(
-            focusedGlow = Glow(elevationColor = cs.primary.copy(alpha = 0.45f), elevation = 12.dp),
-        ),
+        // No glow: a blurred shadow per focus change is costly on TV GPUs,
+        // and the scale + ring/inversion already mark focus clearly.
+        glow = ClickableSurfaceDefaults.glow(focusedGlow = Glow.None),
     ) {
         content(focused)
+    }
+}
+
+/** Holding OK this long opens the long-press action instead of clicking. */
+private const val LONG_PRESS_MS = 500L
+
+/**
+ * OK handled here instead of by the Surface, because TV remotes report a
+ * hold differently: some send key repeats, some only a late release. A
+ * short press clicks on release; a hold fires [onLongClick] once and its
+ * release never clicks.
+ */
+private fun Modifier.okPressAndHold(onClick: () -> Unit, onLongClick: () -> Unit): Modifier = composed {
+    var downAt by remember { mutableLongStateOf(0L) }
+    var held by remember { mutableStateOf(false) }
+    onPreviewKeyEvent { e ->
+        val ok = e.key == Key.DirectionCenter || e.key == Key.Enter || e.key == Key.NumPadEnter
+        if (!ok) return@onPreviewKeyEvent false
+        val now = SystemClock.uptimeMillis()
+        when (e.type) {
+            KeyEventType.KeyDown -> {
+                if (e.nativeKeyEvent.repeatCount == 0) {
+                    downAt = now
+                    held = false
+                } else if (!held && downAt != 0L && (e.nativeKeyEvent.isLongPress || now - downAt >= LONG_PRESS_MS)) {
+                    held = true
+                    onLongClick()
+                }
+            }
+            KeyEventType.KeyUp -> {
+                if (downAt != 0L && !held) {
+                    // Remotes without key repeats: judge the hold by its length.
+                    if (now - downAt >= LONG_PRESS_MS) onLongClick() else onClick()
+                }
+                downAt = 0L
+            }
+        }
+        true
     }
 }

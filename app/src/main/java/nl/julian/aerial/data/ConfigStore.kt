@@ -44,7 +44,7 @@ data class LauncherConfig(
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
-    val tintedTiles: Boolean = true,
+    val tintedTiles: Boolean = false,
     val clockFormat: ClockFormat = ClockFormat.System,
     val tempUnit: TempUnit = TempUnit.Auto,
     /** City for the weather; empty = derived from the TV's timezone. */

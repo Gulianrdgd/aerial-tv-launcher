@@ -46,4 +46,9 @@ object Symbols {
     val Thermostat = R.drawable.ms_device_thermostat
     val Location = R.drawable.ms_location_on
     val Calendar = R.drawable.ms_calendar_month
+    val Console = R.drawable.ms_sports_esports
+    val MediaPlayer = R.drawable.ms_live_tv
+    val Disc = R.drawable.ms_album
+    val Computer = R.drawable.ms_computer
+    val Speaker = R.drawable.ms_speaker
 }

@@ -1,7 +1,7 @@
 package nl.julian.aerial.data
 
 /** How many tiles fit in the dock (and in each grid row). */
-const val COLUMNS = 5
+const val COLUMNS = 6
 
 /** Apps that land in the dock until the user pins their own. */
 private val DEFAULT_DOCK = listOf(

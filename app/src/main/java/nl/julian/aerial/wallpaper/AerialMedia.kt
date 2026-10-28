@@ -17,8 +17,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.tls.HandshakeCertificates
 import java.io.File
+import java.net.Socket
+import java.security.KeyStore
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLEngine
+import javax.net.ssl.SSLSocket
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509ExtendedTrustManager
 import java.io.IOException
 
 /** ~5 Apple clips (≈200 MB each). TV storage is tight, so stay modest. */
@@ -49,14 +56,46 @@ object AerialMedia {
      * but public decorative video); every other host is verified normally.
      */
     private val http: OkHttpClient by lazy {
-        val certs = HandshakeCertificates.Builder()
-            .addPlatformTrustedCertificates()
-            .addInsecureHost("sylvan.apple.com")
-            .build()
+        val tm = SylvanTrustManager(platformTrustManager())
+        val ssl = SSLContext.getInstance("TLS").apply { init(null, arrayOf(tm), null) }
         OkHttpClient.Builder()
-            .sslSocketFactory(certs.sslSocketFactory(), certs.trustManager)
+            .sslSocketFactory(ssl.socketFactory, tm)
             .build()
     }
+
+    private fun platformTrustManager(): X509ExtendedTrustManager {
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        tmf.init(null as KeyStore?)
+        return tmf.trustManagers.filterIsInstance<X509ExtendedTrustManager>().first()
+    }
+
+    /**
+     * Trusts sylvan.apple.com without validation and defers everything else to
+     * the platform. Implements every check variant, because Android's TLS
+     * stack picks different ones on different devices and builds.
+     */
+    private class SylvanTrustManager(private val platform: X509ExtendedTrustManager) : X509ExtendedTrustManager() {
+        private fun insecure(host: String?) = host.equals(INSECURE_HOST, ignoreCase = true)
+
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, socket: Socket?) {
+            val host = (socket as? SSLSocket)?.handshakeSession?.peerHost
+            if (!insecure(host)) platform.checkServerTrusted(chain, authType, socket)
+        }
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, engine: SSLEngine?) {
+            if (!insecure(engine?.peerHost)) platform.checkServerTrusted(chain, authType, engine)
+        }
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) =
+            platform.checkServerTrusted(chain, authType)
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String, socket: Socket?) =
+            platform.checkClientTrusted(chain, authType, socket)
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String, engine: SSLEngine?) =
+            platform.checkClientTrusted(chain, authType, engine)
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) =
+            platform.checkClientTrusted(chain, authType)
+        override fun getAcceptedIssuers(): Array<X509Certificate> = platform.acceptedIssuers
+    }
+
+    private const val INSECURE_HOST = "sylvan.apple.com"
 
     fun dataSourceFactory(context: Context): CacheDataSource.Factory =
         CacheDataSource.Factory()

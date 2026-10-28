@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import nl.julian.aerial.data.InputDevice
 import nl.julian.aerial.data.InputsRepository
 import nl.julian.aerial.data.TvInput
 import nl.julian.aerial.theme.Symbols
@@ -31,7 +32,7 @@ fun InputsPanel(inputs: List<TvInput>, onDismiss: () -> Unit) {
         }
         inputs.forEachIndexed { i, input ->
             MenuRow(
-                icon = iconFor(input.type),
+                icon = iconFor(input),
                 title = input.label,
                 value = if (input.connected) null else "Not connected",
                 focusRequester = if (i == 0) first else null,
@@ -44,7 +45,16 @@ fun InputsPanel(inputs: List<TvInput>, onDismiss: () -> Unit) {
     }
 }
 
-private fun iconFor(type: Int) = when (type) {
+private fun iconFor(input: TvInput) = when (input.device) {
+    InputDevice.Console -> Symbols.Console
+    InputDevice.MediaPlayer -> Symbols.MediaPlayer
+    InputDevice.Disc -> Symbols.Disc
+    InputDevice.Computer -> Symbols.Computer
+    InputDevice.Audio -> Symbols.Speaker
+    InputDevice.Unknown -> iconForType(input.type)
+}
+
+private fun iconForType(type: Int) = when (type) {
     TvInputInfo.TYPE_HDMI, TvInputInfo.TYPE_DVI, TvInputInfo.TYPE_DISPLAY_PORT -> Symbols.InputHdmi
     TvInputInfo.TYPE_COMPONENT, TvInputInfo.TYPE_COMPOSITE, TvInputInfo.TYPE_SVIDEO,
     TvInputInfo.TYPE_SCART, TvInputInfo.TYPE_VGA -> Symbols.InputComponent

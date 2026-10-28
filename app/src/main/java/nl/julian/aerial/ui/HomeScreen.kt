@@ -118,13 +118,16 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
         label = "ui",
     )
     Box(Modifier.fillMaxSize()) {
+        // Wait for the saved settings, or the first clip ignores the chosen scenery.
+        config?.let { cfg ->
         AerialBackground(
-            sources = config?.aerialSource?.keys.orEmpty(),
-            kind = config?.scenery?.kind,
+            sources = cfg.aerialSource.keys,
+            kind = cfg.scenery.kind,
             onSeed = { seed = it },
             onClip = { clip = it },
             skip = skipTick,
         )
+        } ?: AmbientBackdrop()
         AerialTheme(seed) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
@@ -291,10 +294,10 @@ private fun HomeContent(
                 railFocus = railFocus,
             )
         }
-        // The dock floats straight on the aerial, right under the band:
-        // it's what gets used most, so it gets the first spot.
+        // The dock floats straight on the aerial under the bar, with open
+        // space above it so the aerial reads as the main thing on screen.
         item(key = "dock") {
-            TileRow(home.dock, Modifier.padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
+            TileRow(home.dock, Modifier.padding(top = 130.dp).padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
                 tile(app, m, true)
             }
         }

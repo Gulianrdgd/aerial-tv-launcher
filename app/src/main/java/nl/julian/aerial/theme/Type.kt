@@ -64,7 +64,7 @@ private val ClockFont = FontFamily(
 
 val ClockStyle = TextStyle(
     fontFamily = ClockFont, fontWeight = FontWeight(340),
-    fontSize = 64.sp, lineHeight = 66.sp, letterSpacing = (-0.01).em,
+    fontSize = 44.sp, lineHeight = 48.sp, letterSpacing = (-0.01).em,
     fontFeatureSettings = "tnum",
 )
 

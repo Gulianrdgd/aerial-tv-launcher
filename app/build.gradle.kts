@@ -57,7 +57,6 @@ dependencies {
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.media3.database)
     implementation(libs.okhttp)
-    implementation(libs.okhttp.tls)
     implementation(libs.material.color.utilities)
     implementation(libs.datastore.preferences)
     implementation(libs.coil.compose)

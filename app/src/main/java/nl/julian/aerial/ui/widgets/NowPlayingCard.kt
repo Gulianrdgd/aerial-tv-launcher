@@ -50,26 +50,23 @@ import nl.julian.aerial.ui.FocusSurface
 import kotlin.math.PI
 import kotlin.math.sin
 
-/** Monet's media card: album art, title, an M3 wavy progress indicator, transport buttons. */
+/** Media card on one line: album art, title and wavy progress, then transport buttons. */
 @Composable
 fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
     val inset = 10.dp
     Row(
-        modifier.background(LocalSurfaces.current.high, RoundedCornerShape(radius)).padding(inset),
+        modifier.background(tileColor(), RoundedCornerShape(radius)).padding(inset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(92.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
+        Box(Modifier.size(76.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {
             if (media.art != null) {
                 Image(media.art, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else if (media.artUri != null) {
                 AsyncImage(media.artUri, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
         }
-        Column(
-            Modifier.weight(1f).padding(start = 14.dp, end = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
             Text(
                 media.title, style = MaterialTheme.typography.titleSmall, color = cs.onSurface,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -80,12 +77,12 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
-            WavyProgress(media, Modifier.padding(vertical = 10.dp).fillMaxWidth().height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
-                PlayPauseButton(media.playing) { media.playPause() }
-                SkipButton(Symbols.SkipNext, "Next") { media.next() }
-            }
+            WavyProgress(media, Modifier.padding(top = 8.dp).fillMaxWidth().height(10.dp))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            SkipButton(Symbols.SkipPrevious, "Previous") { media.previous() }
+            PlayPauseButton(media.playing) { media.playPause() }
+            SkipButton(Symbols.SkipNext, "Next") { media.next() }
         }
     }
 }

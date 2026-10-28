@@ -7,26 +7,26 @@ class ArrangementTest {
     private fun app(pkg: String) = AppEntry(pkg, pkg, banner = null, icon = null, stamp = 0, isSystem = false)
 
     // Scan order is alphabetical by label.
-    private val apps = listOf("a", "b", "c", "com.google.android.youtube.tv", "d", "e", "f", "g").map(::app)
+    private val apps = listOf("a", "b", "c", "com.google.android.youtube.tv", "d", "e", "f", "g", "h").map(::app)
 
     @Test
     fun defaultDockPutsKnownAppsFirstThenFills() {
         val home = arrange(apps, LauncherConfig())
-        assertEquals(listOf("com.google.android.youtube.tv", "a", "b", "c", "d"), home.dock.map { it.pkg })
-        assertEquals(listOf("e", "f", "g"), home.grid.map { it.pkg })
+        assertEquals(listOf("com.google.android.youtube.tv", "a", "b", "c", "d", "e"), home.dock.map { it.pkg })
+        assertEquals(listOf("f", "g", "h"), home.grid.map { it.pkg })
     }
 
     @Test
     fun customDockAndHiddenAppsApply() {
         val home = arrange(apps, LauncherConfig(dock = listOf("g", "b"), hidden = setOf("a", "b")))
         assertEquals(listOf("g"), home.dock.map { it.pkg })
-        assertEquals(listOf("c", "com.google.android.youtube.tv", "d", "e", "f"), home.grid.map { it.pkg })
+        assertEquals(listOf("c", "com.google.android.youtube.tv", "d", "e", "f", "h"), home.grid.map { it.pkg })
     }
 
     @Test
     fun manualOrderComesFirstAndNewAppsFollowAlphabetically() {
         val home = arrange(apps, LauncherConfig(dock = emptyList(), order = listOf("f", "c")))
-        assertEquals(listOf("f", "c", "a", "b", "com.google.android.youtube.tv", "d", "e", "g"), home.grid.map { it.pkg })
+        assertEquals(listOf("f", "c", "a", "b", "com.google.android.youtube.tv", "d", "e", "g", "h"), home.grid.map { it.pkg })
     }
 
     @Test
@@ -41,7 +41,7 @@ class ArrangementTest {
     @Test
     fun pinningAFullDockDropsItsLastApp() {
         assertEquals(listOf("a", "b", "x"), pinned(listOf("a", "b"), "x"))
-        assertEquals(listOf("a", "b", "c", "d", "x"), pinned(listOf("a", "b", "c", "d", "e"), "x"))
+        assertEquals(listOf("a", "b", "c", "d", "e", "x"), pinned(listOf("a", "b", "c", "d", "e", "f"), "x"))
         assertEquals(listOf("a", "b"), pinned(listOf("a", "b"), "a"))
     }
 }

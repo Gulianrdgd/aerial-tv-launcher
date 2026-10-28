@@ -13,12 +13,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
+/** What's plugged into an input, from the TV's own device-type tag. */
+enum class InputDevice { Console, MediaPlayer, Disc, Computer, Audio, Unknown }
+
 @Immutable
 data class TvInput(
     val id: String,
     val label: String,
     /** TvInputInfo.TYPE_* (HDMI, component, tuner, …). */
     val type: Int,
+    val device: InputDevice = InputDevice.Unknown,
     val passthrough: Boolean,
     /** False when the TV reports nothing plugged in (not every TV reports this). */
     val connected: Boolean,
@@ -36,12 +40,16 @@ object InputsRepository {
         }
         fun list() = runCatching {
             manager.tvInputList
-                .filterNot { it.isHidden(context) }
+                // Hardware-backed inputs only (ids end in HW<n>): HDMI ports,
+                // component, tuners. Apps such as VLC also register "inputs".
+                .filter { !it.isHidden(context) && (it.isPassthroughInput || PORT.containsMatchIn(it.id) && "/HW" in it.id) }
                 .map { info ->
+                    val (label, device) = parseLabel((info.loadCustomLabel(context) ?: info.loadLabel(context)).toString())
                     TvInput(
                         id = info.id,
-                        label = (info.loadCustomLabel(context) ?: info.loadLabel(context)).toString(),
+                        label = label,
                         type = info.type,
+                        device = device,
                         passthrough = info.isPassthroughInput,
                         connected = manager.getInputState(info.id) != TvInputManager.INPUT_STATE_DISCONNECTED,
                     )
@@ -60,20 +68,37 @@ object InputsRepository {
         awaitClose { manager.unregisterCallback(callback) }
     }.distinctUntilChanged()
 
-    /** Connected inputs first; then HDMI before other hardware before tuners; then by name. */
+    /**
+     * The TV's own port order (HDMI 1, 2, 3, …, from the number that ends the
+     * input id), with tuners last; name only breaks ties.
+     */
     internal fun ordered(inputs: List<TvInput>): List<TvInput> = inputs.sortedWith(
         compareBy<TvInput>(
-            { !it.connected },
-            {
-                when (it.type) {
-                    TvInputInfo.TYPE_HDMI -> 0
-                    TvInputInfo.TYPE_TUNER -> 2
-                    else -> 1
-                }
-            },
+            { if (it.type == TvInputInfo.TYPE_TUNER) 1 else 0 },
+            { PORT.find(it.id)?.value?.toIntOrNull() ?: Int.MAX_VALUE },
             { it.label.lowercase() },
         )
     )
+
+    private val PORT = Regex("\\d+$")
+
+    /**
+     * Some TVs (Philips) append the device type to the name the user gave an
+     * input: "Xbox&GAME_CONSOLE". Split that into a clean name and a type.
+     */
+    internal fun parseLabel(raw: String): Pair<String, InputDevice> {
+        val name = raw.substringBefore('&').trim().ifEmpty { raw }
+        val tag = raw.substringAfter('&', "").uppercase()
+        val device = when {
+            "GAME" in tag || "CONSOLE" in tag -> InputDevice.Console
+            "STREAM" in tag || "MEDIA" in tag || "SET_TOP" in tag || "STB" in tag -> InputDevice.MediaPlayer
+            "BLU" in tag || "DVD" in tag || "DISC" in tag -> InputDevice.Disc
+            "PC" in tag || "COMPUTER" in tag -> InputDevice.Computer
+            "AUDIO" in tag || "SOUND" in tag || "AMP" in tag -> InputDevice.Audio
+            else -> InputDevice.Unknown
+        }
+        return name to device
+    }
 
     /** Switches the TV to [input] through the system's Live TV / input handler. */
     fun switchIntent(input: TvInput): Intent {
