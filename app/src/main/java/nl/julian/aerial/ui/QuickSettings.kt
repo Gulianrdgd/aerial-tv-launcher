@@ -82,7 +82,7 @@ fun QuickSettings(
                 modifier = Modifier.weight(1f),
             )
             QuickTile(
-                Symbols.Tune, "Picture & sound", "TV settings", active = false,
+                Symbols.Tune, "Display", "Picture & sound", active = false,
                 onClick = { ctx.startSafely(Intent(Settings.ACTION_DISPLAY_SETTINGS)) },
                 modifier = Modifier.weight(1f),
             )
@@ -100,7 +100,7 @@ fun QuickSettings(
     }
 }
 
-/** Android quick-settings tile: icon in its own circle on top, title and state below. */
+/** Quick-settings pill: icon in its own circle, then title and state. */
 @Composable
 private fun QuickTile(
     @DrawableRes icon: Int,
@@ -113,15 +113,15 @@ private fun QuickTile(
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,
-        shape = RoundedCornerShape(28.dp),
+        shape = CircleShape,
         container = if (active) cs.primaryContainer else LocalSurfaces.current.high,
         contentColor = if (active) cs.onPrimaryContainer else cs.onSurface,
-        modifier = modifier.height(104.dp),
+        modifier = modifier.height(64.dp),
         focusedScale = 1.05f,
     ) { focused ->
-        Column(Modifier.fillMaxSize().padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        Row(Modifier.fillMaxSize().padding(start = 8.dp, end = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(36.dp).background(
+                Modifier.size(48.dp).background(
                     when {
                         focused -> cs.primary
                         active -> cs.primary.copy(alpha = 0.18f)
@@ -132,11 +132,11 @@ private fun QuickTile(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painterResource(icon), contentDescription = null, modifier = Modifier.size(20.dp),
+                    painterResource(icon), contentDescription = null, modifier = Modifier.size(22.dp),
                     tint = if (focused) cs.onPrimary else LocalContentColor.current,
                 )
             }
-            Column {
+            Column(Modifier.padding(start = 10.dp)) {
                 Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
                     state, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis,

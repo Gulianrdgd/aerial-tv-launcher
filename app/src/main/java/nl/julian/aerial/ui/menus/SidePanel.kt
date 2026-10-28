@@ -36,7 +36,10 @@ fun SidePanel(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp), contentAlignment = Alignment.CenterEnd) {
+        Box(
+            Modifier.fillMaxSize().swallowStrayOkRelease().padding(horizontal = 24.dp, vertical = 16.dp),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
             Column(
                 Modifier
                     .width(380.dp)

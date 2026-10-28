@@ -56,6 +56,7 @@ import kotlinx.coroutines.withContext
 import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.data.COLUMNS
+import nl.julian.aerial.data.ClockFormat
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.InputsRepository
@@ -66,7 +67,6 @@ import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.data.arrange
 import nl.julian.aerial.data.moved
 import nl.julian.aerial.data.pinned
-import nl.julian.aerial.theme.Bezel
 import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.reveal
@@ -75,6 +75,7 @@ import nl.julian.aerial.ui.menus.AppMenu
 import nl.julian.aerial.ui.menus.InputsPanel
 import nl.julian.aerial.ui.menus.NotificationsPanel
 import nl.julian.aerial.ui.menus.SettingsPanel
+import nl.julian.aerial.ui.widgets.RailFocus
 import nl.julian.aerial.ui.widgets.WidgetBand
 import nl.julian.aerial.ui.widgets.startSafely
 import nl.julian.aerial.wallpaper.Aerial
@@ -82,8 +83,9 @@ import nl.julian.aerial.wallpaper.AerialBackground
 
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
 private val SCREEN_MARGIN = 48.dp
-private val DOCK_OUTER = 40.dp
+/** Side inset of the tile rows inside the screen margin. */
 private val DOCK_INSET = 12.dp
+private val TILE_RADIUS = 28.dp
 
 @Composable
 fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
@@ -101,6 +103,14 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
     var seed by remember { mutableStateOf<Int?>(null) }
     var clip by remember { mutableStateOf<Aerial?>(null) }
     var skipTick by remember { mutableIntStateOf(0) }
+    // The staggered entrance plays on cold start and when waking from the
+    // screensaver, not on every Home press.
+    var revealTick by remember { mutableIntStateOf(0) }
+    var wasIdle by remember { mutableStateOf(false) }
+    LaunchedEffect(idle) {
+        if (wasIdle && !idle) revealTick++
+        wasIdle = idle
+    }
     // Idle: everything but the aerial fades away (slowly out, quickly back).
     val uiAlpha by animateFloatAsState(
         if (idle) 0f else 1f,
@@ -122,11 +132,11 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, clip, onSkipAerial = { skipTick++ }, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clip, onSkipAerial = { skipTick++ }, onStartScreensaver)
                 }
             }
         }
-        AerialCaption(clip?.title, visible = idle)
+        AerialCaption(clip?.title, visible = idle, clockFormat = config?.clockFormat ?: ClockFormat.System)
     }
 }
 
@@ -137,6 +147,7 @@ private fun HomeContent(
     config: LauncherConfig,
     store: ConfigStore,
     homeTick: Int,
+    revealTick: Int,
     clip: Aerial?,
     onSkipAerial: () -> Unit,
     onStartScreensaver: () -> Unit,
@@ -155,10 +166,24 @@ private fun HomeContent(
     var settingsOpen by remember { mutableStateOf(false) }
     var inputsOpen by remember { mutableStateOf(false) }
     var notificationsOpen by remember { mutableStateOf(false) }
+    val railFocus = remember { RailFocus() }
+    /** Where focus goes back to when the open panel closes. */
+    var returnFocus by remember { mutableStateOf<FocusRequester?>(null) }
+    LaunchedEffect(settingsOpen, inputsOpen, notificationsOpen) {
+        if (!settingsOpen && !inputsOpen && !notificationsOpen) {
+            returnFocus?.let {
+                withFrameNanos { }
+                runCatching { it.requestFocus() }
+            }
+            returnFocus = null
+        }
+    }
 
     val app = context.applicationContext
     val media by remember { NowPlayingRepository.nowPlaying(app) }.collectAsStateWithLifecycle(null)
-    val weather by remember { WeatherRepository.weather() }.collectAsStateWithLifecycle(null)
+    val weather by remember(config.weatherCity, config.tempUnit) {
+        WeatherRepository.weather(config.weatherCity, config.tempUnit)
+    }.collectAsStateWithLifecycle(null)
     val inputs by remember { InputsRepository.inputs(app) }.collectAsStateWithLifecycle(emptyList())
     val notifications by NotificationsRepository.items.collectAsStateWithLifecycle()
     /** Set when the focused tile disappears (hidden/unpinned), so focus lands on the dock, not anywhere. */
@@ -229,8 +254,9 @@ private fun HomeContent(
         val isMoving = moving == app.pkg
         AppTile(
             app,
-            radius = DOCK_OUTER - DOCK_INSET,
+            radius = TILE_RADIUS,
             onLaunch = { launch(app) },
+            tinted = config.tintedTiles,
             onLongPress = { menuFor = app },
             moving = isMoving,
             modifier = modifier
@@ -252,33 +278,33 @@ private fun HomeContent(
     ) {
         item(key = "widgets") {
             WidgetBand(
+                clockFormat = config.clockFormat,
                 media = media,
                 clip = clip,
                 weather = weather,
                 notificationCount = notifications.size,
                 onSkipAerial = onSkipAerial,
-                onOpenInputs = { inputsOpen = true },
-                onOpenNotifications = { notificationsOpen = true },
-                onOpenSettings = { settingsOpen = true },
-                modifier = Modifier.reveal(0, homeTick),
+                onOpenInputs = { returnFocus = railFocus.inputs; inputsOpen = true },
+                onOpenNotifications = { returnFocus = railFocus.notifications; notificationsOpen = true },
+                onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
+                modifier = Modifier.reveal(0, revealTick),
+                railFocus = railFocus,
             )
+        }
+        // The dock floats straight on the aerial, right under the band:
+        // it's what gets used most, so it gets the first spot.
+        item(key = "dock") {
+            TileRow(home.dock, Modifier.padding(horizontal = DOCK_INSET).reveal(1, revealTick), firstFocus = dockFocus) { app, m ->
+                tile(app, m, true)
+            }
         }
         item(key = "watch-next") {
             WatchNextRow(
-                radius = DOCK_OUTER - DOCK_INSET,
-                // Inset to the dock's inner edge so all rows share one column grid.
-                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(1, homeTick),
+                radius = TILE_RADIUS,
+                // Inset to the dock's edge so all rows share one column grid.
+                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(2, revealTick),
                 bleed = SCREEN_MARGIN + DOCK_INSET,
             )
-        }
-        item(key = "dock") {
-            Bezel(
-                Modifier.fillMaxWidth().reveal(2, homeTick),
-                outerRadius = DOCK_OUTER,
-                inset = DOCK_INSET,
-            ) {
-                TileRow(home.dock, firstFocus = dockFocus) { app, m -> tile(app, m, true) }
-            }
         }
         item(key = "quick") {
             QuickSettings(
@@ -290,7 +316,7 @@ private fun HomeContent(
                     }
                 },
                 onStartScreensaver = onStartScreensaver,
-                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(3, homeTick),
+                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(3, revealTick),
             )
         }
         if (gridRows.isNotEmpty()) {
@@ -299,13 +325,13 @@ private fun HomeContent(
                     "All apps",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(4, homeTick),
+                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(4, revealTick),
                 )
             }
         }
         itemsIndexed(gridRows, key = { i, _ -> "row-$i" }) { i, row ->
             // Line up with the dock's inner tiles.
-            TileRow(row, Modifier.padding(horizontal = DOCK_INSET).reveal(5 + i, homeTick)) { app, m ->
+            TileRow(row, Modifier.padding(horizontal = DOCK_INSET).reveal(5 + i, revealTick)) { app, m ->
                 tile(app, m, false)
             }
         }

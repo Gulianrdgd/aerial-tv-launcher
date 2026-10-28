@@ -31,11 +31,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.launch
-import nl.julian.aerial.data.AerialSource
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.NowPlayingRepository
-import nl.julian.aerial.data.Scenery
 import nl.julian.aerial.data.WatchNextRepository
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
@@ -58,24 +56,17 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
     val nowPlayingAccess = remember { NowPlayingRepository.hasAccess(context) }
 
+    var cityDialog by remember { mutableStateOf(false) }
+
     SidePanel("Settings", onDismiss, initialFocus = first) {
+        Section("Aerials")
         MenuRow(
             Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
-            onClick = {
-                update {
-                    val all = Scenery.entries
-                    it.copy(scenery = all[(all.indexOf(it.scenery) + 1) % all.size])
-                }
-            },
+            onClick = { update { it.copy(scenery = it.scenery.next()) } },
         )
         MenuRow(
-            Symbols.Movie, "Aerial collection", value = config.aerialSource.label,
-            onClick = {
-                update {
-                    val all = AerialSource.entries
-                    it.copy(aerialSource = all[(all.indexOf(it.aerialSource) + 1) % all.size])
-                }
-            },
+            Symbols.Movie, "Collection", value = config.aerialSource.label,
+            onClick = { update { it.copy(aerialSource = it.aerialSource.next()) } },
         )
         MenuRow(
             Symbols.Timer, "Screensaver",
@@ -86,6 +77,32 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     it.copy(idleMinutes = IDLE_STEPS[(i + 1) % IDLE_STEPS.size])
                 }
             },
+        )
+
+        Section("Clock & weather")
+        MenuRow(
+            Symbols.Clock, "Clock", value = config.clockFormat.label,
+            onClick = { update { it.copy(clockFormat = it.clockFormat.next()) } },
+        )
+        MenuRow(
+            Symbols.Thermostat, "Temperature", value = config.tempUnit.label,
+            onClick = { update { it.copy(tempUnit = it.tempUnit.next()) } },
+        )
+        MenuRow(
+            Symbols.Location, "Weather location",
+            value = config.weatherCity.ifBlank { "Automatic (from the TV's timezone)" },
+            onClick = { cityDialog = true },
+        )
+        MenuRow(
+            Symbols.Calendar, "Date, time & timezone", value = "Android TV settings",
+            onClick = { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
+        )
+
+        Section("Home screen")
+        MenuRow(
+            Symbols.Tune, "Tile style",
+            value = if (config.tintedTiles) "Tinted to the aerial" else "App banners",
+            onClick = { update { it.copy(tintedTiles = !it.tintedTiles) } },
         )
         MenuRow(
             Symbols.Show, "Hidden apps",
@@ -102,6 +119,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             value = if (nowPlayingAccess) "On" else "Off · grant with adb (see README)",
             onClick = {},
         )
+
+        Section("System")
         MenuRow(
             Symbols.Home, "Default home app",
             value = "Switch launchers",
@@ -112,4 +131,26 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { context.startSafely(Intent(Settings.ACTION_SETTINGS)) },
         )
     }
+
+    if (cityDialog) {
+        CityDialog(
+            current = config.weatherCity,
+            onSave = { city ->
+                update { it.copy(weatherCity = city) }
+                cityDialog = false
+            },
+            onDismiss = { cityDialog = false },
+        )
+    }
 }
+
+@Composable
+private fun Section(title: String) {
+    Text(
+        title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 2.dp),
+    )
+}
+
+/** The next value of an enum, wrapping around (for settings rows that cycle on select). */
+private inline fun <reified T : Enum<T>> T.next(): T = enumValues<T>().let { it[(ordinal + 1) % it.size] }

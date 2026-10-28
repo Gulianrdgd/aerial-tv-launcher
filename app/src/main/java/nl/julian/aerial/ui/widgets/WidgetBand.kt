@@ -24,6 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -37,6 +39,7 @@ import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
+import nl.julian.aerial.data.ClockFormat
 import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.Bezel
@@ -63,6 +66,7 @@ internal val TILE_PADDING = 20.dp
  */
 @Composable
 fun WidgetBand(
+    clockFormat: ClockFormat,
     media: NowPlaying?,
     clip: Aerial?,
     weather: Weather?,
@@ -72,20 +76,22 @@ fun WidgetBand(
     onOpenNotifications: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
+    railFocus: RailFocus = RailFocus(),
 ) {
-    Bezel(modifier.fillMaxWidth().height(160.dp), outerRadius = OUTER, inset = INSET) {
+    Bezel(modifier.fillMaxWidth().height(180.dp), outerRadius = OUTER, inset = INSET) {
         Row(
             Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ClockTile(Modifier.fillMaxHeight().width(232.dp))
+            ClockTile(clockFormat, Modifier.fillMaxHeight().width(232.dp))
             when {
                 media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
                 else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
             }
             weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(150.dp)) }
-            ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings)
+            ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
         }
     }
 }
@@ -96,7 +102,7 @@ fun WidgetBand(
  * picked out in the primary colour.
  */
 @Composable
-private fun ClockTile(modifier: Modifier) {
+private fun ClockTile(format: ClockFormat, modifier: Modifier) {
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     // Ticks exactly on the minute boundary, not every second.
@@ -106,7 +112,7 @@ private fun ClockTile(modifier: Modifier) {
             delay(60_000L - System.currentTimeMillis() % 60_000L)
         }
     }
-    val h24 = DateFormat.is24HourFormat(context)
+    val h24 = format.is24Hour(context)
     val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
     val date = SimpleDateFormat("EEEE d MMM", Locale.getDefault()).format(now).uppercase()
@@ -188,34 +194,47 @@ private fun collectionLabel(source: String) = when (source) {
  * inputs, notifications and settings buttons.
  */
 @Composable
-private fun ControlRail(notifications: Int, onInputs: () -> Unit, onNotifications: () -> Unit, onSettings: () -> Unit) {
+private fun ControlRail(
+    notifications: Int,
+    onInputs: () -> Unit,
+    onNotifications: () -> Unit,
+    onSettings: () -> Unit,
+    focus: RailFocus,
+) {
     Column(
         Modifier
             .fillMaxHeight()
             .background(LocalSurfaces.current.high, CircleShape)
-            .padding(5.dp),
+            .padding(6.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        RailButton(Symbols.Input, "Inputs", onInputs)
+        RailButton(Symbols.Input, "Inputs", onInputs, focus.inputs)
         Box {
-            RailButton(Symbols.Notifications, "Notifications", onNotifications)
+            RailButton(Symbols.Notifications, "Notifications", onNotifications, focus.notifications)
             if (notifications > 0) Badge(notifications, Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp))
         }
-        RailButton(Symbols.Settings, "Settings", onSettings)
+        RailButton(Symbols.Settings, "Settings", onSettings, focus.settings)
     }
 }
 
+class RailFocus(
+    val inputs: FocusRequester = FocusRequester(),
+    val notifications: FocusRequester = FocusRequester(),
+    val settings: FocusRequester = FocusRequester(),
+)
+
 @Composable
-private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit) {
+private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit, focus: FocusRequester) {
     FocusSurface(
         onClick = onClick,
         shape = CircleShape,
         container = LocalSurfaces.current.high,
-        modifier = Modifier.size(40.dp),
-        focusedScale = 1.15f,
+        // 48dp: the comfortable focus target from across the room.
+        modifier = Modifier.size(48.dp).focusRequester(focus),
+        focusedScale = 1.12f,
     ) {
-        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(22.dp))
+        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(24.dp))
     }
 }
 
@@ -224,16 +243,23 @@ private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Uni
 private fun Badge(count: Int, modifier: Modifier) {
     val cs = MaterialTheme.colorScheme
     Box(
-        modifier.height(16.dp).aspectRatio(if (count > 9) 1.5f else 1f, matchHeightConstraintsFirst = true)
+        modifier.height(18.dp).aspectRatio(if (count > 9) 1.5f else 1f, matchHeightConstraintsFirst = true)
             .background(cs.error, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             if (count > 99) "99+" else count.toString(),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 12.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 12.sp),
             color = cs.onError,
         )
     }
+}
+
+/** Whether to show a 24-hour clock: the user's choice, or the TV's own setting. */
+internal fun ClockFormat.is24Hour(context: android.content.Context) = when (this) {
+    ClockFormat.H24 -> true
+    ClockFormat.H12 -> false
+    ClockFormat.System -> DateFormat.is24HourFormat(context)
 }
 
 internal fun android.content.Context.startSafely(intent: Intent) {

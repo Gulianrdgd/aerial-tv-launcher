@@ -24,15 +24,19 @@ val GoogleSansFlex = FontFamily(
     googleSans(200), googleSans(300), googleSans(400), googleSans(500), googleSans(600), googleSans(700),
 )
 
-/** The Material 3 type scale, set in Google Sans Flex. */
+/**
+ * The Material 3 type scale in Google Sans Flex, with the small styles
+ * raised to 14sp: on a 43" TV across the room, 11–12sp is too small to read.
+ */
 val AerialTypography: Typography = Typography().let { d ->
     fun TextStyle.gs() = copy(fontFamily = GoogleSansFlex)
+    fun TextStyle.tv() = copy(fontFamily = GoogleSansFlex, fontSize = 14.sp, lineHeight = 20.sp)
     Typography(
         displayLarge = d.displayLarge.gs(), displayMedium = d.displayMedium.gs(), displaySmall = d.displaySmall.gs(),
         headlineLarge = d.headlineLarge.gs(), headlineMedium = d.headlineMedium.gs(), headlineSmall = d.headlineSmall.gs(),
         titleLarge = d.titleLarge.gs(), titleMedium = d.titleMedium.gs(), titleSmall = d.titleSmall.gs(),
-        bodyLarge = d.bodyLarge.gs(), bodyMedium = d.bodyMedium.gs(), bodySmall = d.bodySmall.gs(),
-        labelLarge = d.labelLarge.gs(), labelMedium = d.labelMedium.gs(), labelSmall = d.labelSmall.gs(),
+        bodyLarge = d.bodyLarge.gs(), bodyMedium = d.bodyMedium.gs(), bodySmall = d.bodySmall.tv(),
+        labelLarge = d.labelLarge.gs(), labelMedium = d.labelMedium.tv(), labelSmall = d.labelSmall.tv(),
     )
 }
 
@@ -67,5 +71,5 @@ val ClockStyle = TextStyle(
 /** Small-caps label over each widget ("WEDNESDAY 28 OCT", "NOW SHOWING", …). */
 val EyebrowStyle = TextStyle(
     fontFamily = GoogleSansFlex, fontWeight = FontWeight(600),
-    fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.14.em,
+    fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.12.em,
 )

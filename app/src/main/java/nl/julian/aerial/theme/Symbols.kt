@@ -42,4 +42,8 @@ object Symbols {
     val ClearAll = R.drawable.ms_clear_all
     val Tune = R.drawable.ms_tune
     val Screensaver = R.drawable.ms_nights_stay
+    val Clock = R.drawable.ms_schedule
+    val Thermostat = R.drawable.ms_device_thermostat
+    val Location = R.drawable.ms_location_on
+    val Calendar = R.drawable.ms_calendar_month
 }

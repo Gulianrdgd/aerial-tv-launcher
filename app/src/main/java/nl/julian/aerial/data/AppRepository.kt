@@ -90,11 +90,10 @@ object AppRepository {
                         runCatching { d.toBitmap(bannerW, bannerH, Bitmap.Config.ARGB_8888) }.getOrNull()
                     }
                 }
-                val icon = if (banner == null) {
-                    cachedBitmap(cacheDir, iconName) {
-                        runCatching { ri.loadIcon(pm)?.toBitmap(128, 128) }.getOrNull()
-                    }
-                } else null
+                // Always loaded: tinted tiles show the icon even for apps with a banner.
+                val icon = cachedBitmap(cacheDir, iconName) {
+                    runCatching { ri.loadIcon(pm)?.toBitmap(128, 128) }.getOrNull()
+                }
                 if (banner != null) validCacheNames.add(bannerName)
                 if (icon != null) validCacheNames.add(iconName)
                 // Upload textures ahead of first draw.

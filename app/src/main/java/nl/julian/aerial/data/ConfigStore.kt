@@ -27,6 +27,10 @@ enum class Scenery(val label: String, val kind: String?) {
     Space("From space", "space"),
 }
 
+enum class ClockFormat(val label: String) { System("Same as the TV"), H24("24-hour"), H12("12-hour") }
+
+enum class TempUnit(val label: String) { Auto("Automatic"), Celsius("Celsius (°C)"), Fahrenheit("Fahrenheit (°F)") }
+
 @Immutable
 @Serializable
 data class LauncherConfig(
@@ -39,6 +43,12 @@ data class LauncherConfig(
     val scenery: Scenery = Scenery.All,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
+    /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
+    val tintedTiles: Boolean = true,
+    val clockFormat: ClockFormat = ClockFormat.System,
+    val tempUnit: TempUnit = TempUnit.Auto,
+    /** City for the weather; empty = derived from the TV's timezone. */
+    val weatherCity: String = "",
 )
 
 private val Context.dataStore by preferencesDataStore("launcher")

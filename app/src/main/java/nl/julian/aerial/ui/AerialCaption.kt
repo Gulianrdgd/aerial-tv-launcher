@@ -1,6 +1,5 @@
 package nl.julian.aerial.ui
 
-import android.text.format.DateFormat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
+import nl.julian.aerial.data.ClockFormat
 import nl.julian.aerial.theme.FluidEasing
+import nl.julian.aerial.ui.widgets.is24Hour
 import nl.julian.aerial.theme.GoogleSansFlex
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -35,7 +36,7 @@ private val Soft = Shadow(Color.Black.copy(alpha = 0.45f), Offset(0f, 2f), blurR
  * a small clock top-right, fading in after the UI has gone.
  */
 @Composable
-fun AerialCaption(title: String?, visible: Boolean, modifier: Modifier = Modifier) {
+fun AerialCaption(title: String?, visible: Boolean, clockFormat: ClockFormat, modifier: Modifier = Modifier) {
     val alpha by animateFloatAsState(
         if (visible) 1f else 0f,
         tween(durationMillis = if (visible) 1400 else 300, delayMillis = if (visible) 900 else 0, easing = FluidEasing),
@@ -50,7 +51,7 @@ fun AerialCaption(title: String?, visible: Boolean, modifier: Modifier = Modifie
             delay(60_000L - System.currentTimeMillis() % 60_000L)
         }
     }
-    val time = SimpleDateFormat(if (DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now)
+    val time = SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now)
 
     Box(modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 48.dp).graphicsLayer { this.alpha = alpha }) {
         Text(

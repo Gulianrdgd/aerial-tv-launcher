@@ -36,9 +36,14 @@ val LocalSurfaces = compositionLocalOf {
     SurfaceContainers(Color.Black, Color.DarkGray, Color.DarkGray, Color.Gray, Color.Gray)
 }
 
+/** Below this chroma a sampled frame (fog, dusk, grey city) gives a muddy scheme. */
+private const val MIN_SEED_CHROMA = 36.0
+
 /** A complete dark Material You scheme (M3 Expressive spec) for [seed]. */
 fun schemeFromSeed(seed: Int): Pair<ColorScheme, SurfaceContainers> {
-    val s = SchemeTonalSpot(Hct.fromInt(seed), true, 0.0, ColorSpec.SpecVersion.SPEC_2025)
+    val hct = Hct.fromInt(seed)
+    val vivid = Hct.from(hct.hue, maxOf(hct.chroma, MIN_SEED_CHROMA), hct.tone)
+    val s = SchemeTonalSpot(vivid, true, 0.0, ColorSpec.SpecVersion.SPEC_2025)
     val m = MaterialDynamicColors()
     fun c(role: com.materialkolor.dynamiccolor.DynamicColor) = Color(role.getArgb(s))
     val scheme = darkColorScheme(

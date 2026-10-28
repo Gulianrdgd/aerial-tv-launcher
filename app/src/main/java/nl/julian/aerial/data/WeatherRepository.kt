@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -55,18 +56,30 @@ object WeatherRepository {
     @Serializable private data class Minutely(val precipitation: List<Double?> = emptyList())
     @Serializable private data class ForecastResponse(val current: Current, val minutely_15: Minutely? = null)
 
-    @Volatile
-    private var place: GeoResult? = null
-    @Volatile
-    private var last: Pair<Long, Weather>? = null
+    /** Geocoded places by the name that was looked up. */
+    private val places = java.util.concurrent.ConcurrentHashMap<String, GeoResult>()
+    /** Last result per (place name, unit), with when it was fetched. */
+    private val last = java.util.concurrent.ConcurrentHashMap<String, Pair<Long, Weather>>()
 
     /**
-     * Emits conditions, refreshed every 30 min; null while unknown (offline,
-     * unmappable timezone). Re-collecting reuses a still-fresh result, so
-     * returning to the home screen doesn't hit the network.
+     * Emits conditions for [city] (empty = from the TV's timezone) in [unit],
+     * refreshed every 30 min; null while unknown (offline, unknown place).
+     * Re-collecting reuses a still-fresh result, so returning to the home
+     * screen doesn't hit the network.
      */
-    fun weather(): Flow<Weather?> = flow {
-        last?.let { (at, w) ->
+    fun weather(city: String = "", unit: TempUnit = TempUnit.Auto): Flow<Weather?> = flow {
+        val name = city.ifBlank { cityFromTimeZone() }
+        if (name == null) {
+            emit(null)
+            return@flow
+        }
+        val fahrenheit = when (unit) {
+            TempUnit.Celsius -> false
+            TempUnit.Fahrenheit -> true
+            TempUnit.Auto -> Locale.getDefault().country in setOf("US", "LR", "MM")
+        }
+        val key = "$name|$fahrenheit"
+        last[key]?.let { (at, w) ->
             val age = System.currentTimeMillis() - at
             if (age < REFRESH_MS) {
                 emit(w)
@@ -74,18 +87,22 @@ object WeatherRepository {
             }
         }
         while (true) {
-            val w = runCatching { fetch() }
+            val w = runCatching { fetch(name, fahrenheit) }
                 .onFailure { Log.d("Aerial", "weather failed: ${it.message}") }
                 .getOrNull()
-            if (w != null) last = System.currentTimeMillis() to w
+            if (w != null) last[key] = System.currentTimeMillis() to w
             emit(w)
             delay(if (w == null) RETRY_MS else REFRESH_MS)
         }
     }.flowOn(Dispatchers.IO)
 
-    private fun fetch(): Weather? {
-        val geo = place ?: geocode(cityFromTimeZone() ?: return null)?.also { place = it } ?: return null
-        val fahrenheit = Locale.getDefault().country in setOf("US", "LR", "MM")
+    /** Looks up [name]; returns the place's proper name, or null if it isn't found. */
+    suspend fun findPlace(name: String): String? = withContext(Dispatchers.IO) {
+        runCatching { geocode(name.trim())?.also { places[name.trim()] = it }?.name }.getOrNull()
+    }
+
+    private fun fetch(name: String, fahrenheit: Boolean): Weather? {
+        val geo = places[name] ?: geocode(name)?.also { places[name] = it } ?: return null
         val url = "https://api.open-meteo.com/v1/forecast".toHttpUrl().newBuilder()
             .addQueryParameter("latitude", geo.latitude.toString())
             .addQueryParameter("longitude", geo.longitude.toString())

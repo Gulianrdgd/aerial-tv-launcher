@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -19,46 +20,56 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.data.AppEntry
 
-/** 16:9 rounded app tile: the app's leanback banner, or its icon + name. */
+/**
+ * 16:9 rounded app tile. [tinted]: a theme-coloured tile with the app's
+ * icon and name, so every app sits in the same palette as the aerial.
+ * Otherwise the app's own leanback banner (icon + name when it has none).
+ */
 @Composable
 fun AppTile(
     app: AppEntry,
     radius: Dp,
     onLaunch: () -> Unit,
     modifier: Modifier = Modifier,
+    tinted: Boolean = true,
     onLongPress: (() -> Unit)? = null,
     /** Lifted with a primary-colour ring while the user is moving it. */
     moving: Boolean = false,
 ) {
+    val showBanner = !tinted && app.banner != null
     FocusSurface(
         onClick = onLaunch,
         shape = RoundedCornerShape(radius),
         // Expressive touch: corners open up slightly as the tile lifts.
         focusedShape = RoundedCornerShape(radius + 6.dp),
         modifier = modifier.aspectRatio(16f / 9f),
-        style = if (app.banner != null) FocusStyle.Ring else FocusStyle.Invert,
+        style = if (showBanner) FocusStyle.Ring else FocusStyle.Invert,
         onLongClick = onLongPress,
         highlighted = moving,
     ) {
-        if (app.banner != null) {
+        if (showBanner) {
             Image(
-                bitmap = app.banner,
+                bitmap = app.banner!!,
                 contentDescription = app.label,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
             Column(
-                Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 10.dp),
+                Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
             ) {
                 if (app.icon != null) {
-                    Image(bitmap = app.icon, contentDescription = null, modifier = Modifier.size(40.dp))
+                    Image(
+                        bitmap = app.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)),
+                    )
                 }
                 Text(
                     app.label,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

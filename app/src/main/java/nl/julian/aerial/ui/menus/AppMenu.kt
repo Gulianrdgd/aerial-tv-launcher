@@ -29,7 +29,7 @@ enum class AppAction { Open, Move, Pin, Unpin, Hide, Info, Uninstall }
 fun AppMenu(app: AppEntry, inDock: Boolean, onAction: (AppAction) -> Unit, onDismiss: () -> Unit) {
     val first = remember { FocusRequester() }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().swallowStrayOkRelease(), contentAlignment = Alignment.Center) {
             Column(
                 Modifier
                     .width(360.dp)
