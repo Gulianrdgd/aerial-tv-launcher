@@ -31,6 +31,7 @@ import nl.julian.aerial.data.Sky
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.Symbols
+import nl.julian.aerial.theme.topHighlight
 
 /** Sky glyph and temperature, with the place and the next two hours of rain beside them. Display only. */
 @Composable
@@ -39,6 +40,7 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, com
     Row(
         modifier
             .background(tileColor(), RoundedCornerShape(radius))
+            .topHighlight(RoundedCornerShape(radius))
             .padding(horizontal = TILE_PADDING),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (compact) Arrangement.Center else Arrangement.Start,

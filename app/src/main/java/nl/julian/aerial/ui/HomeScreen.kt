@@ -74,6 +74,7 @@ import nl.julian.aerial.data.pinned
 import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.SectionPanel
+import nl.julian.aerial.theme.SECTION_TILE_RADIUS
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
@@ -90,7 +91,6 @@ import nl.julian.aerial.wallpaper.AerialBackground
 private val SCREEN_MARGIN = 48.dp
 /** Open aerial between the top bar and the dock. */
 private val DOCK_GAP = 60.dp
-private val TILE_RADIUS = 28.dp
 
 @Composable
 fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
@@ -273,7 +273,7 @@ private fun HomeContent(
         val isMoving = moving == app.pkg
         AppTile(
             app,
-            radius = TILE_RADIUS,
+            radius = SECTION_TILE_RADIUS,
             onLaunch = { launch(app) },
             tinted = config.tintedTiles,
             onLongPress = { menuFor = app },
@@ -326,7 +326,7 @@ private fun HomeContent(
             }
         }
         item(key = "watch-next") {
-            WatchNextRow(radius = TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
+            WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
         }
         item(key = "quick") {
             QuickSettings(

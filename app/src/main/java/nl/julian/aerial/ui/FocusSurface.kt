@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -27,6 +28,7 @@ import androidx.tv.material3.Glow
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import nl.julian.aerial.theme.LocalSurfaces
+import nl.julian.aerial.theme.topHighlight
 
 /** How a focusable surface changes when it takes focus. */
 enum class FocusStyle {
@@ -87,6 +89,8 @@ fun FocusSurface(
         // and the scale + ring/inversion already mark focus clearly.
         glow = ClickableSurfaceDefaults.glow(focusedGlow = Glow.None),
     ) {
+        // Container tiles get the raised top edge; artwork tiles stay clean.
+        if (style == FocusStyle.Invert) Box(Modifier.matchParentSize().topHighlight(shape))
         content(focused)
     }
 }

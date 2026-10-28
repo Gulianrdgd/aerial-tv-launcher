@@ -49,7 +49,8 @@ import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.PANEL_RADIUS
-import nl.julian.aerial.theme.panelColor
+import nl.julian.aerial.theme.panel
+import nl.julian.aerial.theme.topHighlight
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.FocusSurface
 import nl.julian.aerial.wallpaper.Aerial
@@ -92,7 +93,7 @@ fun WidgetBand(
         modifier
             .fillMaxWidth()
             .height(BAR_HEIGHT)
-            .background(panelColor(), RoundedCornerShape(BAR_RADIUS))
+            .panel(RoundedCornerShape(BAR_RADIUS))
             .padding(BAR_INSET),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -139,12 +140,12 @@ private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier)
     }
 
     Column(
-        modifier.background(tileColor(), RoundedCornerShape(INNER)),
+        modifier.background(tileColor(), RoundedCornerShape(INNER)).topHighlight(RoundedCornerShape(INNER)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         if (!compact) Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
-        Text(time, style = if (compact) ClockStyle.copy(fontSize = 36.sp, lineHeight = 40.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
+        Text(time, style = if (compact) ClockStyle.copy(fontSize = 40.sp, lineHeight = 44.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
     }
 }
 
@@ -221,6 +222,7 @@ private fun ControlRail(
         Modifier
             .fillMaxHeight()
             .background(tileColor(), RoundedCornerShape(INNER))
+            .topHighlight(RoundedCornerShape(INNER))
             .padding(horizontal = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,

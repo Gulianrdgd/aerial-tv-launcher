@@ -46,6 +46,7 @@ import coil3.compose.AsyncImage
 import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
+import nl.julian.aerial.theme.topHighlight
 import nl.julian.aerial.ui.FocusSurface
 import kotlin.math.PI
 import kotlin.math.sin
@@ -56,7 +57,7 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
     val cs = MaterialTheme.colorScheme
     val inset = 10.dp
     Row(
-        modifier.background(tileColor(), RoundedCornerShape(radius)).padding(inset),
+        modifier.background(tileColor(), RoundedCornerShape(radius)).topHighlight(RoundedCornerShape(radius)).padding(inset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(76.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {

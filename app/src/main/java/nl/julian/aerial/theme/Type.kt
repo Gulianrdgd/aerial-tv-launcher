@@ -50,21 +50,22 @@ val AerialShapes = Shapes(
 )
 
 /**
- * Clock digits: light (not hairline) so they read from the sofa, cut at a
- * large optical size, with tabular figures so the time doesn't shift as
- * it changes.
+ * Clock digits: the bar's focal point, so larger and lighter than anything
+ * around them (light, not hairline, so they still read from the sofa). Cut
+ * at a large optical size, with tabular figures so the time doesn't shift
+ * as it changes.
  */
 private val ClockFont = FontFamily(
     Font(
         R.font.google_sans_flex,
-        weight = FontWeight(340),
-        variationSettings = FontVariation.Settings(FontVariation.weight(340), FontVariation.Setting("opsz", 72f)),
+        weight = FontWeight(260),
+        variationSettings = FontVariation.Settings(FontVariation.weight(260), FontVariation.Setting("opsz", 72f)),
     )
 )
 
 val ClockStyle = TextStyle(
-    fontFamily = ClockFont, fontWeight = FontWeight(340),
-    fontSize = 44.sp, lineHeight = 48.sp, letterSpacing = (-0.01).em,
+    fontFamily = ClockFont, fontWeight = FontWeight(260),
+    fontSize = 54.sp, lineHeight = 54.sp, letterSpacing = (-0.02).em,
     fontFeatureSettings = "tnum",
 )
 

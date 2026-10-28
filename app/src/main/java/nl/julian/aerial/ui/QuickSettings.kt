@@ -35,6 +35,7 @@ import nl.julian.aerial.data.Scenery
 import nl.julian.aerial.data.bluetoothOnFlow
 import nl.julian.aerial.data.networkFlow
 import nl.julian.aerial.theme.LocalSurfaces
+import nl.julian.aerial.theme.SECTION_TILE_RADIUS
 import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
@@ -110,7 +111,7 @@ private fun QuickTile(
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,
-        shape = CircleShape,
+        shape = RoundedCornerShape(SECTION_TILE_RADIUS),
         container = if (active) cs.primaryContainer else LocalSurfaces.current.high,
         contentColor = if (active) cs.onPrimaryContainer else cs.onSurface,
         modifier = modifier.height(64.dp),
