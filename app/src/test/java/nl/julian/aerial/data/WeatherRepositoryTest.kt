@@ -29,4 +29,13 @@ class WeatherRepositoryTest {
         assertEquals(Sky.Snow, WeatherRepository.skyFor(73))
         assertEquals(Sky.Storm, WeatherRepository.skyFor(95))
     }
+
+    @Test
+    fun rainCountsFromATenthOfAMillimetre() {
+        val dry = Weather("A", 10, Sky.Cloudy, true, rain = listOf(0f, 0.05f, 0f, 0f, 0f, 0f, 0f, 0f))
+        val wet = Weather("A", 10, Sky.Rain, true, rain = listOf(0f, 0f, 0.3f, 1.2f, 0f, 0f, 0f, 0f))
+        assertEquals(false, dry.rainExpected)
+        assertEquals(true, wet.rainExpected)
+        assertEquals(false, Weather("A", 10, Sky.Clear, true).rainExpected)
+    }
 }

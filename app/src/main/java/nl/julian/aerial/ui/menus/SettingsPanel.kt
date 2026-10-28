@@ -43,7 +43,7 @@ import nl.julian.aerial.ui.widgets.startSafely
 
 private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
 
-/** Launcher settings: a glass side panel on the right, Google TV style. */
+/** Launcher settings, in the right-hand side panel. */
 @Composable
 fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -58,76 +58,58 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
     val nowPlayingAccess = remember { NowPlayingRepository.hasAccess(context) }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp), contentAlignment = Alignment.CenterEnd) {
-            Column(
-                Modifier
-                    .width(380.dp)
-                    .fillMaxHeight()
-                    .background(LocalSurfaces.current.default, MaterialTheme.shapes.extraLarge)
-                    .verticalScroll(rememberScrollState())
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Text(
-                    "Settings", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 6.dp),
-                )
-
-                MenuRow(
-                    Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
-                    onClick = {
-                        update {
-                            val all = Scenery.entries
-                            it.copy(scenery = all[(all.indexOf(it.scenery) + 1) % all.size])
-                        }
-                    },
-                )
-                MenuRow(
-                    Symbols.Movie, "Aerial collection", value = config.aerialSource.label,
-                    onClick = {
-                        update {
-                            val all = AerialSource.entries
-                            it.copy(aerialSource = all[(all.indexOf(it.aerialSource) + 1) % all.size])
-                        }
-                    },
-                )
-                MenuRow(
-                    Symbols.Timer, "Screensaver",
-                    value = if (config.idleMinutes == 0) "Off" else "After ${config.idleMinutes} min without input",
-                    onClick = {
-                        update {
-                            val i = IDLE_STEPS.indexOf(it.idleMinutes)
-                            it.copy(idleMinutes = IDLE_STEPS[(i + 1) % IDLE_STEPS.size])
-                        }
-                    },
-                )
-                MenuRow(
-                    Symbols.Show, "Hidden apps",
-                    value = if (config.hidden.isEmpty()) "None" else "${config.hidden.size} hidden · select to show all",
-                    onClick = { update { it.copy(hidden = emptySet()) } },
-                )
-                MenuRow(
-                    Symbols.Play, "Continue Watching",
-                    value = if (watchNextAccess) "On" else "Off · select to allow",
-                    onClick = { if (!watchNextAccess) askWatchNext.launch(WatchNextRepository.PERMISSION) },
-                )
-                MenuRow(
-                    Symbols.Music, "Now Playing",
-                    value = if (nowPlayingAccess) "On" else "Off · grant with adb (see README)",
-                    onClick = {},
-                )
-                MenuRow(
-                    Symbols.Home, "Default home app",
-                    value = "Switch launchers",
-                    onClick = { context.startSafely(Intent(Settings.ACTION_HOME_SETTINGS)) },
-                )
-                MenuRow(
-                    Symbols.Settings, "Android TV settings",
-                    onClick = { context.startSafely(Intent(Settings.ACTION_SETTINGS)) },
-                )
-            }
-        }
+    SidePanel("Settings", onDismiss, initialFocus = first) {
+        MenuRow(
+            Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
+            onClick = {
+                update {
+                    val all = Scenery.entries
+                    it.copy(scenery = all[(all.indexOf(it.scenery) + 1) % all.size])
+                }
+            },
+        )
+        MenuRow(
+            Symbols.Movie, "Aerial collection", value = config.aerialSource.label,
+            onClick = {
+                update {
+                    val all = AerialSource.entries
+                    it.copy(aerialSource = all[(all.indexOf(it.aerialSource) + 1) % all.size])
+                }
+            },
+        )
+        MenuRow(
+            Symbols.Timer, "Screensaver",
+            value = if (config.idleMinutes == 0) "Off" else "After ${config.idleMinutes} min without input",
+            onClick = {
+                update {
+                    val i = IDLE_STEPS.indexOf(it.idleMinutes)
+                    it.copy(idleMinutes = IDLE_STEPS[(i + 1) % IDLE_STEPS.size])
+                }
+            },
+        )
+        MenuRow(
+            Symbols.Show, "Hidden apps",
+            value = if (config.hidden.isEmpty()) "None" else "${config.hidden.size} hidden · select to show all",
+            onClick = { update { it.copy(hidden = emptySet()) } },
+        )
+        MenuRow(
+            Symbols.Play, "Continue Watching",
+            value = if (watchNextAccess) "On" else "Off · select to allow",
+            onClick = { if (!watchNextAccess) askWatchNext.launch(WatchNextRepository.PERMISSION) },
+        )
+        MenuRow(
+            Symbols.Music, "Now Playing & notifications",
+            value = if (nowPlayingAccess) "On" else "Off · grant with adb (see README)",
+            onClick = {},
+        )
+        MenuRow(
+            Symbols.Home, "Default home app",
+            value = "Switch launchers",
+            onClick = { context.startSafely(Intent(Settings.ACTION_HOME_SETTINGS)) },
+        )
+        MenuRow(
+            Symbols.Settings, "Android TV settings",
+            onClick = { context.startSafely(Intent(Settings.ACTION_SETTINGS)) },
+        )
     }
-    LaunchedEffect(Unit) { runCatching { first.requestFocus() } }
 }

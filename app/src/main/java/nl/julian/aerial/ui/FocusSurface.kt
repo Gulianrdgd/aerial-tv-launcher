@@ -38,6 +38,7 @@ fun FocusSurface(
     shape: Shape,
     modifier: Modifier = Modifier,
     container: Color = LocalSurfaces.current.high,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
     style: FocusStyle = FocusStyle.Invert,
     focusedShape: Shape = shape,
     focusedScale: Float = 1.06f,
@@ -59,11 +60,11 @@ fun FocusSurface(
         shape = ClickableSurfaceDefaults.shape(shape = shape, focusedShape = focusedShape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = container,
-            contentColor = cs.onSurface,
+            contentColor = contentColor,
             focusedContainerColor = if (invert) cs.inverseSurface else container,
-            focusedContentColor = if (invert) cs.inverseOnSurface else cs.onSurface,
+            focusedContentColor = if (invert) cs.inverseOnSurface else contentColor,
             pressedContainerColor = if (invert) cs.inverseSurface else container,
-            pressedContentColor = if (invert) cs.inverseOnSurface else cs.onSurface,
+            pressedContentColor = if (invert) cs.inverseOnSurface else contentColor,
         ),
         scale = ClickableSurfaceDefaults.scale(focusedScale = if (highlighted) focusedScale + 0.04f else focusedScale),
         border = ClickableSurfaceDefaults.border(

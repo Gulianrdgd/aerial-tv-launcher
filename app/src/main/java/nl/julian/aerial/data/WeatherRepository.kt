@@ -19,7 +19,17 @@ import java.util.concurrent.TimeUnit
 enum class Sky { Clear, PartlyCloudy, Cloudy, Fog, Rain, Snow, Storm }
 
 @Immutable
-data class Weather(val place: String, val temperature: Int, val sky: Sky, val isDay: Boolean)
+data class Weather(
+    val place: String,
+    val temperature: Int,
+    val sky: Sky,
+    val isDay: Boolean,
+    /** Precipitation (mm) per 15 minutes for the next 2 hours, 8 values. */
+    val rain: List<Float> = emptyList(),
+) {
+    /** True when any meaningful rain (≥ 0.1 mm per quarter) is expected in the next 2 hours. */
+    val rainExpected: Boolean get() = rain.any { it >= 0.1f }
+}
 
 /**
  * Current conditions from Open-Meteo (no API key, no account). The place is
@@ -42,7 +52,8 @@ object WeatherRepository {
         val weather_code: Int,
         val is_day: Int = 1,
     )
-    @Serializable private data class ForecastResponse(val current: Current)
+    @Serializable private data class Minutely(val precipitation: List<Double?> = emptyList())
+    @Serializable private data class ForecastResponse(val current: Current, val minutely_15: Minutely? = null)
 
     @Volatile
     private var place: GeoResult? = null
@@ -79,14 +90,18 @@ object WeatherRepository {
             .addQueryParameter("latitude", geo.latitude.toString())
             .addQueryParameter("longitude", geo.longitude.toString())
             .addQueryParameter("current", "temperature_2m,weather_code,is_day")
+            .addQueryParameter("minutely_15", "precipitation")
+            .addQueryParameter("forecast_minutely_15", "8")
             .apply { if (fahrenheit) addQueryParameter("temperature_unit", "fahrenheit") }
             .build()
-        val current = json.decodeFromString<ForecastResponse>(get(url.toString())).current
+        val forecast = json.decodeFromString<ForecastResponse>(get(url.toString()))
+        val current = forecast.current
         return Weather(
             place = geo.name,
             temperature = Math.round(current.temperature_2m).toInt(),
             sky = skyFor(current.weather_code),
             isDay = current.is_day == 1,
+            rain = forecast.minutely_15?.precipitation.orEmpty().map { (it ?: 0.0).toFloat() },
         )
     }
 

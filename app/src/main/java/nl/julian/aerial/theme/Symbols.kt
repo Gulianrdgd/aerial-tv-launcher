@@ -34,4 +34,12 @@ object Symbols {
     val Rain = R.drawable.ms_rainy
     val Snow = R.drawable.ms_weather_snowy
     val Storm = R.drawable.ms_thunderstorm
+    val InputHdmi = R.drawable.ms_settings_input_hdmi
+    val InputComponent = R.drawable.ms_settings_input_component
+    val InputAntenna = R.drawable.ms_settings_input_antenna
+    val Input = R.drawable.ms_input
+    val Notifications = R.drawable.ms_notifications
+    val ClearAll = R.drawable.ms_clear_all
+    val Tune = R.drawable.ms_tune
+    val Screensaver = R.drawable.ms_nights_stay
 }

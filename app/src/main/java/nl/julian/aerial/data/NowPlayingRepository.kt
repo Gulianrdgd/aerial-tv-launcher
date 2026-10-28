@@ -17,7 +17,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import nl.julian.aerial.media.MediaListenerService
+import nl.julian.aerial.media.LauncherListenerService
 
 @Immutable
 data class NowPlaying(
@@ -49,7 +49,7 @@ object NowPlayingRepository {
         context.getSystemService(NotificationManager::class.java)
             .isNotificationListenerAccessGranted(listener(context))
 
-    private fun listener(context: Context) = ComponentName(context, MediaListenerService::class.java)
+    private fun listener(context: Context) = ComponentName(context, LauncherListenerService::class.java)
 
     fun nowPlaying(context: Context): Flow<NowPlaying?> = callbackFlow {
         if (!hasAccess(context)) {

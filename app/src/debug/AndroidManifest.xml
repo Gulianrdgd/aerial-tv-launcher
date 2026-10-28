@@ -6,5 +6,19 @@
         <receiver
             android:name=".debug.FakeMediaReceiver"
             android:exported="true" />
+        <!-- Debug builds only, off by default: a fake TV input for the input switcher on an emulator. -->
+        <service
+            android:name=".debug.FakeTvInputService"
+            android:enabled="false"
+            android:exported="true"
+            android:label="Test input (debug)"
+            android:permission="android.permission.BIND_TV_INPUT">
+            <intent-filter>
+                <action android:name="android.media.tv.TvInputService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.media.tv.input"
+                android:resource="@xml/fake_tv_input" />
+        </service>
     </application>
 </manifest>

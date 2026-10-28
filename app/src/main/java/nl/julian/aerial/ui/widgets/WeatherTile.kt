@@ -1,17 +1,25 @@
 package nl.julian.aerial.ui.widgets
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -20,26 +28,59 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.data.Sky
 import nl.julian.aerial.data.Weather
+import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 
-/** Place, sky glyph (in the tertiary accent) and temperature. Display only, so not focusable. */
+/** Place, sky glyph and temperature, then rain over the next two hours. Display only. */
 @Composable
 fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier) {
     val cs = MaterialTheme.colorScheme
     Column(
-        modifier.background(LocalSurfaces.current.high, RoundedCornerShape(radius)).padding(horizontal = 10.dp),
+        modifier
+            .background(LocalSurfaces.current.high, RoundedCornerShape(radius))
+            .padding(horizontal = TILE_PADDING),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            weather.place, style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant,
+            weather.place.uppercase(), style = EyebrowStyle, color = cs.onSurfaceVariant,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
-        Spacer(Modifier.height(8.dp))
-        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = cs.tertiary, modifier = Modifier.size(40.dp))
         Spacer(Modifier.height(4.dp))
-        Text("${weather.temperature}°", style = MaterialTheme.typography.headlineMedium, color = cs.onSurface)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = cs.tertiary, modifier = Modifier.size(34.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("${weather.temperature}°", style = MaterialTheme.typography.headlineLarge, color = cs.onSurface)
+        }
+        Spacer(Modifier.height(8.dp))
+        if (weather.rainExpected) {
+            RainBars(weather.rain)
+        } else {
+            Text("Dry for 2 h", style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant)
+        }
+    }
+}
+
+/** Eight quarter-hour bars for the next two hours; empty quarters are dots. */
+@Composable
+private fun RainBars(rain: List<Float>) {
+    val cs = MaterialTheme.colorScheme
+    val dry = cs.onSurfaceVariant.copy(alpha = 0.35f)
+    Canvas(Modifier.width(88.dp).height(18.dp).semantics { contentDescription = "Rain expected in the next 2 hours" }) {
+        val n = rain.size.coerceAtLeast(1)
+        val gap = 3.dp.toPx()
+        val w = (size.width - gap * (n - 1)) / n
+        rain.forEachIndexed { i, mm ->
+            // 2 mm per quarter (heavy rain) fills the bar.
+            val h = if (mm < 0.1f) w else (mm / 2f).coerceIn(0.2f, 1f) * size.height
+            drawRoundRect(
+                color = if (mm < 0.1f) dry else cs.tertiary,
+                topLeft = Offset(i * (w + gap), size.height - h),
+                size = Size(w, h),
+                cornerRadius = CornerRadius(w / 2),
+            )
+        }
     }
 }
 

@@ -56,9 +56,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Lets Now Playing read media sessions; granted with adb (see class doc) -->
+        <!-- Now Playing (media sessions) and notifications; granted with adb (see README) -->
         <service
-            android:name=".media.MediaListenerService"
+            android:name=".media.LauncherListenerService"
             android:exported="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">

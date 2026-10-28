@@ -58,6 +58,11 @@ import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.data.COLUMNS
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
+import nl.julian.aerial.data.InputsRepository
+import nl.julian.aerial.data.NotificationsRepository
+import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.Scenery
+import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.data.arrange
 import nl.julian.aerial.data.moved
 import nl.julian.aerial.data.pinned
@@ -67,9 +72,12 @@ import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
+import nl.julian.aerial.ui.menus.InputsPanel
+import nl.julian.aerial.ui.menus.NotificationsPanel
 import nl.julian.aerial.ui.menus.SettingsPanel
 import nl.julian.aerial.ui.widgets.WidgetBand
 import nl.julian.aerial.ui.widgets.startSafely
+import nl.julian.aerial.wallpaper.Aerial
 import nl.julian.aerial.wallpaper.AerialBackground
 
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
@@ -78,7 +86,7 @@ private val DOCK_OUTER = 40.dp
 private val DOCK_INSET = 12.dp
 
 @Composable
-fun HomeScreen(homeTick: Int, idle: Boolean) {
+fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
     val context = LocalContext.current
     var rescanTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -91,7 +99,8 @@ fun HomeScreen(homeTick: Int, idle: Boolean) {
     val config by store.config.collectAsStateWithLifecycle(null)
 
     var seed by remember { mutableStateOf<Int?>(null) }
-    var clipTitle by remember { mutableStateOf<String?>(null) }
+    var clip by remember { mutableStateOf<Aerial?>(null) }
+    var skipTick by remember { mutableIntStateOf(0) }
     // Idle: everything but the aerial fades away (slowly out, quickly back).
     val uiAlpha by animateFloatAsState(
         if (idle) 0f else 1f,
@@ -103,7 +112,8 @@ fun HomeScreen(homeTick: Int, idle: Boolean) {
             sources = config?.aerialSource?.keys.orEmpty(),
             kind = config?.scenery?.kind,
             onSeed = { seed = it },
-            onClip = { clipTitle = it.title },
+            onClip = { clip = it },
+            skip = skipTick,
         )
         AerialTheme(seed) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
@@ -111,16 +121,26 @@ fun HomeScreen(homeTick: Int, idle: Boolean) {
                 Scrim()
                 val a = apps
                 val c = config
-                if (a != null && c != null) HomeContent(a, c, store, homeTick)
+                if (a != null && c != null) {
+                    HomeContent(a, c, store, homeTick, clip, onSkipAerial = { skipTick++ }, onStartScreensaver)
+                }
             }
         }
-        AerialCaption(clipTitle, visible = idle)
+        AerialCaption(clip?.title, visible = idle)
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: ConfigStore, homeTick: Int) {
+private fun HomeContent(
+    apps: List<AppEntry>,
+    config: LauncherConfig,
+    store: ConfigStore,
+    homeTick: Int,
+    clip: Aerial?,
+    onSkipAerial: () -> Unit,
+    onStartScreensaver: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -133,6 +153,14 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
     var menuFor by remember { mutableStateOf<AppEntry?>(null) }
     var moving by remember { mutableStateOf<String?>(null) }
     var settingsOpen by remember { mutableStateOf(false) }
+    var inputsOpen by remember { mutableStateOf(false) }
+    var notificationsOpen by remember { mutableStateOf(false) }
+
+    val app = context.applicationContext
+    val media by remember { NowPlayingRepository.nowPlaying(app) }.collectAsStateWithLifecycle(null)
+    val weather by remember { WeatherRepository.weather() }.collectAsStateWithLifecycle(null)
+    val inputs by remember { InputsRepository.inputs(app) }.collectAsStateWithLifecycle(emptyList())
+    val notifications by NotificationsRepository.items.collectAsStateWithLifecycle()
     /** Set when the focused tile disappears (hidden/unpinned), so focus lands on the dock, not anywhere. */
     var refocusDock by remember { mutableStateOf(false) }
 
@@ -223,7 +251,17 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         item(key = "widgets") {
-            WidgetBand(onOpenSettings = { settingsOpen = true }, modifier = Modifier.reveal(0, homeTick))
+            WidgetBand(
+                media = media,
+                clip = clip,
+                weather = weather,
+                notificationCount = notifications.size,
+                onSkipAerial = onSkipAerial,
+                onOpenInputs = { inputsOpen = true },
+                onOpenNotifications = { notificationsOpen = true },
+                onOpenSettings = { settingsOpen = true },
+                modifier = Modifier.reveal(0, homeTick),
+            )
         }
         item(key = "watch-next") {
             WatchNextRow(
@@ -242,19 +280,32 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
                 TileRow(home.dock, firstFocus = dockFocus) { app, m -> tile(app, m, true) }
             }
         }
+        item(key = "quick") {
+            QuickSettings(
+                scenery = config.scenery,
+                onCycleScenery = {
+                    update {
+                        val all = Scenery.entries
+                        it.copy(scenery = all[(all.indexOf(it.scenery) + 1) % all.size])
+                    }
+                },
+                onStartScreensaver = onStartScreensaver,
+                modifier = Modifier.padding(horizontal = DOCK_INSET).reveal(3, homeTick),
+            )
+        }
         if (gridRows.isNotEmpty()) {
             item(key = "apps-label") {
                 Text(
                     "All apps",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(3, homeTick),
+                    modifier = Modifier.padding(start = 16.dp, top = 6.dp).reveal(4, homeTick),
                 )
             }
         }
         itemsIndexed(gridRows, key = { i, _ -> "row-$i" }) { i, row ->
             // Line up with the dock's inner tiles.
-            TileRow(row, Modifier.padding(horizontal = DOCK_INSET).reveal(4 + i, homeTick)) { app, m ->
+            TileRow(row, Modifier.padding(horizontal = DOCK_INSET).reveal(5 + i, homeTick)) { app, m ->
                 tile(app, m, false)
             }
         }
@@ -271,6 +322,14 @@ private fun HomeContent(apps: List<AppEntry>, config: LauncherConfig, store: Con
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
+    if (inputsOpen) InputsPanel(inputs, onDismiss = { inputsOpen = false })
+    if (notificationsOpen) {
+        NotificationsPanel(
+            notifications,
+            hasAccess = remember { NowPlayingRepository.hasAccess(context) },
+            onDismiss = { notificationsOpen = false },
+        )
+    }
 }
 
 /** Scrolls only as far as needed to show the focused item with [margin] around it. */

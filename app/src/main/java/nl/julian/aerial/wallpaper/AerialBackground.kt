@@ -66,6 +66,8 @@ fun AerialBackground(
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
     onClip: (Aerial) -> Unit = {},
+    /** Bumped to skip to the next clip. */
+    skip: Int = 0,
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -84,6 +86,8 @@ fun AerialBackground(
         }
         current = queue.next()
     }
+
+    LaunchedEffect(skip) { if (skip > 0) current = queue.next() }
 
     val reveal = remember { Animatable(0f) }
     var surfaceView by remember { mutableStateOf<SurfaceView?>(null) }

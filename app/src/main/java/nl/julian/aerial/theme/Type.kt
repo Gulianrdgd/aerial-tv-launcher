@@ -45,8 +45,27 @@ val AerialShapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp),
 )
 
-/** Editorial clock: one line of ultra-light display digits. */
+/**
+ * Clock digits: light (not hairline) so they read from the sofa, cut at a
+ * large optical size, with tabular figures so the time doesn't shift as
+ * it changes.
+ */
+private val ClockFont = FontFamily(
+    Font(
+        R.font.google_sans_flex,
+        weight = FontWeight(340),
+        variationSettings = FontVariation.Settings(FontVariation.weight(340), FontVariation.Setting("opsz", 72f)),
+    )
+)
+
 val ClockStyle = TextStyle(
-    fontFamily = GoogleSansFlex, fontWeight = FontWeight(200),
-    fontSize = 58.sp, lineHeight = 60.sp, letterSpacing = (-0.02).em,
+    fontFamily = ClockFont, fontWeight = FontWeight(340),
+    fontSize = 64.sp, lineHeight = 66.sp, letterSpacing = (-0.01).em,
+    fontFeatureSettings = "tnum",
+)
+
+/** Small-caps label over each widget ("WEDNESDAY 28 OCT", "NOW SHOWING", …). */
+val EyebrowStyle = TextStyle(
+    fontFamily = GoogleSansFlex, fontWeight = FontWeight(600),
+    fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.14.em,
 )

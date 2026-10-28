@@ -109,8 +109,8 @@ fun WatchNextRow(
     }
 }
 
-/** Widens the element by [h] on each side without moving its content. */
-private fun Modifier.bleed(h: Dp) = layout { measurable, constraints ->
+/** Widens the element by [h] on each side without moving its content (rows that scroll to the screen edge). */
+internal fun Modifier.bleed(h: Dp) = layout { measurable, constraints ->
     val extra = (h * 2).roundToPx()
     val placeable = measurable.measure(
         constraints.copy(maxWidth = constraints.maxWidth + extra, minWidth = constraints.minWidth + extra)

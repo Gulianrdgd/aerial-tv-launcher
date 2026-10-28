@@ -1,7 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
 import android.content.Intent
-import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -9,12 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,31 +22,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
-import nl.julian.aerial.data.NetKind
-import nl.julian.aerial.data.NowPlayingRepository
-import nl.julian.aerial.data.WeatherRepository
-import nl.julian.aerial.data.bluetoothOnFlow
-import nl.julian.aerial.data.networkFlow
+import nl.julian.aerial.data.NowPlaying
+import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.Bezel
 import nl.julian.aerial.theme.ClockStyle
+import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.FocusSurface
+import nl.julian.aerial.wallpaper.Aerial
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,36 +53,47 @@ import java.util.Locale
 private val OUTER = 36.dp
 private val INSET = 10.dp
 internal val INNER = OUTER - INSET
+/** Every tile in the band shares this inner padding. */
+internal val TILE_PADDING = 20.dp
 
 /**
- * Monet's top "widget band": a Material surface container holding the
- * clock, status pills, Now Playing, weather and the settings button.
+ * Monet's top band, a bento of equal-height tiles: clock, Now Playing (or,
+ * when nothing plays, the aerial on screen), weather, and a vertical
+ * toolbar with inputs, notifications and settings.
  */
 @Composable
-fun WidgetBand(onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
+fun WidgetBand(
+    media: NowPlaying?,
+    clip: Aerial?,
+    weather: Weather?,
+    notificationCount: Int,
+    onSkipAerial: () -> Unit,
+    onOpenInputs: () -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Bezel(modifier.fillMaxWidth().height(160.dp), outerRadius = OUTER, inset = INSET) {
         Row(
             Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val context = LocalContext.current.applicationContext
-            val media by remember { NowPlayingRepository.nowPlaying(context) }.collectAsStateWithLifecycle(null)
-            val weather by remember { WeatherRepository.weather() }.collectAsStateWithLifecycle(null)
-
-            ClockTile(Modifier.fillMaxHeight())
-            StatusPills(Modifier.width(172.dp).fillMaxHeight())
-            media?.let { NowPlayingCard(it, INNER, Modifier.weight(1f).fillMaxHeight()) }
-                ?: Spacer(Modifier.weight(1f))
-            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().aspectRatio(0.74f)) }
-            SettingsButton(onOpenSettings)
+            ClockTile(Modifier.fillMaxHeight().width(232.dp))
+            when {
+                media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
+                else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
+            }
+            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(150.dp)) }
+            ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings)
         }
     }
 }
 
 /**
- * Editorial clock: weekday and date as a label over one line of ultra-light
- * display digits, the colon in the primary colour.
+ * Clock: the date as an eyebrow over the time, both centred in a
+ * fixed-width tile so nothing shifts as the minutes change. The colon is
+ * picked out in the primary colour.
  */
 @Composable
 private fun ClockTile(modifier: Modifier) {
@@ -100,7 +109,7 @@ private fun ClockTile(modifier: Modifier) {
     val h24 = DateFormat.is24HourFormat(context)
     val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
-    val date = SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(now)
+    val date = SimpleDateFormat("EEEE d MMM", Locale.getDefault()).format(now).uppercase()
     val time = buildAnnotatedString {
         append(hours)
         withStyle(SpanStyle(color = cs.primary)) { append(":") }
@@ -110,111 +119,119 @@ private fun ClockTile(modifier: Modifier) {
     Column(
         modifier
             .background(LocalSurfaces.current.high, RoundedCornerShape(INNER))
-            .padding(horizontal = 22.dp),
+            .padding(horizontal = TILE_PADDING),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(date, style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1)
+        Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
         Text(time, style = ClockStyle, color = cs.onSurface, maxLines = 1)
     }
 }
 
-@Composable
-private fun StatusPills(modifier: Modifier) {
-    val context = LocalContext.current.applicationContext
-    val net by networkFlow(context).collectAsStateWithLifecycle(NetKind.None)
-    val bt by bluetoothOnFlow(context).collectAsStateWithLifecycle(null)
-    val ctx = LocalContext.current
-
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        val (netIcon, netTitle) = when (net) {
-            NetKind.Ethernet -> Symbols.Ethernet to "Ethernet"
-            NetKind.WiFi -> Symbols.Wifi to "Wi-Fi"
-            NetKind.Other -> Symbols.Wifi to "Online"
-            NetKind.None -> Symbols.Offline to "Offline"
-        }
-        StatusPill(
-            icon = netIcon,
-            title = netTitle,
-            subtitle = if (net == NetKind.None) "No connection" else "Connected",
-            active = net != NetKind.None,
-            onClick = { ctx.startSafely(Intent(Settings.ACTION_WIFI_SETTINGS)) },
-            modifier = Modifier.weight(1f),
-        )
-        if (bt != null) {
-            StatusPill(
-                icon = if (bt == true) Symbols.Bluetooth else Symbols.BluetoothOff,
-                title = "Bluetooth",
-                subtitle = if (bt == true) "On" else "Off",
-                active = bt == true,
-                onClick = { ctx.startSafely(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) },
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
 /**
- * Material pill: the icon sits in its own primary-container circle (or a
- * neutral one when inactive). On focus the whole pill inverts.
+ * When nothing is playing: the aerial's place, Apple TV style. Selecting it
+ * skips to the next clip.
  */
 @Composable
-private fun StatusPill(
-    @DrawableRes icon: Int,
-    title: String,
-    subtitle: String,
-    active: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val cs = MaterialTheme.colorScheme
-    FocusSurface(onClick = onClick, shape = CircleShape, modifier = modifier.fillMaxWidth(), focusedScale = 1.05f) { focused ->
-        Row(Modifier.fillMaxSize().padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier) {
+    FocusSurface(onClick = onSkip, shape = RoundedCornerShape(INNER), modifier = modifier, focusedScale = 1.03f) { focused ->
+        Row(Modifier.fillMaxSize().padding(horizontal = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "NOW SHOWING", style = EyebrowStyle, maxLines = 1,
+                    color = LocalContentColor.current.copy(alpha = 0.7f),
+                )
+                Text(
+                    clip?.title ?: "Aerials", style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                )
+                clip?.let {
+                    Text(
+                        "${sceneryLabel(it.kind)} · ${collectionLabel(it.source)}",
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 1,
+                        color = LocalContentColor.current.copy(alpha = 0.7f),
+                    )
+                }
+            }
             Box(
                 Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f)
-                    .background(
-                        when {
-                            focused -> cs.primary
-                            active -> cs.primaryContainer
-                            else -> LocalSurfaces.current.highest
-                        },
-                        CircleShape,
-                    ),
+                    .size(44.dp)
+                    .background(if (focused) MaterialTheme.colorScheme.primary else LocalSurfaces.current.highest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painterResource(icon), contentDescription = null, modifier = Modifier.size(22.dp),
-                    tint = when {
-                        focused -> cs.onPrimary
-                        active -> cs.onPrimaryContainer
-                        else -> cs.onSurfaceVariant
-                    },
-                )
-            }
-            Column(Modifier.padding(start = 12.dp)) {
-                Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 1)
-                Text(
-                    subtitle, style = MaterialTheme.typography.bodySmall, maxLines = 1,
-                    color = LocalContentColor.current.copy(alpha = 0.72f),
+                    painterResource(Symbols.SkipNext), contentDescription = "Next aerial",
+                    tint = if (focused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(22.dp),
                 )
             }
         }
     }
 }
 
+private fun sceneryLabel(kind: String) = when (kind) {
+    "city" -> "City"
+    "nature" -> "Nature"
+    "water" -> "Underwater"
+    "space" -> "From space"
+    else -> "Ambient"
+}
+
+private fun collectionLabel(source: String) = when (source) {
+    "A" -> "Apple TV"
+    "Z" -> "Fire TV"
+    else -> "Community"
+}
+
+/**
+ * M3 Expressive vertical toolbar: one rounded container holding the
+ * inputs, notifications and settings buttons.
+ */
 @Composable
-private fun SettingsButton(onClick: () -> Unit) {
+private fun ControlRail(notifications: Int, onInputs: () -> Unit, onNotifications: () -> Unit, onSettings: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxHeight()
+            .background(LocalSurfaces.current.high, CircleShape)
+            .padding(5.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        RailButton(Symbols.Input, "Inputs", onInputs)
+        Box {
+            RailButton(Symbols.Notifications, "Notifications", onNotifications)
+            if (notifications > 0) Badge(notifications, Modifier.align(Alignment.TopEnd).offset(x = 2.dp, y = (-2).dp))
+        }
+        RailButton(Symbols.Settings, "Settings", onSettings)
+    }
+}
+
+@Composable
+private fun RailButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit) {
     FocusSurface(
         onClick = onClick,
         shape = CircleShape,
-        modifier = Modifier.padding(horizontal = 2.dp).size(58.dp),
-        container = LocalSurfaces.current.highest,
-        focusedScale = 1.12f,
+        container = LocalSurfaces.current.high,
+        modifier = Modifier.size(40.dp),
+        focusedScale = 1.15f,
     ) {
-        Icon(
-            painterResource(Symbols.Settings), contentDescription = "Settings",
-            modifier = Modifier.align(Alignment.Center).size(26.dp),
+        Icon(painterResource(icon), contentDescription = label, modifier = Modifier.align(Alignment.Center).size(22.dp))
+    }
+}
+
+/** M3 badge: a small error-coloured pill with the count. */
+@Composable
+private fun Badge(count: Int, modifier: Modifier) {
+    val cs = MaterialTheme.colorScheme
+    Box(
+        modifier.height(16.dp).aspectRatio(if (count > 9) 1.5f else 1f, matchHeightConstraintsFirst = true)
+            .background(cs.error, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            if (count > 99) "99+" else count.toString(),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 12.sp),
+            color = cs.onError,
         )
     }
 }

@@ -4,7 +4,10 @@ An Android TV / Google TV launcher. It has a Monet-style home screen of frosted 
 
 - **Aerials:** 265 streamed 1080p clips from Apple, Fire TV and the community. They're cached on disk (1 GB), and the next clip is fetched in the background.
 - **Dynamic colour:** the playing frame is sampled every few seconds and the whole UI re-tints to match.
-- **Widgets:** clock, network and Bluetooth status, weather (Open-Meteo, located from the TV's timezone) and Now Playing with transport controls.
+- **Top band:** clock; Now Playing with transport controls, or the aerial currently showing (select to skip); weather with a 2-hour rain forecast (Open-Meteo, located from the TV's timezone); and a toolbar for inputs, notifications and settings.
+- **Input switcher:** every HDMI/antenna input the TV reports, in a side panel.
+- **Notifications:** a badge on the bell and a panel to open (OK) or dismiss (hold OK) them.
+- **Quick settings:** network, Bluetooth, picture & sound, scenery and "screensaver now" tiles under the dock.
 - **Continue Watching:** the system Watch Next list that streaming apps publish to.
 - **Dock and app grid:** long-press OK on any app to open, move, pin, hide, view info or uninstall.
 - **Screensaver:** after a few minutes without input the UI fades away and the aerial plays full screen.
@@ -22,18 +25,21 @@ Then press Home on the TV and choose **Aerial**, or open the settings panel (gea
 
 **Continue Watching** asks for access the first time you select it: an on-screen dialog, no adb needed.
 
-**Now Playing** reads media sessions through a notification listener. Android TV has no settings screen for this, so grant it once over adb:
+**Now Playing** and **notifications** use a notification listener. Android TV has no settings screen for this, so grant it once over adb:
 
 ```sh
-adb shell cmd notification allow_listener nl.julian.aerial/nl.julian.aerial.media.MediaListenerService
+adb shell cmd notification allow_listener nl.julian.aerial/nl.julian.aerial.media.LauncherListenerService
 ```
 
 ## Development
 
 - Kotlin, Jetpack Compose with `androidx.tv:tv-material`, Media3 ExoPlayer, DataStore, Coil, Material Color Utilities.
 - `./gradlew :app:testDebugUnitTest` runs the unit tests.
-- Debug builds include a fake media session for testing Now Playing without a music app:
-  `adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a play` (or `pause`, `stop`).
+- Debug builds include test hooks for an emulator, all through one receiver:
+  `adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a <action>`
+  - `play`, `pause`, `stop`: a fake track for Now Playing.
+  - `input-on`, `input-off`: a fake TV input for the input switcher (off by default).
+- Test notifications: `adb shell cmd notification post -t 'Title' tag 'Text'`.
 
 ## Licence
 

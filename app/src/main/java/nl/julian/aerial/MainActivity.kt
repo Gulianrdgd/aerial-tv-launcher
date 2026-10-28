@@ -32,7 +32,9 @@ class MainActivity : ComponentActivity() {
         // The aerial SurfaceView sits behind the window; an opaque window
         // background would cover it.
         window.setBackgroundDrawable(null)
-        setContent { HomeScreen(homeTick.intValue, idle.value) }
+        setContent {
+            HomeScreen(homeTick.intValue, idle.value, onStartScreensaver = { idle.value = true })
+        }
 
         lifecycleScope.launch {
             ConfigStore.get(this@MainActivity).config.collect { idleAfterMs = it.idleMinutes * 60_000L }

@@ -1,8 +1,10 @@
 package nl.julian.aerial.debug
 
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
@@ -14,8 +16,9 @@ import android.media.session.PlaybackState
 import android.os.SystemClock
 
 /**
- * Debug builds only: a fake playing track, so Now Playing can be tested on an
- * emulator without a music app. Actions: play, pause, stop.
+ * Debug builds only: test hooks for an emulator. Actions: play, pause, stop
+ * (a fake playing track for Now Playing) and input-on / input-off (the fake
+ * TV input for the input switcher).
  */
 class FakeMediaReceiver : BroadcastReceiver() {
 
@@ -24,6 +27,12 @@ class FakeMediaReceiver : BroadcastReceiver() {
             "play" -> session(context).apply { isActive = true; setState(this, playing = true) }
             "pause" -> session?.let { setState(it, playing = false) }
             "stop" -> { session?.release(); session = null }
+            "input-on", "input-off" -> context.packageManager.setComponentEnabledSetting(
+                ComponentName(context, FakeTvInputService::class.java),
+                if (intent.action == "input-on") PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP,
+            )
         }
     }
 
