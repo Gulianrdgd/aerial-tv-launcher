@@ -18,7 +18,7 @@ After two minutes without input the panels fade out and the aerial plays full sc
 
 ## Inputs
 
-The inputs button in the top bar lists the TV's HDMI ports and other inputs in port order, with the names you gave them on the TV and an icon for the kind of device behind them.
+The inputs button in the top bar lists the TV's HDMI ports first, in port order, then the other inputs. Each one shows the name you gave it on the TV, with an icon for the kind of device that's plugged in.
 
 ![Inputs](docs/screenshots/inputs.png)
 
@@ -34,7 +34,7 @@ Clips stream when they're shown and nothing is downloaded ahead. The last one or
 
 The settings panel opens from the gear in the top bar. It covers scenery and collection, how soon the screensaver starts, 12 or 24 hour time, Celsius or Fahrenheit, the weather location, tile style (app banners or tiles tinted to the aerial), and hidden apps. It also links to the Android TV settings for date, time and timezone.
 
-Weather comes from Open-Meteo, which needs no account. By default the city is taken from the TV's timezone; you can type a different one.
+Weather comes from Open-Meteo, which needs no account. Aerial guesses your city from the TV's timezone, and you can type a different one.
 
 ## Install
 
@@ -55,7 +55,7 @@ adb shell pm disable-user --user 0 com.google.android.tvlauncher
 
 ## Permissions
 
-Continue Watching asks for access the first time you select it, with a normal on-screen dialog.
+Continue Watching asks for access the first time you select it, through the usual Android dialog.
 
 Now Playing and notifications need notification access. Android TV has no screen to grant that, so do it once over adb:
 
@@ -75,7 +75,7 @@ Debug builds have test hooks for the emulator. They all go through one receiver:
 adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a <action>
 ```
 
-`play`, `pause` and `stop` control a fake track for Now Playing. `input-on` and `input-off` add or remove a fake TV input. Test notifications can be posted with `adb shell cmd notification post -t 'Title' tag 'Text'`.
+`play`, `pause` and `stop` control a fake track for Now Playing. `input-on` and `input-off` add or remove a fake TV input. Post a test notification with `adb shell cmd notification post -t 'Title' tag 'Text'`.
 
 ## Licence
 
