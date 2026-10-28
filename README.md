@@ -1,3 +1,5 @@
+<p align="center"><img src="art/logo.svg" width="140" alt="Aerial logo: a sunrise over Earth seen from orbit"></p>
+
 # Aerial: an Android TV launcher with Apple TV aerials
 
 [![Latest release](https://img.shields.io/github/v/release/Gulianrdgd/aerial-tv-launcher?label=release)](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest)
