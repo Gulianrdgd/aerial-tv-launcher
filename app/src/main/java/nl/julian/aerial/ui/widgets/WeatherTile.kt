@@ -2,6 +2,7 @@ package nl.julian.aerial.ui.widgets
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,10 +35,18 @@ import nl.julian.aerial.theme.topHighlight
 
 /**
  * Sky glyph; beside it the place, the temperature with the next two hours
- * of rain, and a one-line rain outlook. Display only.
+ * of rain, and a one-line rain outlook. [compact] (while media plays) drops
+ * the place and outlook but keeps the rain bars. Display only.
  */
 @Composable
-fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier) {
+fun WeatherTile(
+    weather: Weather,
+    radius: Dp,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    /** The tile has the bar's free space: larger icon, temperature and rain bars. */
+    wide: Boolean = false,
+) {
     val cs = MaterialTheme.colorScheme
     Row(
         modifier
@@ -45,19 +54,37 @@ fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier) {
             .topHighlight(RoundedCornerShape(radius))
             .padding(horizontal = TILE_PADDING),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
-        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(36.dp))
-        Spacer(Modifier.width(12.dp))
+        if (compact) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(30.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                }
+                if (weather.rain.isNotEmpty()) RainBars(weather.rain)
+            }
+            return@Row
+        }
+        Icon(
+            painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather),
+            modifier = Modifier.size(if (wide) 52.dp else 36.dp),
+        )
+        Spacer(Modifier.width(if (wide) 18.dp else 12.dp))
         Column {
             Text(
                 weather.place.uppercase(), style = EyebrowStyle, color = cs.onSurfaceVariant,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                Text(
+                    "${weather.temperature}°", color = cs.onSurface,
+                    style = if (wide) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineSmall,
+                )
                 if (weather.rain.isNotEmpty()) {
-                    Spacer(Modifier.width(10.dp))
-                    RainBars(weather.rain)
+                    Spacer(Modifier.width(if (wide) 16.dp else 10.dp))
+                    RainBars(weather.rain, if (wide) 136.dp else 72.dp)
                 }
             }
             Text(
@@ -76,9 +103,9 @@ private val RainBlue = Color(0xFF9CCBFF)
  * drizzle gets a third so it's visible); dry quarters are small dots.
  */
 @Composable
-private fun RainBars(rain: List<Float>) {
+private fun RainBars(rain: List<Float>, width: Dp = 72.dp) {
     val dry = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-    Canvas(Modifier.width(72.dp).height(16.dp).semantics { contentDescription = "Rain over the next 2 hours" }) {
+    Canvas(Modifier.width(width).height(16.dp).semantics { contentDescription = "Rain over the next 2 hours" }) {
         val n = rain.size.coerceAtLeast(1)
         val gap = 3.dp.toPx()
         val w = (size.width - gap * (n - 1)) / n

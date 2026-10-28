@@ -49,8 +49,6 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -63,6 +61,7 @@ import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.InputsRepository
 import nl.julian.aerial.data.NotificationsRepository
+import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.data.Scenery
@@ -111,7 +110,6 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
 
     var seed by remember { mutableStateOf<Int?>(null) }
     var clip by remember { mutableStateOf<Aerial?>(null) }
-    var skipTick by remember { mutableIntStateOf(0) }
     // The staggered entrance plays on cold start and when waking from the
     // screensaver, not on every Home press.
     var revealTick by remember { mutableIntStateOf(0) }
@@ -133,7 +131,6 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
             kind = cfg.scenery.kind,
             onSeed = { seed = it },
             onClip = { clip = it },
-            skip = skipTick,
         )
         } ?: AmbientBackdrop()
         AerialTheme(seed) {
@@ -143,7 +140,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clip, weather, onSkipAerial = { skipTick++ }, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clip, media, weather, onStartScreensaver)
                 }
             }
         }
@@ -168,8 +165,8 @@ private fun HomeContent(
     homeTick: Int,
     revealTick: Int,
     clip: Aerial?,
+    media: NowPlaying?,
     weather: Weather?,
-    onSkipAerial: () -> Unit,
     onStartScreensaver: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -303,10 +300,12 @@ private fun HomeContent(
         item(key = "widgets") {
             WidgetBand(
                 clockFormat = config.clockFormat,
+                media = media,
                 clip = clip,
                 weather = weather,
+                showAerial = config.barShowsAerial,
+                showMusic = config.barShowsMusic,
                 notificationCount = notifications.size,
-                onSkipAerial = onSkipAerial,
                 onOpenInputs = { returnFocus = railFocus.inputs; inputsOpen = true },
                 onOpenNotifications = { returnFocus = railFocus.notifications; notificationsOpen = true },
                 onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },

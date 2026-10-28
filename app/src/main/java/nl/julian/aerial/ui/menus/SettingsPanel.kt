@@ -94,6 +94,16 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
         )
 
+        Section("Top bar")
+        MenuRow(
+            Symbols.Screensaver, "Aerial name", value = if (config.barShowsAerial) "Shown" else "Hidden",
+            onClick = { update { it.copy(barShowsAerial = !it.barShowsAerial) } },
+        )
+        MenuRow(
+            Symbols.Music, "Now playing", value = if (config.barShowsMusic) "Shown while music plays" else "Hidden",
+            onClick = { update { it.copy(barShowsMusic = !it.barShowsMusic) } },
+        )
+
         Section("Home screen")
         MenuRow(
             Symbols.Tune, "Tile style",

@@ -3,6 +3,7 @@ Aerial is a home screen for Android TV and Google TV. Slow aerial video plays be
 <b>Home screen</b>
 <ul>
 <li>A top bar with the clock, the clip that's showing, the weather with a two-hour rain forecast, and buttons for inputs, notifications and settings</li>
+<li>Optionally, the aerial's name and what's playing, with play controls</li>
 <li>A six-app dock with each app's own banner, a Continue Watching row from your streaming apps, quick settings and the rest of your apps</li>
 <li>Hold OK on an app to move, pin, hide or uninstall it</li>
 </ul>

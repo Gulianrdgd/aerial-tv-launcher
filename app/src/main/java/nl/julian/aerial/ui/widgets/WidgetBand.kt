@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -20,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -31,21 +32,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
-import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.ClockFormat
+import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.ClockStyle
 import nl.julian.aerial.theme.EyebrowStyle
+import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.PANEL_RADIUS
 import nl.julian.aerial.theme.panel
@@ -70,16 +69,19 @@ internal val TILE_PADDING = 16.dp
 internal fun tileColor() = LocalSurfaces.current.high.copy(alpha = 0.88f)
 
 /**
- * The top bar: one translucent bar holding the tiles: clock, the aerial on
- * screen, weather, and a toolbar with inputs, notifications and settings.
+ * The top bar: one translucent bar with the clock, the weather and a
+ * toolbar with inputs, notifications and settings. Optionally, between
+ * them: what's playing ([showMusic]) or the aerial on screen ([showAerial]).
  */
 @Composable
 fun WidgetBand(
     clockFormat: ClockFormat,
+    media: NowPlaying?,
     clip: Aerial?,
     weather: Weather?,
+    showAerial: Boolean,
+    showMusic: Boolean,
     notificationCount: Int,
-    onSkipAerial: () -> Unit,
     onOpenInputs: () -> Unit,
     onOpenNotifications: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -96,9 +98,22 @@ fun WidgetBand(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val playing = if (showMusic) media else null
+        val middle = playing != null || showAerial
+        // While music shows the weather narrows (dropping the place) so the
+        // Now Playing card gets the room. With nothing in the middle the
+        // weather takes the free space.
+        val compact = playing != null
+        val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
         ClockTile(clockFormat, Modifier.fillMaxHeight().width(176.dp))
-        NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
-        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(196.dp)) }
+        when {
+            playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
+            showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
+        }
+        weather?.let {
+            val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
+            WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle)
+        }
         ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
     }
 }
@@ -156,46 +171,25 @@ private fun DigitPill(text: String, container: Color, content: Color) {
     }
 }
 
-/**
- * When nothing is playing: the aerial's place, Apple TV style. Selecting it
- * skips to the next clip.
- */
+/** The aerial on screen: its scenery as an eyebrow over its name. Display only. */
 @Composable
-private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier) {
-    FocusSurface(
-        onClick = onSkip,
-        shape = RoundedCornerShape(INNER),
-        container = tileColor(),
-        modifier = modifier,
-        focusedScale = 1.03f,
-    ) { focused ->
-        Row(Modifier.fillMaxSize().padding(start = TILE_PADDING + 4.dp, end = TILE_PADDING), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                // The scenery goes in the eyebrow, so the title has two lines
-                // instead of being cut off.
-                Text(
-                    clip?.let { sceneryLabel(it.kind) }?.uppercase() ?: "NOW SHOWING",
-                    style = EyebrowStyle, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    color = LocalContentColor.current.copy(alpha = 0.7f),
-                )
-                Text(
-                    clip?.title ?: "Aerials", style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Box(
-                Modifier
-                    .size(40.dp)
-                    .background(if (focused) MaterialTheme.colorScheme.primary else LocalSurfaces.current.highest, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painterResource(Symbols.SkipNext), contentDescription = "Next aerial",
-                    tint = if (focused) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-        }
+private fun NowShowingTile(clip: Aerial?, modifier: Modifier) {
+    Column(
+        modifier
+            .background(tileColor(), RoundedCornerShape(INNER))
+            .topHighlight(RoundedCornerShape(INNER))
+            .padding(horizontal = TILE_PADDING + 4.dp),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            clip?.let { sceneryLabel(it.kind) }?.uppercase() ?: "NOW SHOWING",
+            style = EyebrowStyle, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            clip?.title ?: "Aerials", style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
