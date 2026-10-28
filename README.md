@@ -1,8 +1,10 @@
-# Aerial
+# Aerial: an Android TV launcher with Apple TV aerials
 
-Aerial is a home screen for Android TV and Google TV. Slow aerial video plays behind everything, the way it does on an Apple TV, and the panels on top follow Material You: their colours are picked from whatever clip is on screen.
+Aerial is a custom launcher (home screen replacement) for Android TV and Google TV. Slow aerial video plays behind everything, the way it does on an Apple TV, and the panels on top follow Material You: their colours are picked from whatever clip is on screen. It has no ads and no sponsored rows.
 
-![Home screen](docs/screenshots/home.png)
+[Download the latest APK](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest) and sideload it with adb (see [Install](#install)).
+
+![Aerial Android TV launcher home screen with an aerial video background](docs/screenshots/home.png)
 
 ## What's on the home screen
 
@@ -14,13 +16,13 @@ Hold OK on an app to open, move, pin, hide or uninstall it, or to open its app i
 
 After two minutes without input the panels fade out and the aerial plays full screen, much like Chromecast's ambient mode: the clip's name, the time and the weather sit in the bottom left, and whatever is playing shows in the top right. Any button brings the home screen back.
 
-![Screensaver](docs/screenshots/screensaver.png)
+![Aerial screensaver with clip name, time and weather](docs/screenshots/screensaver.png)
 
 ## Inputs
 
 The inputs button in the top bar lists the TV's HDMI ports first, in port order, then the other inputs. Each one shows the name you gave it on the TV, with an icon for the kind of device that's plugged in.
 
-![Inputs](docs/screenshots/inputs.png)
+![Input switcher listing HDMI ports](docs/screenshots/inputs.png)
 
 ## Aerials
 
@@ -30,7 +32,7 @@ Clips stream when they're shown and nothing is downloaded ahead. The last one or
 
 ## Settings
 
-![Settings](docs/screenshots/settings.png)
+![Launcher settings panel](docs/screenshots/settings.png)
 
 The settings panel opens from the gear in the top bar. It covers scenery and collection, how soon the screensaver starts, 12 or 24 hour time, Celsius or Fahrenheit, the weather location, tile style (app banners or tiles tinted to the aerial), and hidden apps. It also links to the Android TV settings for date, time and timezone.
 
