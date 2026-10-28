@@ -58,6 +58,10 @@ private const val SAMPLE_EVERY_MS = 8_000L
 @Composable
 fun AerialBackground(
     modifier: Modifier = Modifier,
+    /** Which collections to play; empty = all of them. */
+    sources: Set<String> = emptySet(),
+    /** Which scenery to play (city, nature, …); null = everything. */
+    kind: String? = null,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
@@ -66,11 +70,14 @@ fun AerialBackground(
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val queue = remember {
-        AerialQueue(Aerials.load(context))
+    val queue = remember(sources, kind) {
+        val all = Aerials.load(context)
+        val picked = all.filter { (sources.isEmpty() || it.source in sources) && (kind == null || it.kind == kind) }
+        // A combination with no clips (e.g. community + space) falls back to everything.
+        AerialQueue(picked.ifEmpty { all })
     }
     var current by remember { mutableStateOf<Aerial?>(null) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(queue) {
         // Begin with a clip that's already on disk: instant, and works offline.
         withContext(Dispatchers.IO) {
             queue.preferFirst { AerialMedia.isFullyCached(context, it.uri) }

@@ -3,7 +3,7 @@ package nl.julian.aerial.ui
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
@@ -36,13 +36,24 @@ fun FocusSurface(
     modifier: Modifier = Modifier,
     tint: Color = LocalLauncherColors.current.tile,
     focusedScale: Float = 1.08f,
+    onLongClick: (() -> Unit)? = null,
+    /** Keeps the ring lit and the tile lifted, e.g. while it's being moved. */
+    highlighted: Boolean = false,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) focusedScale else 1f, FocusSpring, label = "scale")
+    val raised = focused || highlighted
+    val scale by animateFloatAsState(
+        when {
+            highlighted -> focusedScale + 0.04f
+            focused -> focusedScale
+            else -> 1f
+        },
+        FocusSpring, label = "scale",
+    )
     val lift by animateFloatAsState(
-        if (focused) 1f else 0f, tween(450, easing = FluidEasing), label = "lift",
+        if (raised) 1f else 0f, tween(450, easing = FluidEasing), label = "lift",
     )
     val accent = LocalLauncherColors.current.accent
 
@@ -58,8 +69,17 @@ fun FocusSurface(
             )
             .clip(shape)
             .glassCore(shape, tint)
-            .border(2.dp, Color.White.copy(alpha = 0.92f * lift), shape)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
+            .border(
+                if (highlighted) 3.dp else 2.dp,
+                (if (highlighted) accent else Color.White).copy(alpha = 0.92f * lift),
+                shape,
+            )
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = null,
+                onLongClick = onLongClick,
+                onClick = onClick,
+            ),
     ) {
         content(focused)
     }

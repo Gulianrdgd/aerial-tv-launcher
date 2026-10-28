@@ -27,12 +27,17 @@ fun AppTile(
     radius: Dp,
     onLaunch: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongPress: (() -> Unit)? = null,
+    /** Lifted with an accent ring while the user is moving it. */
+    moving: Boolean = false,
 ) {
     val colors = LocalLauncherColors.current
     FocusSurface(
         onClick = onLaunch,
         shape = RoundedCornerShape(radius),
         modifier = modifier.aspectRatio(16f / 9f),
+        onLongClick = onLongPress,
+        highlighted = moving,
     ) {
         if (app.banner != null) {
             Image(

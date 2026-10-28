@@ -26,6 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,7 +59,7 @@ private val INNER = OUTER - INSET
  * status pills and a round settings key. A bento of unequal cells.
  */
 @Composable
-fun WidgetBand(modifier: Modifier = Modifier) {
+fun WidgetBand(onOpenSettings: () -> Unit, modifier: Modifier = Modifier) {
     Bezel(modifier.fillMaxWidth().height(160.dp), outerRadius = OUTER, inset = INSET) {
         Row(
             Modifier.fillMaxSize(),
@@ -67,16 +70,20 @@ fun WidgetBand(modifier: Modifier = Modifier) {
             val media by remember { NowPlayingRepository.nowPlaying(context) }.collectAsStateWithLifecycle(null)
             val weather by remember { WeatherRepository.weather() }.collectAsStateWithLifecycle(null)
 
-            ClockTile(Modifier.fillMaxHeight().aspectRatio(0.96f))
-            StatusPills(Modifier.width(188.dp).fillMaxHeight())
+            ClockTile(Modifier.fillMaxHeight())
+            StatusPills(Modifier.width(172.dp).fillMaxHeight())
             media?.let { NowPlayingCard(it, INNER, Modifier.weight(1f).fillMaxHeight()) }
                 ?: Spacer(Modifier.weight(1f))
-            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().aspectRatio(0.84f)) }
-            SettingsKey()
+            weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().aspectRatio(0.74f)) }
+            SettingsKey(onOpenSettings)
         }
     }
 }
 
+/**
+ * Editorial clock: weekday and date in small caps over one line of
+ * ultra-light digits, the colon picked out in the accent colour.
+ */
 @Composable
 private fun ClockTile(modifier: Modifier) {
     val context = LocalContext.current
@@ -89,19 +96,22 @@ private fun ClockTile(modifier: Modifier) {
         }
     }
     val h24 = DateFormat.is24HourFormat(context)
-    val hours = SimpleDateFormat(if (h24) "HH" else "hh", Locale.getDefault()).format(now)
+    val hours = SimpleDateFormat(if (h24) "HH" else "h", Locale.getDefault()).format(now)
     val minutes = SimpleDateFormat("mm", Locale.getDefault()).format(now)
-    val date = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(now).uppercase()
+    val date = SimpleDateFormat("EEEE · d MMM", Locale.getDefault()).format(now).uppercase()
+    val time = buildAnnotatedString {
+        append(hours)
+        withStyle(SpanStyle(color = colors.accent)) { append(":") }
+        append(minutes)
+    }
 
     Column(
-        modifier.glassCore(RoundedCornerShape(INNER), colors.tile),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier.glassCore(RoundedCornerShape(INNER), colors.tile).padding(horizontal = 22.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(date, style = AerialType.eyebrow, color = colors.contentMuted)
-        Spacer(Modifier.height(6.dp))
-        Text(hours, style = AerialType.clock, color = colors.accent)
-        Text(minutes, style = AerialType.clock, color = colors.accent)
+        Text(date, style = AerialType.eyebrow, color = colors.contentMuted, maxLines = 1)
+        Spacer(Modifier.height(4.dp))
+        Text(time, style = AerialType.time, color = colors.content, maxLines = 1)
     }
 }
 
@@ -182,11 +192,10 @@ private fun StatusPill(
 }
 
 @Composable
-private fun SettingsKey() {
-    val ctx = LocalContext.current
+private fun SettingsKey(onClick: () -> Unit) {
     val colors = LocalLauncherColors.current
     FocusSurface(
-        onClick = { ctx.startSafely(Intent(Settings.ACTION_SETTINGS)) },
+        onClick = onClick,
         shape = CircleShape,
         modifier = Modifier.padding(horizontal = 2.dp).size(58.dp),
         focusedScale = 1.12f,

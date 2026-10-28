@@ -60,7 +60,7 @@ fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier)
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val artShape = RoundedCornerShape(radius - inset)
-        Box(Modifier.fillMaxHeight().aspectRatio(1f).clip(artShape).background(colors.panel)) {
+        Box(Modifier.size(92.dp).clip(artShape).background(colors.panel)) {
             if (media.art != null) {
                 Image(media.art, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else if (media.artUri != null) {

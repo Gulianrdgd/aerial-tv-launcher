@@ -33,6 +33,8 @@ data class AppEntry(
     val icon: ImageBitmap?,
     /** lastUpdateTime — lets a rescan reuse unchanged entries as-is. */
     val stamp: Long,
+    /** Preinstalled apps can't be uninstalled, only disabled in Settings. */
+    val isSystem: Boolean,
 )
 
 /**
@@ -105,6 +107,7 @@ object AppRepository {
                     banner = banner?.asImageBitmap(),
                     icon = icon?.asImageBitmap(),
                     stamp = stamp,
+                    isSystem = (ai.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0,
                 )
             }
         }.awaitAll()

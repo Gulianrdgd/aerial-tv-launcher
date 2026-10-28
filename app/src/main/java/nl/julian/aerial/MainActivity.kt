@@ -13,15 +13,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.ui.HomeScreen
-
-/** No remote input for this long → the UI fades away and the aerial plays full screen. */
-private const val IDLE_AFTER_MS = 2 * 60_000L
 
 class MainActivity : ComponentActivity() {
     /** Bumped on every Home press while we're already home: scroll up + replay entry. */
     private val homeTick = mutableIntStateOf(0)
     private val idle = mutableStateOf(false)
+    /** No remote input for this long → the UI fades away and the aerial plays full screen; 0 = never. */
+    @Volatile
+    private var idleAfterMs = 2 * 60_000L
     private var lastInput = SystemClock.uptimeMillis()
     /** The key that woke us from idle: its repeats and key-up are swallowed too. */
     private var wakeKey: Int? = null
@@ -34,12 +35,19 @@ class MainActivity : ComponentActivity() {
         setContent { HomeScreen(homeTick.intValue, idle.value) }
 
         lifecycleScope.launch {
+            ConfigStore.get(this@MainActivity).config.collect { idleAfterMs = it.idleMinutes * 60_000L }
+        }
+        lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 idle.value = false
                 lastInput = SystemClock.uptimeMillis()
                 while (true) {
-                    val remaining = lastInput + IDLE_AFTER_MS - SystemClock.uptimeMillis()
-                    if (remaining > 0) delay(remaining) else {
+                    if (idleAfterMs <= 0) {
+                        delay(1_000)
+                        continue
+                    }
+                    val remaining = lastInput + idleAfterMs - SystemClock.uptimeMillis()
+                    if (remaining > 0) delay(minOf(remaining, 1_000)) else {
                         idle.value = true
                         delay(1_000)
                     }

@@ -4,7 +4,8 @@ Licensed under the GNU General Public License v3.0 (see LICENSE).
 Portions of this project are adapted from couchy-launcher
 (https://github.com/conreo/couchy-launcher), Copyright (c) conreo,
 licensed under GPL-3.0:
-  - the aerial video manifest (app/src/main/assets/aerials.json)
+  - the aerial video manifest (app/src/main/assets/aerials.json), to which
+    this project adds a scenery tag ("k") per clip
   - the video-wallpaper player approach (SurfaceView + ExoPlayer lifecycle)
   - the installed-app scan and banner cache
 

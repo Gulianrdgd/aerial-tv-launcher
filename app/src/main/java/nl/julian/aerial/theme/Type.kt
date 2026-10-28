@@ -16,9 +16,14 @@ private fun jakarta(weight: Int) = Font(
 )
 
 /** Plus Jakarta Sans (variable, bundled) — a wide geometric grotesk. */
-val Jakarta = FontFamily(jakarta(300), jakarta(400), jakarta(500), jakarta(600), jakarta(700), jakarta(800))
+val Jakarta = FontFamily(jakarta(200), jakarta(300), jakarta(400), jakarta(500), jakarta(600), jakarta(700), jakarta(800))
 
 object AerialType {
+    /** Editorial clock: one line of ultra-light digits. */
+    val time = TextStyle(
+        fontFamily = Jakarta, fontWeight = FontWeight(200),
+        fontSize = 58.sp, lineHeight = 60.sp, letterSpacing = (-0.03).em,
+    )
     /** Stacked clock digits. Tight tracking and line height, so the two lines read as one block. */
     val clock = TextStyle(
         fontFamily = Jakarta, fontWeight = FontWeight(800),

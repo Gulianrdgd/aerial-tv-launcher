@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.tls)
     implementation(libs.material.color.utilities)
+    implementation(libs.datastore.preferences)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 

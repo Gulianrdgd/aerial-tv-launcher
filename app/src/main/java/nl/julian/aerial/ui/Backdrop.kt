@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import nl.julian.aerial.theme.LocalLauncherColors
 
 /**
  * Fallback backdrop (no aerial yet, or offline): near-black with slow-glowing
@@ -25,6 +26,25 @@ fun AmbientBackdrop(modifier: Modifier = Modifier) {
         orb(size.width * 0.82f, size.height * 0.20f, size.width * 0.50f, Color(0x556B4E8C))
         orb(size.width * 0.50f, size.height * 0.05f, size.width * 0.40f, Color(0x442A3A80))
     }
+}
+
+/**
+ * Haze over the aerial while the home screen is up: a veil in the current
+ * theme colour, so the video recedes behind the glass instead of competing
+ * with it. Heavier at the bottom, where the dock and grid sit.
+ */
+@Composable
+fun Haze(modifier: Modifier = Modifier) {
+    val tint = LocalLauncherColors.current.panel
+    Box(
+        modifier.fillMaxSize().background(
+            Brush.verticalGradient(
+                0f to tint.copy(alpha = 0.34f),
+                0.5f to tint.copy(alpha = 0.42f),
+                1f to tint.copy(alpha = 0.58f),
+            )
+        )
+    )
 }
 
 /** Legibility scrim: darkens only the top and bottom bands, keeping the centre clear. */
