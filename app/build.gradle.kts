@@ -12,8 +12,8 @@ android {
         applicationId = "nl.julian.aerial"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
     }
 
     buildTypes {
@@ -21,9 +21,17 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the debug key until a real release key exists.
-            signingConfig = signingConfigs.getByName("debug")
+            // Unsigned by default: F-Droid signs with its own key. Pass
+            // -PlocalSign to sign with the debug key for installing yourself.
+            signingConfig = if (project.hasProperty("localSign")) signingConfigs.getByName("debug") else null
         }
+    }
+
+    // Reproducible builds for F-Droid: leave out Google's encrypted
+    // dependency metadata block.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     compileOptions {

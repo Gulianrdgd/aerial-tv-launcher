@@ -49,9 +49,11 @@ Weather comes from Open-Meteo, which needs no account. Aerial guesses your city 
 Build a release APK and install it over adb:
 
 ```sh
-./gradlew :app:assembleRelease
+./gradlew :app:assembleRelease -PlocalSign
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
+
+`-PlocalSign` signs the build with your local debug key. Without it the release build is unsigned, which is what F-Droid expects.
 
 To make it the home screen, open Settings and choose Default home app. On some TVs, Philips among them, the stock launcher has a higher priority and keeps taking over the Home button. In that case, switch the stock launcher off for your user:
 

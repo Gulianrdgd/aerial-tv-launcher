@@ -1,0 +1,24 @@
+Aerial is a home screen for Android TV and Google TV. Slow aerial video plays behind everything, the way it does on an Apple TV, and the panels on top take their colours from whatever clip is on screen. There are no ads and no sponsored rows.
+
+<b>Home screen</b>
+<ul>
+<li>A top bar with the clock, the clip that's showing, the weather with a two-hour rain forecast, and buttons for inputs, notifications and settings</li>
+<li>Music playing on the TV shows up in the bar with play controls</li>
+<li>A six-app dock with each app's own banner, a Continue Watching row from your streaming apps, quick settings and the rest of your apps</li>
+<li>Hold OK on an app to move, pin, hide or uninstall it</li>
+</ul>
+
+<b>Aerials</b>
+<ul>
+<li>265 clips at 1080p from Apple's TV screensaver, Fire TV and community collections</li>
+<li>Pick cities, nature, underwater or space</li>
+<li>Clips stream as they play; the last one or two stay in a 300 MB cache</li>
+</ul>
+
+<b>Screensaver</b>
+After a few minutes without input the panels fade out and the aerial plays full screen with its name, the time, the weather and whatever is playing.
+
+<b>Inputs</b>
+An input switcher lists your HDMI ports by the names you gave them on the TV.
+
+Weather comes from Open-Meteo and needs no account. Now Playing and notifications need notification access, which Android TV only lets you grant over adb; the README on the project page explains how.
