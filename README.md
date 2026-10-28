@@ -6,13 +6,13 @@ Aerial is a home screen for Android TV and Google TV. Slow aerial video plays be
 
 ## What's on the home screen
 
-The bar at the top holds the clock, the aerial that's playing (select it to skip to the next one), the weather and three buttons for inputs, notifications and settings. When music is playing, the aerial tile turns into a Now Playing card with album art and play controls.
+The bar at the top holds the clock, the aerial that's playing (select it to skip to the next one), the weather and three buttons for inputs, notifications and settings. When music is playing, the aerial tile turns into a Now Playing card with album art and play controls, and the clock and weather shrink to make room for it.
 
 Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, a row of quick settings, and the rest of your apps.
 
 Hold OK on an app to open, move, pin, hide or uninstall it, or to open its app info. Pressing Home while you're already home jumps back to the top.
 
-After two minutes without input the panels fade out and the aerial plays full screen with its name and the time, until you press a button.
+After two minutes without input the panels fade out and the aerial plays full screen, much like Chromecast's ambient mode: the clip's name, a large clock and the weather sit in the bottom left, and whatever is playing shows in the bottom right. Any button brings the home screen back.
 
 ![Screensaver](docs/screenshots/screensaver.png)
 

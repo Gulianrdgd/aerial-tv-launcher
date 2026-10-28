@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -44,6 +46,7 @@ import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.ClockStyle
 import nl.julian.aerial.theme.EyebrowStyle
+import nl.julian.aerial.theme.FluidEasing
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.FocusSurface
@@ -92,12 +95,17 @@ fun WidgetBand(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ClockTile(clockFormat, Modifier.fillMaxHeight().width(200.dp))
+        // While something plays, clock and weather tuck in to their essentials
+        // so the Now Playing card gets the room.
+        val compact = media != null
+        val clockWidth by animateDpAsState(if (compact) 136.dp else 200.dp, tween(500, easing = FluidEasing), label = "clockW")
+        val weatherWidth by animateDpAsState(if (compact) 128.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
+        ClockTile(clockFormat, compact, Modifier.fillMaxHeight().width(clockWidth))
         when {
             media != null -> NowPlayingCard(media, INNER, Modifier.weight(1f).fillMaxHeight())
             else -> NowShowingTile(clip, onSkipAerial, Modifier.weight(1f).fillMaxHeight())
         }
-        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(196.dp)) }
+        weather?.let { WeatherTile(it, INNER, Modifier.fillMaxHeight().width(weatherWidth), compact) }
         ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
     }
 }
@@ -108,7 +116,7 @@ fun WidgetBand(
  * picked out in the primary colour.
  */
 @Composable
-private fun ClockTile(format: ClockFormat, modifier: Modifier) {
+private fun ClockTile(format: ClockFormat, compact: Boolean, modifier: Modifier) {
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     // Ticks exactly on the minute boundary, not every second.
@@ -133,8 +141,8 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
-        Text(time, style = ClockStyle, color = cs.onSurface, maxLines = 1)
+        if (!compact) Text(date, style = EyebrowStyle, color = cs.onSurfaceVariant, maxLines = 1)
+        Text(time, style = if (compact) ClockStyle.copy(fontSize = 36.sp, lineHeight = 40.sp) else ClockStyle, color = cs.onSurface, maxLines = 1)
     }
 }
 
@@ -185,7 +193,7 @@ private fun NowShowingTile(clip: Aerial?, onSkip: () -> Unit, modifier: Modifier
     }
 }
 
-private fun sceneryLabel(kind: String) = when (kind) {
+internal fun sceneryLabel(kind: String) = when (kind) {
     "city" -> "City"
     "nature" -> "Nature"
     "water" -> "Underwater"
@@ -193,7 +201,7 @@ private fun sceneryLabel(kind: String) = when (kind) {
     else -> "Ambient"
 }
 
-private fun collectionLabel(source: String) = when (source) {
+internal fun collectionLabel(source: String) = when (source) {
     "A" -> "Apple TV"
     "Z" -> "Fire TV"
     else -> "Community"

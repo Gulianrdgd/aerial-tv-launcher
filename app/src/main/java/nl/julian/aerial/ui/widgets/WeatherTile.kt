@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.painterResource
@@ -33,16 +34,21 @@ import nl.julian.aerial.theme.Symbols
 
 /** Sky glyph and temperature, with the place and the next two hours of rain beside them. Display only. */
 @Composable
-fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier) {
+fun WeatherTile(weather: Weather, radius: Dp, modifier: Modifier = Modifier, compact: Boolean = false) {
     val cs = MaterialTheme.colorScheme
     Row(
         modifier
             .background(tileColor(), RoundedCornerShape(radius))
             .padding(horizontal = TILE_PADDING),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (compact) Arrangement.Center else Arrangement.Start,
     ) {
-        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = cs.tertiary, modifier = Modifier.size(36.dp))
+        Icon(painterResource(skyIcon(weather)), contentDescription = weather.sky.name, tint = skyTint(weather), modifier = Modifier.size(36.dp))
         Spacer(Modifier.width(10.dp))
+        if (compact) {
+            Text("${weather.temperature}°", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+            return@Row
+        }
         Column {
             Text(
                 weather.place.uppercase(), style = EyebrowStyle, color = cs.onSurfaceVariant,
@@ -80,7 +86,7 @@ private fun RainBars(rain: List<Float>) {
     }
 }
 
-private fun skyIcon(w: Weather) = when (w.sky) {
+internal fun skyIcon(w: Weather) = when (w.sky) {
     Sky.Clear -> if (w.isDay) Symbols.Sun else Symbols.Moon
     Sky.PartlyCloudy -> if (w.isDay) Symbols.PartlyCloudy else Symbols.Cloud
     Sky.Cloudy -> Symbols.Cloud
@@ -88,4 +94,13 @@ private fun skyIcon(w: Weather) = when (w.sky) {
     Sky.Rain -> Symbols.Rain
     Sky.Snow -> Symbols.Snow
     Sky.Storm -> Symbols.Storm
+}
+
+/** A colour per sky, like a weather app: amber sun, pale moon, blue rain, white clouds. */
+internal fun skyTint(w: Weather): Color = when (w.sky) {
+    Sky.Clear -> if (w.isDay) Color(0xFFFFC94D) else Color(0xFFE6E3FF)
+    Sky.PartlyCloudy -> if (w.isDay) Color(0xFFFFD873) else Color(0xFFE8ECF5)
+    Sky.Rain, Sky.Storm -> Color(0xFF9CCBFF)
+    Sky.Snow -> Color(0xFFE3F1FF)
+    Sky.Cloudy, Sky.Fog -> Color(0xFFE8ECF5)
 }

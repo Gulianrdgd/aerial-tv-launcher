@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.julian.aerial.data.AppEntry
@@ -61,7 +62,9 @@ import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.InputsRepository
 import nl.julian.aerial.data.NotificationsRepository
+import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.Weather
 import nl.julian.aerial.data.Scenery
 import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.data.arrange
@@ -100,6 +103,11 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
     val store = remember { ConfigStore.get(context) }
     val config by store.config.collectAsStateWithLifecycle(null)
 
+    val media by remember { NowPlayingRepository.nowPlaying(context.applicationContext) }.collectAsStateWithLifecycle(null)
+    val weather by remember(config?.weatherCity, config?.tempUnit) {
+        config?.let { WeatherRepository.weather(it.weatherCity, it.tempUnit) } ?: emptyFlow()
+    }.collectAsStateWithLifecycle(null)
+
     var seed by remember { mutableStateOf<Int?>(null) }
     var clip by remember { mutableStateOf<Aerial?>(null) }
     var skipTick by remember { mutableIntStateOf(0) }
@@ -135,11 +143,19 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clip, onSkipAerial = { skipTick++ }, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clip, media, weather, onSkipAerial = { skipTick++ }, onStartScreensaver)
                 }
             }
         }
-        AerialCaption(clip?.title, visible = idle, clockFormat = config?.clockFormat ?: ClockFormat.System)
+        AerialTheme(seed) {
+            Ambient(
+                clip = clip,
+                weather = weather,
+                media = media,
+                clockFormat = config?.clockFormat ?: ClockFormat.System,
+                visible = idle,
+            )
+        }
     }
 }
 
@@ -152,6 +168,8 @@ private fun HomeContent(
     homeTick: Int,
     revealTick: Int,
     clip: Aerial?,
+    media: NowPlaying?,
+    weather: Weather?,
     onSkipAerial: () -> Unit,
     onStartScreensaver: () -> Unit,
 ) {
@@ -183,10 +201,6 @@ private fun HomeContent(
     }
 
     val app = context.applicationContext
-    val media by remember { NowPlayingRepository.nowPlaying(app) }.collectAsStateWithLifecycle(null)
-    val weather by remember(config.weatherCity, config.tempUnit) {
-        WeatherRepository.weather(config.weatherCity, config.tempUnit)
-    }.collectAsStateWithLifecycle(null)
     val inputs by remember { InputsRepository.inputs(app) }.collectAsStateWithLifecycle(emptyList())
     val notifications by NotificationsRepository.items.collectAsStateWithLifecycle()
     /** Set when the focused tile disappears (hidden/unpinned), so focus lands on the dock, not anywhere. */
