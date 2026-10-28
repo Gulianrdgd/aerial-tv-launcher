@@ -81,6 +81,7 @@ fun WidgetBand(
     weather: Weather?,
     showAerial: Boolean,
     showMusic: Boolean,
+    compactButtons: Boolean,
     notificationCount: Int,
     onOpenInputs: () -> Unit,
     onOpenNotifications: () -> Unit,
@@ -114,7 +115,7 @@ fun WidgetBand(
             val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
             WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle)
         }
-        ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus)
+        ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
     }
 }
 
@@ -214,40 +215,46 @@ private fun ControlRail(
     onNotifications: () -> Unit,
     onSettings: () -> Unit,
     focus: RailFocus,
+    /** Space saver: a narrow column of icons instead of a labelled row. */
+    stacked: Boolean,
 ) {
     val tile = RoundedCornerShape(INNER)
     // Inner corners stay small; outer ones match the tile (inset by the 4dp padding).
     val outer = INNER - 4.dp
     val inner = 8.dp
-    Row(
-        Modifier
-            .fillMaxHeight()
-            .background(tileColor(), tile)
-            .topHighlight(tile)
-            .padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RailSegment(
-            Symbols.Input, "Inputs", onInputs, focus.inputs,
-            RoundedCornerShape(topStart = outer, bottomStart = outer, topEnd = inner, bottomEnd = inner),
-        )
-        SegmentDivider()
-        RailSegment(
-            Symbols.Notifications, "Alerts", onNotifications, focus.notifications,
-            RoundedCornerShape(inner), badge = notifications,
-        )
-        SegmentDivider()
-        RailSegment(
-            Symbols.Settings, "Settings", onSettings, focus.settings,
-            RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer),
-        )
+    val first = if (stacked) RoundedCornerShape(topStart = outer, topEnd = outer, bottomStart = inner, bottomEnd = inner)
+    else RoundedCornerShape(topStart = outer, bottomStart = outer, topEnd = inner, bottomEnd = inner)
+    val last = if (stacked) RoundedCornerShape(topStart = inner, topEnd = inner, bottomStart = outer, bottomEnd = outer)
+    else RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer)
+    val container = Modifier
+        .fillMaxHeight()
+        .background(tileColor(), tile)
+        .topHighlight(tile)
+        .padding(4.dp)
+    val segments: @Composable (Modifier) -> Unit = { size ->
+        RailSegment(Symbols.Input, "Inputs", onInputs, focus.inputs, first, size, stacked)
+        SegmentDivider(stacked)
+        RailSegment(Symbols.Notifications, "Alerts", onNotifications, focus.notifications, RoundedCornerShape(inner), size, stacked, notifications)
+        SegmentDivider(stacked)
+        RailSegment(Symbols.Settings, "Settings", onSettings, focus.settings, last, size, stacked)
+    }
+    if (stacked) {
+        Column(container.width(56.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            segments(Modifier.fillMaxWidth().weight(1f))
+        }
+    } else {
+        Row(container, verticalAlignment = Alignment.CenterVertically) {
+            segments(Modifier.width(68.dp).fillMaxHeight())
+        }
     }
 }
 
 /** Hairline between two segments, like the edge of the glass panels. */
 @Composable
-private fun SegmentDivider() {
-    Box(Modifier.width(1.dp).fillMaxHeight(0.5f).background(Color.White.copy(alpha = 0.10f)))
+private fun SegmentDivider(horizontal: Boolean) {
+    val line = Color.White.copy(alpha = 0.10f)
+    if (horizontal) Box(Modifier.height(1.dp).fillMaxWidth(0.5f).background(line))
+    else Box(Modifier.width(1.dp).fillMaxHeight(0.5f).background(line))
 }
 
 class RailFocus(
@@ -263,13 +270,15 @@ private fun RailSegment(
     onClick: () -> Unit,
     focus: FocusRequester,
     shape: Shape,
+    size: Modifier,
+    iconOnly: Boolean,
     badge: Int = 0,
 ) {
     FocusSurface(
         onClick = onClick,
         shape = shape,
         container = Color.Transparent,
-        modifier = Modifier.width(68.dp).fillMaxHeight().focusRequester(focus),
+        modifier = size.focusRequester(focus),
         focusedScale = 1.04f,
     ) {
         Column(
@@ -278,10 +287,13 @@ private fun RailSegment(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Box {
-                Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(26.dp))
+                Icon(
+                    painterResource(icon), contentDescription = if (iconOnly) label else null,
+                    modifier = Modifier.size(if (iconOnly) 22.dp else 26.dp),
+                )
                 if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-6).dp))
             }
-            Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            if (!iconOnly) Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
         }
     }
 }

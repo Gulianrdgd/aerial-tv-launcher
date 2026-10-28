@@ -103,6 +103,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             Symbols.Music, "Now playing", value = if (config.barShowsMusic) "Shown while music plays" else "Hidden",
             onClick = { update { it.copy(barShowsMusic = !it.barShowsMusic) } },
         )
+        MenuRow(
+            Symbols.Tune, "Buttons", value = if (config.compactButtons) "Icons only, stacked" else "Icons with labels",
+            onClick = { update { it.copy(compactButtons = !it.compactButtons) } },
+        )
 
         Section("Home screen")
         MenuRow(

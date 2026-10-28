@@ -305,6 +305,7 @@ private fun HomeContent(
                 weather = weather,
                 showAerial = config.barShowsAerial,
                 showMusic = config.barShowsMusic,
+                compactButtons = config.compactButtons,
                 notificationCount = notifications.size,
                 onOpenInputs = { returnFocus = railFocus.inputs; inputsOpen = true },
                 onOpenNotifications = { returnFocus = railFocus.notifications; notificationsOpen = true },
@@ -317,7 +318,7 @@ private fun HomeContent(
         // Open space above the dock keeps the aerial the main thing on screen.
         item(key = "dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = DOCK_GAP).reveal(1, revealTick)) {
-                TileRow(home.dock, firstFocus = dockFocus) { app, m -> tile(app, m, true) }
+                TileRow(home.dock, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
             }
         }
         item(key = "watch-next") {
@@ -327,7 +328,7 @@ private fun HomeContent(
             item(key = "apps") {
                 SectionPanel(Modifier.reveal(3, revealTick), title = "All apps") {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        gridRows.forEach { row -> TileRow(row) { app, m -> tile(app, m, false) } }
+                        gridRows.forEach { row -> TileRow(row, restoreFocus = false) { app, m -> tile(app, m, false) } }
                     }
                 }
             }
@@ -414,16 +415,32 @@ private fun TileRow(
     apps: List<AppEntry>,
     modifier: Modifier = Modifier,
     firstFocus: FocusRequester? = null,
+    /** Right on the last tile jumps back to the first (needs [firstFocus]). */
+    wrap: Boolean = false,
+    /**
+     * Re-entering the row returns to the tile focused last. Right for the
+     * dock (coming back from the top bar), wrong between rows of a grid:
+     * there Down must go straight down, not back to an earlier column.
+     */
+    restoreFocus: Boolean = true,
     tile: @Composable (AppEntry, Modifier) -> Unit,
 ) {
     Row(
-        modifier.fillMaxWidth().focusRestorer().focusGroup(),
+        modifier.fillMaxWidth().then(if (restoreFocus) Modifier.focusRestorer() else Modifier).focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         apps.forEachIndexed { i, app ->
             // Keyed by package so a moved tile keeps its composable (and focus).
             key(app.pkg) {
-                val m = if (i == 0 && firstFocus != null) Modifier.focusRequester(firstFocus) else Modifier
+                val m = when {
+                    i == 0 && firstFocus != null -> Modifier.focusRequester(firstFocus)
+                    i == apps.lastIndex && wrap && firstFocus != null -> Modifier.onPreviewKeyEvent { e ->
+                        if (e.key != Key.DirectionRight) return@onPreviewKeyEvent false
+                        if (e.type == KeyEventType.KeyDown) runCatching { firstFocus.requestFocus() }
+                        true
+                    }
+                    else -> Modifier
+                }
                 tile(app, m.weight(1f))
             }
         }
