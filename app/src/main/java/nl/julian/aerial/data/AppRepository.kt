@@ -138,6 +138,9 @@ object AppRepository {
     }
 
     fun launchIntent(context: Context, pkg: String): Intent? {
+        if (pkg.startsWith(InputsRepository.DOCK_PREFIX)) {
+            return InputsRepository.switchIntent(context, pkg.removePrefix(InputsRepository.DOCK_PREFIX))
+        }
         val pm = context.packageManager
         return (pm.getLeanbackLaunchIntentForPackage(pkg) ?: pm.getLaunchIntentForPackage(pkg))
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

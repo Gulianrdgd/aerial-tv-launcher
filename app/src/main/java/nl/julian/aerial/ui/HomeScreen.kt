@@ -79,6 +79,8 @@ import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
 import nl.julian.aerial.ui.menus.InputsPanel
+import nl.julian.aerial.ui.menus.dockEntry
+import nl.julian.aerial.ui.menus.dockKey
 import nl.julian.aerial.ui.menus.NotificationsPanel
 import nl.julian.aerial.ui.menus.SettingsPanel
 import nl.julian.aerial.ui.widgets.RailFocus
@@ -206,7 +208,11 @@ private fun HomeContent(
     /** Set when the focused tile disappears (hidden/unpinned), so focus lands on the dock, not anywhere. */
     var refocusDock by remember { mutableStateOf(false) }
 
-    val home = remember(apps, config) { arrange(apps, config) }
+    // Inputs pinned to the dock join the apps as tiles of their own.
+    val withInputs = remember(apps, inputs, config.dock) {
+        apps + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
+    }
+    val home = remember(withInputs, config) { arrange(withInputs, config) }
     val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
     val launch: (AppEntry) -> Unit = { app ->
         AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
@@ -215,7 +221,7 @@ private fun HomeContent(
 
     /** Moves [pkg] within its list; computed from the latest stored config so fast presses don't race. */
     fun move(pkg: String, delta: Int) = update { cfg ->
-        val now = arrange(apps, cfg)
+        val now = arrange(withInputs, cfg)
         val dock = now.dock.map { it.pkg }
         if (pkg in dock) cfg.copy(dock = moved(dock, pkg, delta))
         else cfg.copy(order = moved(now.grid.map { it.pkg }, pkg, delta))
@@ -227,10 +233,10 @@ private fun HomeContent(
         when (action) {
             AppAction.Open -> launch(app)
             AppAction.Move -> moving = pkg
-            AppAction.Pin -> update { cfg -> cfg.copy(dock = pinned(arrange(apps, cfg).dock.map { it.pkg }, pkg)) }
+            AppAction.Pin -> update { cfg -> cfg.copy(dock = pinned(arrange(withInputs, cfg).dock.map { it.pkg }, pkg)) }
             AppAction.Unpin -> {
                 refocusDock = true
-                update { cfg -> cfg.copy(dock = arrange(apps, cfg).dock.map { it.pkg } - pkg) }
+                update { cfg -> cfg.copy(dock = arrange(withInputs, cfg).dock.map { it.pkg } - pkg) }
             }
             AppAction.Hide -> {
                 refocusDock = true
@@ -364,7 +370,17 @@ private fun HomeContent(
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
-    if (inputsOpen) InputsPanel(inputs, onDismiss = { inputsOpen = false })
+    if (inputsOpen) InputsPanel(
+        inputs,
+        docked = home.dock.map { it.pkg }.toSet(),
+        onTogglePin = { input ->
+            update { cfg ->
+                val dock = arrange(withInputs, cfg).dock.map { it.pkg }
+                cfg.copy(dock = if (input.dockKey in dock) dock - input.dockKey else pinned(dock, input.dockKey))
+            }
+        },
+        onDismiss = { inputsOpen = false },
+    )
     if (notificationsOpen) {
         NotificationsPanel(
             notifications,

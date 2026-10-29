@@ -30,11 +30,13 @@ fun MenuRow(
     modifier: Modifier = Modifier,
     value: String? = null,
     focusRequester: FocusRequester? = null,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val cs = MaterialTheme.colorScheme
     ListItem(
         selected = false,
         onClick = onClick,
+        onLongClick = onLongClick,
         modifier = modifier
             .fillMaxWidth()
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),

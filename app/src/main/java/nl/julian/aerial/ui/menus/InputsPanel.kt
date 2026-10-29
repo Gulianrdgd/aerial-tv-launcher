@@ -1,15 +1,20 @@
 package nl.julian.aerial.ui.menus
 
+import android.content.Context
 import android.media.tv.TvInputInfo
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.data.InputDevice
 import nl.julian.aerial.data.InputsRepository
 import nl.julian.aerial.data.TvInput
@@ -18,7 +23,13 @@ import nl.julian.aerial.ui.widgets.startSafely
 
 /** Input switcher: every TV input (HDMI ports, antenna, …) in the side panel. */
 @Composable
-fun InputsPanel(inputs: List<TvInput>, onDismiss: () -> Unit) {
+fun InputsPanel(
+    inputs: List<TvInput>,
+    /** Dock keys ([InputsRepository.DOCK_PREFIX] + id) of the inputs pinned to the dock. */
+    docked: Set<String>,
+    onTogglePin: (TvInput) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val context = LocalContext.current
     val first = remember { FocusRequester() }
     SidePanel("Inputs", onDismiss, initialFocus = first.takeIf { inputs.isNotEmpty() }) {
@@ -34,16 +45,42 @@ fun InputsPanel(inputs: List<TvInput>, onDismiss: () -> Unit) {
             MenuRow(
                 icon = iconFor(input),
                 title = input.label,
-                value = if (input.connected) null else "Not connected",
+                value = when {
+                    input.dockKey in docked -> "In the dock"
+                    !input.connected -> "Not connected"
+                    else -> null
+                },
                 focusRequester = if (i == 0) first else null,
+                onLongClick = { onTogglePin(input) },
                 onClick = {
                     onDismiss()
                     context.startSafely(InputsRepository.switchIntent(input))
                 },
             )
         }
+        if (inputs.isNotEmpty()) {
+            Text(
+                "Hold OK to pin an input to the dock, or to unpin it.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
+            )
+        }
     }
 }
+
+internal val TvInput.dockKey get() = InputsRepository.DOCK_PREFIX + id
+
+/** A dock tile for a pinned input: its name with the input's icon. */
+internal fun TvInput.dockEntry(context: Context) = AppEntry(
+    pkg = dockKey,
+    label = label,
+    banner = null,
+    icon = ContextCompat.getDrawable(context, iconFor(this))?.mutate()
+        ?.apply { setTint(android.graphics.Color.WHITE) }?.toBitmap(96, 96)?.asImageBitmap(),
+    stamp = 0,
+    isSystem = true,
+)
 
 private fun iconFor(input: TvInput) = when (input.device) {
     InputDevice.Console -> Symbols.Console

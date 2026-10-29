@@ -24,7 +24,7 @@ Two rules hold for all of it:
 
 - [x] **Day and night aerials.** Tag each clip as day or night, the same way clips are tagged by scenery, and play day clips during the day and night clips after sunset. Choices: follow the sun, day only, night only, any time.
 - [x] **System screensaver.** Provide an Android screensaver (DreamService) so the TV's own idle timer shows the aerials over any app, not only on the home screen. Choices: what it shows (clock, weather, clip name, Now Playing).
-- [ ] **Inputs in the dock.** Pin an input such as "HDMI 2 · PlayStation" to the dock and switch to it with one press. Choices: which inputs, and where they sit in the dock.
+- [x] **Inputs in the dock.** Pin an input such as "HDMI 2 · PlayStation" to the dock and switch to it with one press. Choices: which inputs, and where they sit in the dock.
 - [ ] **Favourite or skip a clip.** Hold OK during the screensaver to like a clip or never see it again. Choices: play favourites only, or favourites more often; a list in Settings to undo skips.
 - [ ] **Search and Assistant button.** A button in the top bar that opens voice search, for remotes without a dedicated button.
 

@@ -121,6 +121,15 @@ object InputsRepository {
         }
     }
 
+    /** Dock entries for inputs use this in place of a package name. */
+    const val DOCK_PREFIX = "input:"
+
+    /** [switchIntent] for a pinned input, by id; null if the TV no longer has it. */
+    fun switchIntent(context: Context, id: String): Intent? {
+        val info = context.getSystemService(TvInputManager::class.java)?.getTvInputInfo(id) ?: return null
+        return switchIntent(TvInput(id, "", info.type, passthrough = info.isPassthroughInput, connected = true))
+    }
+
     /** Switches the TV to [input] through the system's Live TV / input handler. */
     fun switchIntent(input: TvInput): Intent {
         val uri = if (input.passthrough) TvContract.buildChannelUriForPassthroughInput(input.id)
