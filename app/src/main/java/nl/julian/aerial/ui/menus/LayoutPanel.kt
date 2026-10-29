@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.TopTile
 import nl.julian.aerial.data.QuickTileKind
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -56,6 +57,25 @@ fun LayoutPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherCon
             Symbols.Moon, "Evenings, 18:00 to midnight", value = config.eveningFirst?.let { "${it.label} first" } ?: "The usual order",
             onClick = { update { it.copy(eveningFirst = next(it.eveningFirst)) } },
         )
+        Text(
+            "Top bar, left to right",
+            style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 2.dp),
+        )
+        (config.topBarOrder + TopTile.entries).distinct().forEachIndexed { i, part ->
+            MenuRow(
+                Symbols.Tune, part.label, value = "Position ${i + 1} · hold OK to move left",
+                onClick = {},
+                onLongClick = {
+                    update {
+                        val list = (it.topBarOrder + TopTile.entries).distinct().toMutableList()
+                        val at = list.indexOf(part)
+                        if (at > 0) list.add(at - 1, list.removeAt(at))
+                        it.copy(topBarOrder = list)
+                    }
+                },
+            )
+        }
         Text(
             "Quick settings",
             style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,

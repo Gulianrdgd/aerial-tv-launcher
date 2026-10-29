@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
+import nl.julian.aerial.data.TopTile
 import nl.julian.aerial.data.wifiBarsFlow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -105,6 +106,8 @@ fun WidgetBand(
     /** Makes the weather tile selectable, opening the forecast. */
     onWeather: (() -> Unit)? = null,
     status: StatusIcons = StatusIcons(),
+    /** Left to right. */
+    order: List<TopTile> = TopTile.entries,
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
 ) {
@@ -124,16 +127,25 @@ fun WidgetBand(
         // clock and weather split the free space equally.
         val compact = playing != null
         val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
-        ClockTile(clockFormat, clockFace, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)), status)
-        when {
-            playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
-            showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
+        order.forEach { part ->
+            when (part) {
+                TopTile.Clock -> ClockTile(
+                    clockFormat, clockFace,
+                    Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)), status,
+                )
+                TopTile.Middle -> when {
+                    playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
+                    showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
+                }
+                TopTile.Weather -> weather?.takeIf { showWeather }?.let {
+                    val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
+                    WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle, onClick = onWeather)
+                }
+                TopTile.Buttons -> ControlRail(
+                    notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons,
+                )
+            }
         }
-        weather?.takeIf { showWeather }?.let {
-            val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
-            WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle, onClick = onWeather)
-        }
-        ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
     }
 }
 

@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.TopTile
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import java.time.LocalTime
 import nl.julian.aerial.data.QuickTileKind
@@ -444,6 +445,7 @@ private fun HomeContent(
                 onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
                 modifier = Modifier.reveal(0, revealTick).then(scrollTopOnFocus),
                 onSearch = if (config.barShowsSearch) { { context.startSearch() } } else null,
+                order = (config.topBarOrder + TopTile.entries).distinct(),
                 status = StatusIcons(config.statusNetwork, config.statusBluetooth, config.statusStorage),
                 onWeather = if (config.weatherDetails != WeatherDetails.Off) { { weatherOpen = true } } else null,
                 railFocus = railFocus,

@@ -82,6 +82,9 @@ enum class RemoteKey(val label: String, val keyCode: Int) {
     Blue("Blue button", android.view.KeyEvent.KEYCODE_PROG_BLUE),
 }
 
+/** The parts of the top bar, left to right by default. */
+enum class TopTile(val label: String) { Clock("Clock"), Middle("Aerial name or Now playing"), Weather("Weather"), Buttons("Buttons") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -146,6 +149,7 @@ data class LauncherConfig(
     /** Quick settings tile order, and the ones turned off. */
     val quickOrder: List<QuickTileKind> = QuickTileKind.entries,
     val quickHidden: Set<QuickTileKind> = emptySet(),
+    val topBarOrder: List<TopTile> = TopTile.entries,
     /** Times each app was opened from Aerial, and the last few opened (newest first). */
     val launches: Map<String, Int> = emptyMap(),
     val recent: List<String> = emptyList(),

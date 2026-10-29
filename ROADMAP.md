@@ -72,7 +72,7 @@ Two rules hold for all of it:
 - [x] **Theme settings.** Colours from the aerial, one colour (six to pick from) or black and white; panel opacity.
 - [ ] **More theme settings.** Corner roundness and font weight.
 - [x] **Layout editor.** Show, hide and reorder the home screen sections (Settings > Home layout).
-- [ ] **Top bar order.** Choose which tiles go in the top bar and in what order.
+- [x] **Top bar order.** Rearrange the clock, weather, middle tile and buttons (Settings > Home layout); each can still be shown or hidden in the Top bar settings.
 - [x] **App names and banners.** Rename an app, or show its icon and name instead of its banner (hold OK on the app).
 - [ ] **Icon packs.** Use an installed icon pack for app tiles.
 - [x] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
