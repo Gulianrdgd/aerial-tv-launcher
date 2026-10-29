@@ -84,6 +84,8 @@ data class LauncherConfig(
     val recent: List<String> = emptyList(),
     /** Sleep timer: when the TV goes to standby (System.currentTimeMillis), 0 = off. */
     val sleepAt: Long = 0,
+    /** Settings asks GitHub for a newer release (sideloaded builds only). */
+    val updateCheck: Boolean = true,
     /** How much night mode darkens the screen, in percent. */
     val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,

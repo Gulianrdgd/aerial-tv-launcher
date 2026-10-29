@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui.menus
 
+import android.net.Uri
+import androidx.compose.runtime.produceState
+import nl.julian.aerial.data.UpdateCheck
 import nl.julian.aerial.data.Backup
 import android.content.Intent
 import android.provider.Settings
@@ -259,6 +262,19 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         }
 
         Section("System")
+        val newVersion by produceState<String?>(null, config.updateCheck) {
+            value = if (config.updateCheck) UpdateCheck.newer(context) else null
+        }
+        newVersion?.let { version ->
+            MenuRow(
+                Symbols.Info, "Aerial $version is out", value = "Download it from ${UpdateCheck.PAGE.removePrefix("https://")}",
+                onClick = { context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateCheck.PAGE))) },
+            )
+        }
+        MenuRow(
+            Symbols.Info, "Check for updates", value = if (config.updateCheck) "On · asks GitHub when Settings opens" else "Off",
+            onClick = { update { it.copy(updateCheck = !it.updateCheck) } },
+        )
         MenuRow(
             Symbols.Storage, "Back up settings", value = backupNote ?: "Saves ${Backup.FILE} in Downloads",
             onClick = {
