@@ -87,6 +87,11 @@ enum class RemoteKey(val label: String, val keyCode: Int) {
 /** The parts of the top bar, left to right by default. */
 enum class TopTile(val label: String) { Clock("Clock"), Middle("Aerial name or Now playing"), Weather("Weather"), Buttons("Buttons") }
 
+/** When apps may be opened in kids mode. */
+enum class KidsHours(val label: String, val from: Int, val until: Int) {
+    Any("Any time", 0, 24), Day("07:00 to 19:00", 7, 19), Long("07:00 to 20:00", 7, 20),
+}
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -177,6 +182,11 @@ data class LauncherConfig(
     val startup: String? = null,
     /** Signed-in Jellyfin server for the Jellyfin row; null = not connected. */
     val jellyfin: JellyfinLogin? = null,
+    /** Kids mode: only [kidsApps], only during [kidsHours]; the PIN unlocks the top bar buttons. */
+    val kidsMode: Boolean = false,
+    val kidsPin: String = "",
+    val kidsApps: List<String> = emptyList(),
+    val kidsHours: KidsHours = KidsHours.Any,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
@@ -261,6 +271,9 @@ fun LauncherConfig.sectionsAt(hour: Int): List<HomeSection> {
     } ?: return sections
     return (listOf(first) + sections).distinct()
 }
+
+/** In kids mode, whether apps may be opened at [hour]. */
+fun LauncherConfig.kidsAllowedAt(hour: Int) = !kidsMode || hour in kidsHours.from until kidsHours.until
 
 private val Context.dataStore by preferencesDataStore("launcher")
 

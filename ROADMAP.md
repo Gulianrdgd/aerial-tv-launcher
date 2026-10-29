@@ -14,7 +14,7 @@ Two rules hold for all of it:
 - [x] **Notice when Aerial isn't Home any more.** Firmware updates and reboots often hand Home back to the stock launcher. Aerial detects it and shows how to fix it, with the adb command for TVs that need it.
 - [x] **Explain an empty Continue Watching row.** An empty row says why. Hold OK on a show to leave its app out; Settings brings them back.
 - [x] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
-- [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.
+- [x] **Time limits.** Part of kids mode: apps open only during the allowed hours.
 - [x] **Jellyfin row.** Sign in to your Jellyfin server (More options > System) for a row with Continue watching and Next up. A card opens the Jellyfin app.
 - [ ] **Plex row.** The same for Plex, signing in with a code at plex.tv/link.
 - [x] **Background links.** Add the address of a video, a live stream (HLS, such as a webcam) or a photo, played with your own photos and videos.
@@ -85,7 +85,8 @@ Two rules hold for all of it:
 ## More ambitious
 
 - [ ] **Home Assistant card.** Show the doorbell camera when someone rings, or a few light and scene buttons. Choices: server address, which entities, when the card appears.
-- [ ] **Kids profile.** A separate dock with only chosen apps, locked with a PIN. Choices: allowed apps, PIN, whether the screensaver and settings are reachable.
+- [x] **Kids profile.** Kids mode (More options): only the chosen apps, at chosen hours (any time, 07:00 to 19:00 or 07:00 to 20:00); the top bar buttons and the remote's Input button need the PIN.
+- [ ] **Time limits for inputs.** Limit HDMI inputs by hours too, and a daily total for apps.
 
 ## Quality and distribution
 

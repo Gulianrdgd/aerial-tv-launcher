@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.ui.menus.TimesUp
+import nl.julian.aerial.data.kidsAllowedAt
+import nl.julian.aerial.data.HomeApps
 import androidx.compose.ui.graphics.asImageBitmap
 import nl.julian.aerial.data.IconPacks
 import nl.julian.aerial.theme.LocalRoundness
@@ -253,7 +256,6 @@ private fun HomeContent(
     val railFocus = remember { RailFocus() }
     /** Where focus goes back to when the open panel closes. */
     var returnFocus by remember { mutableStateOf<FocusRequester?>(null) }
-    LaunchedEffect(inputsTick) { if (inputsTick > 0) { returnFocus = railFocus.inputs; inputsOpen = true } }
     LaunchedEffect(settingsOpen, inputsOpen, notificationsOpen, clipOpen) {
         if (!settingsOpen && !inputsOpen && !notificationsOpen && !clipOpen) {
             returnFocus?.let {
@@ -309,7 +311,19 @@ private fun HomeContent(
         val inFolders = config.folders.flatMap { it.apps }.toSet()
         named.filter { it.pkg !in inFolders } + config.folders.map { it.entry(app) } + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
     }
-    val home = remember(withInputs, config) { arrange(withInputs, config) }
+    // Kids mode: only the allowed apps, in the order they were picked.
+    val home = remember(withInputs, config) {
+        if (!config.kidsMode) arrange(withInputs, config)
+        else {
+            val allowed = config.kidsApps.mapNotNull { pkg -> withInputs.firstOrNull { it.pkg == pkg } }
+            HomeApps(allowed.take(config.tilesPerRow), allowed.drop(config.tilesPerRow))
+        }
+    }
+    var pinFor by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var timesUp by remember { mutableStateOf(false) }
+    /** In kids mode the top bar buttons ask for the PIN first. */
+    fun guarded(action: () -> Unit) = { if (config.kidsMode) pinFor = action else action() }
+    LaunchedEffect(inputsTick) { if (inputsTick > 0) guarded { returnFocus = railFocus.inputs; inputsOpen = true }() }
     val perRow = config.tilesPerRow
     val gridRows = remember(home, perRow) { home.grid.chunked(perRow) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
@@ -317,6 +331,10 @@ private fun HomeContent(
     val tileBounds = remember { mutableMapOf<String, Rect>() }
     var opening by remember { mutableStateOf<Pair<AppEntry, Rect>?>(null) }
     val launch: (AppEntry) -> Unit = launch@{ app ->
+        if (!config.kidsAllowedAt(LocalTime.now().hour)) {
+            timesUp = true
+            return@launch
+        }
         if (app.pkg.startsWith(FOLDER_PREFIX)) {
             openFolder = app.pkg.removePrefix(FOLDER_PREFIX)
             return@launch
@@ -408,7 +426,7 @@ private fun HomeContent(
             radius = SECTION_TILE_RADIUS,
             onLaunch = { launch(app) },
             tinted = config.tintedTiles,
-            onLongPress = { menuFor = app },
+            onLongPress = { if (!config.kidsMode) menuFor = app },
             moving = isMoving,
             depth = config.tileDepth.degrees,
             focusColor = config.focusColor,
@@ -450,9 +468,9 @@ private fun HomeContent(
                 showMusic = config.barShowsMusic,
                 compactButtons = config.compactButtons,
                 notificationCount = notifications.size,
-                onOpenInputs = { returnFocus = railFocus.inputs; inputsOpen = true },
-                onOpenNotifications = { returnFocus = railFocus.notifications; notificationsOpen = true },
-                onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
+                onOpenInputs = guarded { returnFocus = railFocus.inputs; inputsOpen = true },
+                onOpenNotifications = guarded { returnFocus = railFocus.notifications; notificationsOpen = true },
+                onOpenSettings = guarded { returnFocus = railFocus.settings; settingsOpen = true },
                 modifier = Modifier.reveal(0, revealTick).then(scrollTopOnFocus),
                 onSearch = if (config.barShowsSearch) { { context.startSearch() } } else null,
                 order = (config.topBarOrder + TopTile.entries).distinct(),
@@ -466,7 +484,8 @@ private fun HomeContent(
         if (config.homeWarning && !isHome) item(key = "not-home") {
             HomeNotice(onHide = { update { it.copy(homeWarning = false) } }, modifier = Modifier.padding(top = DOCK_GAP))
         }
-        config.sectionsAt(hour).forEachIndexed { index, section -> when (section) {
+        val shown = if (config.kidsMode) listOf(HomeSection.Dock, HomeSection.Apps) else config.sectionsAt(hour)
+        shown.forEachIndexed { index, section -> when (section) {
         HomeSection.Dock -> item(key = "dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
                 TileRow(home.dock, perRow, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
@@ -493,7 +512,7 @@ private fun HomeContent(
                     TileRow(recent, perRow) { app, m ->
                         AppTile(
                             app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
-                            onLongPress = { menuFor = app }, moving = false,
+                            onLongPress = { if (!config.kidsMode) menuFor = app }, moving = false,
                             depth = config.tileDepth.degrees, focusColor = config.focusColor,
                             modifier = m.onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() },
                         )
@@ -598,6 +617,16 @@ private fun HomeContent(
             onDismiss = { namingFolder = null },
         )
     }
+    pinFor?.let { action ->
+        var wrong by remember { mutableStateOf(false) }
+        RenameDialog(
+            "Enter the PIN", current = "", resetLabel = null, password = true,
+            note = if (wrong) "That's not the PIN" else "Kids mode is on",
+            onSave = { pin -> if (pin == config.kidsPin) { pinFor = null; action() } else wrong = true },
+            onDismiss = { pinFor = null },
+        )
+    }
+    if (timesUp) TimesUp(config.kidsHours.from, onDismiss = { timesUp = false })
     renaming?.let { app ->
         val original = apps.firstOrNull { it.pkg == app.pkg }?.label ?: app.label
         RenameDialog(

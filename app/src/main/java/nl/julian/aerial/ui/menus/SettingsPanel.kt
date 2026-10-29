@@ -76,6 +76,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var layout by remember { mutableStateOf(false) }
     var shortcutsOpen by remember { mutableStateOf(false) }
     var startupOpen by remember { mutableStateOf(false) }
+    var kidsAppsOpen by remember { mutableStateOf(false) }
+    /** Choosing a PIN; [pinThenOn] also turns kids mode on afterwards. */
+    var pinDialog by remember { mutableStateOf(false) }
+    var pinThenOn by remember { mutableStateOf(false) }
     var linkDialog by remember { mutableStateOf(false) }
     /** Jellyfin sign-in, one field at a time: 0 = closed, 1 server, 2 username, 3 password. */
     var jfStep by remember { mutableIntStateOf(0) }
@@ -114,6 +118,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
     // Simple first: everyday settings here, everything else under More options.
     if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
+    else if (kidsAppsOpen) KidsAppsPanel(config, { change -> update(change) }, onDismiss = { kidsAppsOpen = false })
     else if (startupOpen) StartupPanel(config, { change -> update(change) }, onDismiss = { startupOpen = false })
     else if (shortcutsOpen) ShortcutsPanel(
         config, RemoteButtonsService.isEnabled(context), { change -> update(change) }, onDismiss = { shortcutsOpen = false },
@@ -459,6 +464,30 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
         )
 
+        Section("Kids mode")
+        MenuRow(
+            Symbols.Tune, "Kids mode",
+            value = if (config.kidsMode) "On · only the kids' apps, top bar buttons need the PIN"
+            else "Off · only chosen apps, at chosen hours, PIN for the rest",
+            onClick = {
+                if (config.kidsMode) update { it.copy(kidsMode = false) }
+                else if (config.kidsPin.isEmpty()) { pinThenOn = true; pinDialog = true }
+                else update { it.copy(kidsMode = true) }
+            },
+        )
+        MenuRow(
+            Symbols.Show, "Kids' apps", value = "${config.kidsApps.size} allowed",
+            onClick = { kidsAppsOpen = true },
+        )
+        MenuRow(
+            Symbols.Timer, "Allowed hours", value = config.kidsHours.label,
+            onClick = { update { it.copy(kidsHours = it.kidsHours.next()) } },
+        )
+        MenuRow(
+            Symbols.Tune, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",
+            onClick = { pinThenOn = false; pinDialog = true },
+        )
+
         Section("Night mode")
         MenuRow(
             Symbols.Moon, "Dim the screen", value = config.nightMode.label,
@@ -538,6 +567,16 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
 
     if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
+    if (pinDialog) RenameDialog(
+        "Choose a PIN", current = "", resetLabel = null, password = true, note = "4 digits, to leave kids mode",
+        onSave = { pin ->
+            if (pin.length >= 4 && pin.all(Char::isDigit)) {
+                pinDialog = false
+                update { it.copy(kidsPin = pin, kidsMode = it.kidsMode || pinThenOn) }
+            }
+        },
+        onDismiss = { pinDialog = false },
+    )
     when (jfStep) {
         1 -> RenameDialog(
             "Jellyfin server", current = jfServer.ifEmpty { "http://" }, resetLabel = null, note = jfNote ?: "For example http://192.168.1.10:8096",
