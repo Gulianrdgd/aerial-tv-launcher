@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.QuickTileKind
 import nl.julian.aerial.ui.menus.entry
 import nl.julian.aerial.ui.menus.FolderPanel
 import nl.julian.aerial.ui.menus.FolderChooser
@@ -490,6 +491,7 @@ private fun HomeContent(
                     }
                 },
                 onPictureOff = onPictureOff,
+                tiles = (config.quickOrder + QuickTileKind.entries).distinct() - config.quickHidden,
                 modifier = Modifier.reveal(index + 1, revealTick),
             )
         }

@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.QuickTileKind
 import androidx.compose.foundation.layout.Spacer
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.produceState
@@ -57,6 +58,8 @@ fun QuickSettings(
     sleepAt: Long,
     onCycleSleep: () -> Unit,
     onPictureOff: () -> Unit,
+    /** The tiles to show, in order. */
+    tiles: List<QuickTileKind> = QuickTileKind.entries,
     modifier: Modifier = Modifier,
 ) {
     val app = LocalContext.current.applicationContext
@@ -64,64 +67,66 @@ fun QuickSettings(
     val net by networkFlow(app).collectAsStateWithLifecycle(NetKind.None)
     val bt by bluetoothOnFlow(app).collectAsStateWithLifecycle(null)
 
-    SectionPanel(modifier, title = "Quick settings") {
-        // Two rows of four, so every label fits.
-        val row = Modifier.fillMaxWidth().focusGroup()
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(row, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            val (netIcon, netTitle) = when (net) {
-                NetKind.Ethernet -> Symbols.Ethernet to "Ethernet"
-                NetKind.WiFi -> Symbols.Wifi to "Wi-Fi"
-                NetKind.Other -> Symbols.Wifi to "Network"
-                NetKind.None -> Symbols.Offline to "Network"
+    val now by produceState(System.currentTimeMillis(), sleepAt) {
+        while (true) {
+            value = System.currentTimeMillis()
+            delay(30_000)
+        }
+    }
+    val tile: @Composable (QuickTileKind, Modifier) -> Unit = { kind, m ->
+        when (kind) {
+            QuickTileKind.Network -> {
+                val (netIcon, netTitle) = when (net) {
+                    NetKind.Ethernet -> Symbols.Ethernet to "Ethernet"
+                    NetKind.WiFi -> Symbols.Wifi to "Wi-Fi"
+                    NetKind.Other -> Symbols.Wifi to "Network"
+                    NetKind.None -> Symbols.Offline to "Network"
+                }
+                QuickTile(
+                    netIcon, netTitle, if (net == NetKind.None) "Offline" else "Connected", active = net != NetKind.None,
+                    onClick = { ctx.startSafely(Intent(Settings.ACTION_WIFI_SETTINGS)) }, modifier = m,
+                )
             }
-            QuickTile(
-                netIcon, netTitle, if (net == NetKind.None) "Offline" else "Connected", active = net != NetKind.None,
-                onClick = { ctx.startSafely(Intent(Settings.ACTION_WIFI_SETTINGS)) },
-                modifier = Modifier.weight(1f),
-            )
-            QuickTile(
+            QuickTileKind.Bluetooth -> QuickTile(
                 if (bt == true) Symbols.Bluetooth else Symbols.BluetoothOff, "Bluetooth",
                 when (bt) { true -> "On"; false -> "Off"; null -> "Not available" }, active = bt == true,
-                onClick = { ctx.startSafely(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) },
-                modifier = Modifier.weight(1f),
+                onClick = { ctx.startSafely(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, modifier = m,
             )
-            QuickTile(
+            QuickTileKind.Display -> QuickTile(
                 Symbols.Tune, "Display", "Picture & sound", active = false,
-                onClick = { ctx.startSafely(Intent(Settings.ACTION_DISPLAY_SETTINGS)) },
-                modifier = Modifier.weight(1f),
+                onClick = { ctx.startSafely(Intent(Settings.ACTION_DISPLAY_SETTINGS)) }, modifier = m,
             )
-            QuickTile(
+            QuickTileKind.Scenery -> QuickTile(
                 Symbols.Landscape, "Scenery", scenery.label, active = scenery != Scenery.All,
-                onClick = onCycleScenery,
-                modifier = Modifier.weight(1f),
+                onClick = onCycleScenery, modifier = m,
+            )
+            QuickTileKind.Screensaver -> QuickTile(
+                Symbols.Screensaver, "Screensaver", "Start now", active = false,
+                onClick = onStartScreensaver, modifier = m,
+            )
+            QuickTileKind.Sleep -> {
+                val left = ((sleepAt - now) / 60_000).toInt() + 1
+                QuickTile(
+                    Symbols.Sleep, "Sleep timer", if (sleepAt > now) "In $left min" else "Off", active = sleepAt > now,
+                    onClick = onCycleSleep, modifier = m,
+                )
+            }
+            QuickTileKind.PictureOff -> QuickTile(
+                Symbols.PictureOff, "Picture off", "Sound stays on", active = false,
+                onClick = onPictureOff, modifier = m,
             )
         }
-        Row(row, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            QuickTile(
-                Symbols.Screensaver, "Screensaver", "Start now", active = false,
-                onClick = onStartScreensaver,
-                modifier = Modifier.weight(1f),
-            )
-            val now by produceState(System.currentTimeMillis(), sleepAt) {
-                while (true) {
-                    value = System.currentTimeMillis()
-                    delay(30_000)
+    }
+
+    SectionPanel(modifier, title = "Quick settings") {
+        // Rows of four, so every label fits.
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            tiles.chunked(4).forEach { kinds ->
+                Row(Modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    kinds.forEach { tile(it, Modifier.weight(1f)) }
+                    repeat(4 - kinds.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
-            val left = ((sleepAt - now) / 60_000).toInt() + 1
-            QuickTile(
-                Symbols.Sleep, "Sleep timer", if (sleepAt > now) "In $left min" else "Off", active = sleepAt > now,
-                onClick = onCycleSleep,
-                modifier = Modifier.weight(1f),
-            )
-            QuickTile(
-                Symbols.PictureOff, "Picture off", "Sound stays on", active = false,
-                onClick = onPictureOff,
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.weight(1f))
-        }
         }
     }
 }

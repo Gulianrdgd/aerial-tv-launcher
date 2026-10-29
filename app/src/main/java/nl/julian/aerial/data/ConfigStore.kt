@@ -67,6 +67,12 @@ val THEME_COLORS = listOf(
 /** The home screen's sections below the top bar, in the order the user chose. */
 enum class HomeSection(val label: String) { Dock("Dock"), WatchNext("Continue watching"), Recent("Recent"), Apps("All apps"), Quick("Quick settings") }
 
+/** The quick settings tiles. */
+enum class QuickTileKind(val label: String) {
+    Network("Network"), Bluetooth("Bluetooth"), Display("Display"), Scenery("Scenery"),
+    Screensaver("Screensaver"), Sleep("Sleep timer"), PictureOff("Picture off"),
+}
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -121,6 +127,9 @@ data class LauncherConfig(
     val sectionOrder: List<HomeSection> = HomeSection.entries,
     /** The dock can't be hidden: Home brings focus back to it. */
     val hiddenSections: Set<HomeSection> = setOf(HomeSection.Recent),
+    /** Quick settings tile order, and the ones turned off. */
+    val quickOrder: List<QuickTileKind> = QuickTileKind.entries,
+    val quickHidden: Set<QuickTileKind> = emptySet(),
     /** Times each app was opened from Aerial, and the last few opened (newest first). */
     val launches: Map<String, Int> = emptyMap(),
     val recent: List<String> = emptyList(),

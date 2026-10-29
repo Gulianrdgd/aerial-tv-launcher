@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.QuickTileKind
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -44,7 +45,28 @@ fun LayoutPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherCon
             )
         }
         Text(
-            "Hold OK on a section to move it up. The top bar always stays at the top.",
+            "Quick settings",
+            style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 2.dp),
+        )
+        (config.quickOrder + QuickTileKind.entries).distinct().forEach { kind ->
+            val off = kind in config.quickHidden
+            MenuRow(
+                if (off) Symbols.Hide else Symbols.Show, kind.label,
+                value = if (off) "Hidden · select to show" else "Shown · select to hide",
+                onClick = { update { it.copy(quickHidden = if (kind in it.quickHidden) it.quickHidden - kind else it.quickHidden + kind) } },
+                onLongClick = {
+                    update {
+                        val list = (it.quickOrder + QuickTileKind.entries).distinct().toMutableList()
+                        val at = list.indexOf(kind)
+                        if (at > 0) list.add(at - 1, list.removeAt(at))
+                        it.copy(quickOrder = list)
+                    }
+                },
+            )
+        }
+        Text(
+            "Hold OK on a section or tile to move it up. The top bar always stays at the top.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(16.dp),

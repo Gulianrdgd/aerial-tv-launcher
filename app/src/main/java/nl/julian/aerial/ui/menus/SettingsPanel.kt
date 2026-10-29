@@ -168,7 +168,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
-            Symbols.Tune, "Home layout", value = "Show, hide and reorder sections",
+            Symbols.Tune, "Home layout", value = "Sections and quick settings: show, hide, reorder",
             onClick = { layout = true },
         )
         MenuRow(
