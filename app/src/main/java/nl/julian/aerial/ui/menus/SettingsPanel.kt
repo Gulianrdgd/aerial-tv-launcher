@@ -73,6 +73,17 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(ambientInfo = it.ambientInfo.next()) } },
         )
         MenuRow(
+            Symbols.Favorite, "Favourites",
+            value = "${config.favouriteMode.label} · ${config.favourites.size} saved. Hold OK on the screensaver to add one",
+            onClick = { update { it.copy(favouriteMode = it.favouriteMode.next()) } },
+        )
+        if (config.skipped.isNotEmpty()) {
+            MenuRow(
+                Symbols.Block, "Skipped clips", value = "${config.skipped.size} skipped. Select to bring them all back",
+                onClick = { update { it.copy(skipped = emptySet()) } },
+            )
+        }
+        MenuRow(
             Symbols.Timer, "Screensaver",
             value = if (config.idleMinutes == 0) "Off" else "After ${config.idleMinutes} min without input",
             onClick = {

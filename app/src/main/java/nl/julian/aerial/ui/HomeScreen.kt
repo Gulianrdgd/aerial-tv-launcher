@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.julian.aerial.data.AmbientInfo
 import nl.julian.aerial.data.AppEntry
+import nl.julian.aerial.data.FavouriteMode
 import nl.julian.aerial.data.aerialTimeTag
 import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.data.COLUMNS
@@ -78,6 +79,7 @@ import nl.julian.aerial.theme.SECTION_TILE_RADIUS
 import nl.julian.aerial.theme.reveal
 import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
+import nl.julian.aerial.ui.menus.ClipPanel
 import nl.julian.aerial.ui.menus.InputsPanel
 import nl.julian.aerial.ui.menus.dockEntry
 import nl.julian.aerial.ui.menus.dockKey
@@ -95,7 +97,7 @@ private val SCREEN_MARGIN = 48.dp
 private val DOCK_GAP = 24.dp
 
 @Composable
-fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
+fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, onStartScreensaver: () -> Unit) {
     val context = LocalContext.current
     var rescanTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -134,6 +136,9 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
         AerialBackground(
             kind = cfg.scenery.kind,
             time = cfg.aerialTimeTag(weather?.isDay),
+            skipped = cfg.skipped,
+            favourites = if (cfg.favouriteMode == FavouriteMode.Normal) emptySet() else cfg.favourites,
+            onlyFavourites = cfg.favouriteMode == FavouriteMode.Only,
             onSeed = { seed = it },
             onClip = { clip = it },
         )
@@ -145,7 +150,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clip, media, weather, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, clip, media, weather, onStartScreensaver)
                 }
             }
         }
@@ -170,6 +175,8 @@ private fun HomeContent(
     store: ConfigStore,
     homeTick: Int,
     revealTick: Int,
+    /** Bumped when OK is held during the screensaver: open the panel for the clip on screen. */
+    clipMenuTick: Int,
     clip: Aerial?,
     media: NowPlaying?,
     weather: Weather?,
@@ -189,11 +196,13 @@ private fun HomeContent(
     var settingsOpen by remember { mutableStateOf(false) }
     var inputsOpen by remember { mutableStateOf(false) }
     var notificationsOpen by remember { mutableStateOf(false) }
+    var clipOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(clipMenuTick) { if (clipMenuTick > 0 && clip != null) clipOpen = true }
     val railFocus = remember { RailFocus() }
     /** Where focus goes back to when the open panel closes. */
     var returnFocus by remember { mutableStateOf<FocusRequester?>(null) }
-    LaunchedEffect(settingsOpen, inputsOpen, notificationsOpen) {
-        if (!settingsOpen && !inputsOpen && !notificationsOpen) {
+    LaunchedEffect(settingsOpen, inputsOpen, notificationsOpen, clipOpen) {
+        if (!settingsOpen && !inputsOpen && !notificationsOpen && !clipOpen) {
             returnFocus?.let {
                 withFrameNanos { }
                 runCatching { it.requestFocus() }
@@ -370,6 +379,19 @@ private fun HomeContent(
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
+    if (clipOpen && clip != null) ClipPanel(
+        clip,
+        favourite = clip.uri in config.favourites,
+        onFavourite = {
+            update { it.copy(favourites = if (clip.uri in it.favourites) it.favourites - clip.uri else it.favourites + clip.uri) }
+            clipOpen = false
+        },
+        onSkip = {
+            update { it.copy(skipped = it.skipped + clip.uri, favourites = it.favourites - clip.uri) }
+            clipOpen = false
+        },
+        onDismiss = { clipOpen = false },
+    )
     if (inputsOpen) InputsPanel(
         inputs,
         docked = home.dock.map { it.pkg }.toSet(),

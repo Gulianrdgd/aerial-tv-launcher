@@ -60,6 +60,11 @@ fun AerialBackground(
     kind: String? = null,
     /** "day" or "night" to play only those clips (and ones that suit any time); null = all. */
     time: String? = null,
+    /** Clip URIs never to play. */
+    skipped: Set<String> = emptySet(),
+    /** Favourite clip URIs; with [onlyFavourites] the only ones that play, otherwise played twice as often. */
+    favourites: Set<String> = emptySet(),
+    onlyFavourites: Boolean = false,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
@@ -68,12 +73,14 @@ fun AerialBackground(
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val queue = remember(kind, time) {
-        val all = Aerials.load(context)
+    val queue = remember(kind, time, skipped, favourites, onlyFavourites) {
+        val all = Aerials.load(context).filter { it.uri !in skipped }
         val picked = all.filter { kind == null || it.kind == kind }
         val timed = picked.filter { time == null || it.time.isEmpty() || it.time == time }
         // A scenery with no clips falls back to everything.
-        AerialQueue(timed.ifEmpty { picked }.ifEmpty { all })
+        val pool = timed.ifEmpty { picked }.ifEmpty { all }
+        val liked = pool.filter { it.uri in favourites }
+        AerialQueue(if (onlyFavourites) liked.ifEmpty { pool } else pool + liked)
     }
     var current by remember { mutableStateOf<Aerial?>(null) }
     LaunchedEffect(queue) {
@@ -81,7 +88,8 @@ fun AerialBackground(
         withContext(Dispatchers.IO) {
             queue.preferFirst { AerialMedia.isFullyCached(context, it.uri) }
         }
-        current = queue.next()
+        // Keep the clip on screen if it still belongs (e.g. it was just made a favourite).
+        if (current == null || !queue.contains(current!!)) current = queue.next()
     }
 
     // Callbacks and effects that outlive a scenery change must use the

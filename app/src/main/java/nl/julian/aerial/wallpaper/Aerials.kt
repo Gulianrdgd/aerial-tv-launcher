@@ -52,6 +52,8 @@ class AerialQueue(private val all: List<Aerial>) {
         upcoming.addFirst(hit)
     }
 
+    operator fun contains(clip: Aerial) = clip in all
+
     fun next(): Aerial {
         if (upcoming.isEmpty()) refill()
         return upcoming.removeFirst().also { last = it }

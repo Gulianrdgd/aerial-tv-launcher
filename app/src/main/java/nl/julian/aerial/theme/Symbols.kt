@@ -23,6 +23,8 @@ object Symbols {
     val Delete = R.drawable.ms_delete
     val Home = R.drawable.ms_home
     val Landscape = R.drawable.ms_landscape
+    val Favorite = R.drawable.ms_favorite
+    val Block = R.drawable.ms_block
     val Timer = R.drawable.ms_timer
     val Music = R.drawable.ms_music_note
     val Sun = R.drawable.ms_clear_day

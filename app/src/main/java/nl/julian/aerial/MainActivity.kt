@@ -27,6 +27,9 @@ class MainActivity : ComponentActivity() {
     private var lastInput = SystemClock.uptimeMillis()
     /** The key that woke us from idle: its repeats and key-up are swallowed too. */
     private var wakeKey: Int? = null
+    /** OK went down during the screensaver: a short press wakes, a long one opens the clip panel. */
+    private var okHeld = false
+    private val clipMenuTick = mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +40,7 @@ class MainActivity : ComponentActivity() {
         // screen. Registered first, so panels' own Back handlers take priority.
         onBackPressedDispatcher.addCallback(this) { }
         setContent {
-            HomeScreen(homeTick.intValue, idle.value, onStartScreensaver = { idle.value = true })
+            HomeScreen(homeTick.intValue, idle.value, clipMenuTick.intValue, onStartScreensaver = { idle.value = true })
         }
 
         lifecycleScope.launch {
@@ -64,6 +67,22 @@ class MainActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
+        if (idle.value && (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+            when {
+                event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0 -> okHeld = true
+                event.action == KeyEvent.ACTION_DOWN && event.isLongPress && okHeld -> {
+                    okHeld = false
+                    idle.value = false
+                    wakeKey = event.keyCode
+                    clipMenuTick.intValue++
+                }
+                event.action == KeyEvent.ACTION_UP && okHeld -> {
+                    okHeld = false
+                    idle.value = false
+                }
+            }
+            return true
+        }
         if (idle.value) {
             // Waking is all this press does; it must not also launch something.
             if (event.action == KeyEvent.ACTION_DOWN) {
