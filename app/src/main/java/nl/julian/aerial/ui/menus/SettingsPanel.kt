@@ -96,6 +96,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Top bar")
         MenuRow(
+            Symbols.Cloud, "Weather", value = if (config.barShowsWeather) "Shown, with the rain forecast" else "Hidden",
+            onClick = { update { it.copy(barShowsWeather = !it.barShowsWeather) } },
+        )
+        MenuRow(
             Symbols.Screensaver, "Aerial name", value = if (config.barShowsAerial) "Shown" else "Hidden",
             onClick = { update { it.copy(barShowsAerial = !it.barShowsAerial) } },
         )

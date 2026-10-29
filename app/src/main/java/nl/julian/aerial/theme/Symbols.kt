@@ -39,6 +39,7 @@ object Symbols {
     val Input = R.drawable.ms_input
     val Notifications = R.drawable.ms_notifications
     val ClearAll = R.drawable.ms_clear_all
+    val Close = R.drawable.ms_close
     val Tune = R.drawable.ms_tune
     val Screensaver = R.drawable.ms_nights_stay
     val Clock = R.drawable.ms_schedule

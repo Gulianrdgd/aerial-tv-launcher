@@ -36,7 +36,9 @@ data class LauncherConfig(
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
     val tintedTiles: Boolean = false,
-    /** Top bar: show the aerial's name (with a skip button). */
+    /** Top bar: show the weather tile. */
+    val barShowsWeather: Boolean = true,
+    /** Top bar: show the aerial's name. */
     val barShowsAerial: Boolean = false,
     /** Top bar: show what's playing, with controls, while music plays. */
     val barShowsMusic: Boolean = false,

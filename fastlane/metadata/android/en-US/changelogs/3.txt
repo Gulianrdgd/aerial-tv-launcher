@@ -1,0 +1,4 @@
+New look for the home screen: Material 3 clock with the date, weather with a two-hour rain forecast, and one button group for inputs, notifications and settings.
+Optional in Settings: weather, the aerial's name and a Now Playing card in the top bar, and a compact button column.
+Every section sits on the same translucent panel; the dock wraps around and Down in the app grid goes straight down.
+Fixed: the notifications panel could not be closed when it was empty.

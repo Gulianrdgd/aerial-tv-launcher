@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,9 @@ class MainActivity : ComponentActivity() {
         // The aerial SurfaceView sits behind the window; an opaque window
         // background would cover it.
         window.setBackgroundDrawable(null)
+        // A launcher must never be "backed out of": swallow Back on the home
+        // screen. Registered first, so panels' own Back handlers take priority.
+        onBackPressedDispatcher.addCallback(this) { }
         setContent {
             HomeScreen(homeTick.intValue, idle.value, onStartScreensaver = { idle.value = true })
         }
@@ -82,7 +86,4 @@ class MainActivity : ComponentActivity() {
         if (idle.value) idle.value = false else homeTick.intValue++
     }
 
-    // A launcher must never be "backed out of": swallow Back on the home screen.
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() = Unit
 }

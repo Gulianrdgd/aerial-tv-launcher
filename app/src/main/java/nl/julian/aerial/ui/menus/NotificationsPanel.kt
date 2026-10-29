@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,7 +51,14 @@ fun NotificationsPanel(items: List<TvNotification>, hasAccess: Boolean, onDismis
         if (e.type == KeyEventType.KeyUp) holdLock = false
         true
     }
-    SidePanel("Notifications", onDismiss, initialFocus = first.takeIf { items.isNotEmpty() }) {
+    // When a dismissed notification takes the focused row with it, put focus
+    // back on the top row, so the panel always has something focused.
+    var shown by remember { mutableIntStateOf(items.size) }
+    LaunchedEffect(items.size) {
+        if (items.size < shown) runCatching { first.requestFocus() }
+        shown = items.size
+    }
+    SidePanel("Notifications", onDismiss, initialFocus = first) {
         if (items.isEmpty()) {
             Text(
                 if (hasAccess) "You're all caught up." else "Notification access is off. Grant it with adb (see README).",
@@ -57,6 +66,7 @@ fun NotificationsPanel(items: List<TvNotification>, hasAccess: Boolean, onDismis
                 color = cs.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp),
             )
+            MenuRow(Symbols.Close, "Close", focusRequester = first, onClick = onDismiss)
             return@SidePanel
         }
         MenuRow(Symbols.ClearAll, "Clear all", focusRequester = first, onClick = {

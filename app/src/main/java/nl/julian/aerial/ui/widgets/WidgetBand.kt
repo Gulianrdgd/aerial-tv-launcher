@@ -79,6 +79,7 @@ fun WidgetBand(
     media: NowPlaying?,
     clip: Aerial?,
     weather: Weather?,
+    showWeather: Boolean,
     showAerial: Boolean,
     showMusic: Boolean,
     compactButtons: Boolean,
@@ -111,7 +112,7 @@ fun WidgetBand(
             playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
             showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
         }
-        weather?.let {
+        weather?.takeIf { showWeather }?.let {
             val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
             WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle)
         }

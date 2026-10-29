@@ -303,6 +303,7 @@ private fun HomeContent(
                 media = media,
                 clip = clip,
                 weather = weather,
+                showWeather = config.barShowsWeather,
                 showAerial = config.barShowsAerial,
                 showMusic = config.barShowsMusic,
                 compactButtons = config.compactButtons,
