@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.ui.menus.RenameDialog
 import nl.julian.aerial.data.sections
 import nl.julian.aerial.data.HomeSection
 import nl.julian.aerial.theme.LocalPanelAlpha
@@ -257,8 +258,16 @@ private fun HomeContent(
     var refocusDock by remember { mutableStateOf(false) }
 
     // Inputs pinned to the dock join the apps as tiles of their own.
-    val withInputs = remember(apps, inputs, config.dock) {
-        apps + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
+    // The user's own names, and icon-and-name tiles where they turned the banner off.
+    val named = remember(apps, config.names, config.iconOnly) {
+        apps.map { a ->
+            if (a.pkg !in config.names && a.pkg !in config.iconOnly) a
+            else a.copy(label = config.names[a.pkg] ?: a.label, banner = if (a.pkg in config.iconOnly) null else a.banner)
+        }
+    }
+    var renaming by remember { mutableStateOf<AppEntry?>(null) }
+    val withInputs = remember(named, inputs, config.dock) {
+        named + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
     }
     val home = remember(withInputs, config) { arrange(withInputs, config) }
     val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
@@ -296,6 +305,10 @@ private fun HomeContent(
             AppAction.Unpin -> {
                 refocusDock = true
                 update { cfg -> cfg.copy(dock = arrange(withInputs, cfg).dock.map { it.pkg } - pkg) }
+            }
+            AppAction.Rename -> renaming = app
+            AppAction.Look -> update {
+                it.copy(iconOnly = if (pkg in it.iconOnly) it.iconOnly - pkg else it.iconOnly + pkg)
             }
             AppAction.Hide -> {
                 refocusDock = true
@@ -463,6 +476,22 @@ private fun HomeContent(
             inDock = home.dock.any { it.pkg == app.pkg },
             onAction = { act(app, it) },
             onDismiss = { menuFor = null },
+            iconOnly = when {
+                app.pkg in config.iconOnly -> true
+                apps.firstOrNull { it.pkg == app.pkg }?.banner != null -> false
+                else -> null
+            },
+        )
+    }
+    renaming?.let { app ->
+        val original = apps.firstOrNull { it.pkg == app.pkg }?.label ?: app.label
+        RenameDialog(
+            current = config.names[app.pkg] ?: original, original = original,
+            onSave = { name ->
+                update { it.copy(names = if (name.isEmpty() || name == original) it.names - app.pkg else it.names + (app.pkg to name)) }
+                renaming = null
+            },
+            onDismiss = { renaming = null },
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })

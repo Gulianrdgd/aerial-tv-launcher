@@ -91,6 +91,10 @@ data class LauncherConfig(
     /** Manual order of the app grid; apps not listed follow alphabetically. */
     val order: List<String> = emptyList(),
     val hidden: Set<String> = emptySet(),
+    /** Names the user gave apps, by package. */
+    val names: Map<String, String> = emptyMap(),
+    /** Apps shown with their icon and name instead of their banner. */
+    val iconOnly: Set<String> = emptySet(),
     val scenery: Scenery = Scenery.All,
     val aerialTime: AerialTime = AerialTime.Any,
     val ambientInfo: AmbientInfo = AmbientInfo.All,

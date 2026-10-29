@@ -20,11 +20,18 @@ import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 
-enum class AppAction { Open, Move, Pin, Unpin, Hide, Info, Uninstall }
+enum class AppAction { Open, Move, Pin, Unpin, Rename, Look, Hide, Info, Uninstall }
 
 /** Long-press menu for one app: a Material dialog centred over the dimmed home screen. */
 @Composable
-fun AppMenu(app: AppEntry, inDock: Boolean, onAction: (AppAction) -> Unit, onDismiss: () -> Unit) {
+fun AppMenu(
+    app: AppEntry,
+    inDock: Boolean,
+    onAction: (AppAction) -> Unit,
+    onDismiss: () -> Unit,
+    /** Shown with its icon instead of its banner (null: the app has no banner to switch to). */
+    iconOnly: Boolean? = null,
+) {
     val first = remember { FocusRequester() }
     Overlay(onDismiss) {
         Box {
@@ -45,6 +52,8 @@ fun AppMenu(app: AppEntry, inDock: Boolean, onAction: (AppAction) -> Unit, onDis
                 MenuRow(Symbols.Move, "Move", act(AppAction.Move))
                 if (inDock) MenuRow(Symbols.Unpin, "Remove from dock", act(AppAction.Unpin))
                 else MenuRow(Symbols.Pin, "Pin to dock", act(AppAction.Pin))
+                MenuRow(Symbols.Tune, "Rename", act(AppAction.Rename))
+                iconOnly?.let { MenuRow(Symbols.Show, if (it) "Show its banner" else "Show icon and name", act(AppAction.Look)) }
                 MenuRow(Symbols.Hide, "Hide", act(AppAction.Hide))
                 MenuRow(Symbols.Info, "App info", act(AppAction.Info))
                 if (!app.isSystem) MenuRow(Symbols.Delete, "Uninstall", act(AppAction.Uninstall))
