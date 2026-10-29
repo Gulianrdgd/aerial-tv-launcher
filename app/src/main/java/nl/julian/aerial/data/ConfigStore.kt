@@ -115,6 +115,8 @@ data class LauncherConfig(
     /** Apps shown with their icon and name instead of their banner. */
     val iconOnly: Set<String> = emptySet(),
     val folders: List<Folder> = emptyList(),
+    /** Apps left out of Continue Watching. */
+    val watchNextHidden: Set<String> = emptySet(),
     val scenery: Scenery = Scenery.All,
     val aerialTime: AerialTime = AerialTime.Any,
     val ambientInfo: AmbientInfo = AmbientInfo.All,

@@ -460,7 +460,11 @@ private fun HomeContent(
             }
         }
         HomeSection.WatchNext -> item(key = "watch-next") {
-            WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(index + 1, revealTick))
+            WatchNextRow(
+                radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(index + 1, revealTick),
+                hiddenApps = config.watchNextHidden,
+                onHideApp = { pkg -> update { it.copy(watchNextHidden = it.watchNextHidden + pkg) } },
+            )
         }
         HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }

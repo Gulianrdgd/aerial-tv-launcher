@@ -200,8 +200,15 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
         MenuRow(
             Symbols.Play, "Continue Watching",
-            value = if (watchNextAccess) "On" else "Off · select to allow",
-            onClick = { if (!watchNextAccess) askWatchNext.launch(WatchNextRepository.PERMISSION) },
+            value = when {
+                !watchNextAccess -> "Off · select to allow"
+                config.watchNextHidden.isNotEmpty() -> "On · ${config.watchNextHidden.size} apps left out, select to bring them back"
+                else -> "On · hold OK on a show to leave its app out"
+            },
+            onClick = {
+                if (!watchNextAccess) askWatchNext.launch(WatchNextRepository.PERMISSION)
+                else update { it.copy(watchNextHidden = emptySet()) }
+            },
         )
         MenuRow(
             Symbols.Music, "Now Playing & notifications",

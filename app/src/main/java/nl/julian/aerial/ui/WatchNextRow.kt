@@ -66,6 +66,10 @@ private val GAP = 20.dp
 fun WatchNextRow(
     radius: Dp,
     modifier: Modifier = Modifier,
+    /** Apps whose items the user took out of the row. */
+    hiddenApps: Set<String> = emptySet(),
+    /** Hold OK on a card: leave that app out of the row. */
+    onHideApp: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -84,7 +88,8 @@ fun WatchNextRow(
     val itemsFlow = remember(hasAccess) {
         if (hasAccess) WatchNextRepository.items(context.applicationContext) else emptyFlow()
     }
-    val items by itemsFlow.collectAsStateWithLifecycle(emptyList())
+    val all by itemsFlow.collectAsStateWithLifecycle(emptyList())
+    val items = all.filter { it.pkg !in hiddenApps }
 
     when {
         !hasAccess -> SectionPanel(modifier, title = TITLE) {
@@ -93,7 +98,16 @@ fun WatchNextRow(
         // The row handles its own edge padding (horizontalPadding = 0), so
         // cards scroll right up to the panel's sides; the vertical padding
         // leaves room for the focused card's ring.
-        items.isNotEmpty() -> SectionPanel(modifier, title = TITLE, horizontalPadding = 0.dp) {
+        // Empty: say why, so the row doesn't look broken.
+        items.isEmpty() -> SectionPanel(modifier, title = TITLE) {
+            Text(
+                "Nothing yet. Shows appear here when a streaming app adds them to Android TV's \"Watch next\" list, " +
+                    "and not every app does. Hold OK on a show to leave its app out.",
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+        else -> SectionPanel(modifier, title = TITLE, horizontalPadding = 0.dp) {
             BoxWithConstraints(Modifier.fillMaxWidth()) {
             val cardWidth = (maxWidth - PANEL_PADDING * 2 - GAP * (VISIBLE_CARDS - 1)) / VISIBLE_CARDS
             LazyRow(
@@ -105,6 +119,7 @@ fun WatchNextRow(
                     WatchNextCard(
                         item, radius, Modifier.width(cardWidth),
                         onClick = { WatchNextRepository.launchIntent(context, item)?.let(context::startSafely) },
+                        onLongClick = item.pkg?.let { pkg -> { onHideApp(pkg) } },
                     )
                 }
             }
@@ -114,7 +129,7 @@ fun WatchNextRow(
 }
 
 @Composable
-private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, onClick: () -> Unit) {
+private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) {
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,
@@ -123,6 +138,7 @@ private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, o
         modifier = modifier.aspectRatio(16f / 9f),
         style = FocusStyle.Ring,
         focusedScale = 1.06f,
+        onLongClick = onLongClick,
     ) {
         AsyncImage(
             model = item.imageUri,
