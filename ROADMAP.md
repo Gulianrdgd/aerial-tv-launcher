@@ -51,7 +51,7 @@ Two rules hold for all of it:
 
 ## Settings and upkeep
 
-- [ ] **Backup and restore.** Save the dock, order, hidden apps and settings to a file to move them to another TV or keep them through a reset.
+- [x] **Backup and restore.** Save all settings to aerial-settings.json in Downloads, and restore from it (or from a picked file on TVs with a file picker). Android 9 and older can't save there yet.
 - [ ] **Update notice.** For sideloaded builds, show a notice in Settings when a new release is out on GitHub. F-Droid builds leave it out.
 - [ ] **Larger text.** A setting for bigger text and stronger contrast, for people who sit far from the TV. Choices: text size steps, contrast on or off.
 

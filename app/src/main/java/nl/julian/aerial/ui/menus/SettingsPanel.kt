@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.Backup
 import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -70,6 +71,12 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
     var cityDialog by remember { mutableStateOf(false) }
     var accessDialog by remember { mutableStateOf(false) }
+    var backupNote by remember { mutableStateOf<String?>(null) }
+    val pickBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            backupNote = if (Backup.restore(context, uri)) "Settings restored" else "That file isn't an Aerial backup"
+        }
+    }
 
     SidePanel("Settings", onDismiss, initialFocus = first) {
         Section("Aerials")
@@ -252,6 +259,24 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         }
 
         Section("System")
+        MenuRow(
+            Symbols.Storage, "Back up settings", value = backupNote ?: "Saves ${Backup.FILE} in Downloads",
+            onClick = {
+                scope.launch { backupNote = Backup.save(context)?.let { "Saved to $it" } ?: "Couldn't save the backup" }
+            },
+        )
+        MenuRow(
+            Symbols.Storage, "Restore settings", value = "From ${Backup.FILE} in Downloads",
+            onClick = {
+                scope.launch {
+                    if (Backup.restoreSaved(context)) backupNote = "Settings restored"
+                    // Not ours (another TV, or a reset): let the user pick it, where the TV has a file picker.
+                    else if (runCatching { pickBackup.launch(arrayOf("application/json", "*/*")) }.isFailure) {
+                        backupNote = "No backup found in Downloads"
+                    }
+                }
+            },
+        )
         val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
         MenuRow(
             Symbols.Tune, "Remote buttons",

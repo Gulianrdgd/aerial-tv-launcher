@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -152,6 +153,16 @@ class ConfigStore(context: Context) {
                 ?: LauncherConfig()
             prefs[key] = json.encodeToString(LauncherConfig.serializer(), change(current))
         }
+    }
+
+    /** All settings as JSON, for a backup. */
+    suspend fun export(): String = json.encodeToString(LauncherConfig.serializer(), config.first())
+
+    /** Replaces all settings with a backup; false if [text] isn't one. */
+    suspend fun import(text: String): Boolean {
+        val restored = runCatching { json.decodeFromString<LauncherConfig>(text) }.getOrNull() ?: return false
+        update { restored.copy(sleepAt = 0) }
+        return true
     }
 
     companion object {
