@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import nl.julian.aerial.data.NotificationsRepository
 import nl.julian.aerial.data.TvNotification
 import nl.julian.aerial.theme.LocalSurfaces

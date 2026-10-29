@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.julian.aerial.data.HaConfig

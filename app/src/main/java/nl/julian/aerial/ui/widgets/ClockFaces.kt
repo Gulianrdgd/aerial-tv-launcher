@@ -39,6 +39,10 @@ fun AnalogClock(now: Date, size: Dp, hand: Color, accent: Color, ticks: Color) {
 /** The time in words, to the nearest five minutes: "ten past seven", "quarter to eight", "seven o'clock". */
 fun timeInWords(now: Date): String {
     val cal = Calendar.getInstance().apply { time = now }
+    // Dutch counts toward the half hour ("half acht" is 7:30), so it has its own rules.
+    if (java.util.Locale.getDefault().language == "nl") {
+        return nl.julian.aerial.ui.timeInDutch(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE))
+    }
     val rounded = (cal.get(Calendar.MINUTE) + 2) / 5 * 5
     var hour = cal.get(Calendar.HOUR)
     val past = rounded <= 30

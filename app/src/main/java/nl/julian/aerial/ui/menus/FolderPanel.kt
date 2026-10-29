@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.data.Folder
 import nl.julian.aerial.theme.LocalSurfaces

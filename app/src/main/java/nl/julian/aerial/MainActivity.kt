@@ -1,5 +1,6 @@
 package nl.julian.aerial
 
+import nl.julian.aerial.ui.Translations
 import android.app.ActivityManager
 import nl.julian.aerial.data.AppRepository
 import kotlinx.coroutines.flow.first
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Translations.load(this)
         if (intent.getBooleanExtra(EXTRA_OPEN_INPUTS, false)) inputsTick.intValue++
         // The aerial SurfaceView sits behind the window; an opaque window
         // background would cover it.

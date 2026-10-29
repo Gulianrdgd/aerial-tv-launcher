@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import kotlinx.coroutines.launch
 import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.theme.LocalSurfaces

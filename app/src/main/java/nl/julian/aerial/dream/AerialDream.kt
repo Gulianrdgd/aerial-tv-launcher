@@ -1,5 +1,6 @@
 package nl.julian.aerial.dream
 
+import nl.julian.aerial.ui.Translations
 import nl.julian.aerial.data.ThemeSource
 import nl.julian.aerial.ui.Seasonal
 import android.service.dreams.DreamService
@@ -45,6 +46,7 @@ class AerialDream : DreamService(), LifecycleOwner, SavedStateRegistryOwner {
 
     override fun onCreate() {
         super.onCreate()
+        Translations.load(this)
         saved.performRestore(null)
         registry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }

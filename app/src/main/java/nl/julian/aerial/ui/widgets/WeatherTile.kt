@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import nl.julian.aerial.data.Sky
 import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.EyebrowStyle

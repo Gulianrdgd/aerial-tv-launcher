@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.ui.menus.DialogButton
 import nl.julian.aerial.ui.widgets.startSafely

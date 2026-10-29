@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.AmbientInfo

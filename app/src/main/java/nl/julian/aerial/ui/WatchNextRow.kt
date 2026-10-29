@@ -44,7 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.flow.emptyFlow
 import nl.julian.aerial.data.WatchNextItem

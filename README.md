@@ -93,6 +93,10 @@ adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a <action>
 
 `play`, `pause` and `stop` control a fake track for Now Playing. `input-on` and `input-off` add or remove a fake TV input. Post a test notification with `adb shell cmd notification post -t 'Title' tag 'Text'`.
 
+## Translations
+
+Aerial is in English and Dutch. Each language is one JSON file of English texts and their translations, so adding yours needs no code: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Licence
 
 GPL-3.0. The aerial list and the approach to video playback come from [couchy-launcher](https://github.com/conreo/couchy-launcher). See [NOTICE](NOTICE) for that and for the bundled font and icons.

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
+import nl.julian.aerial.ui.Text
 
 /** Corner radius of the translucent panels (the top bar and every section). */
 val PANEL_RADIUS: Dp @Composable get() = 32.dp * LocalRoundness.current

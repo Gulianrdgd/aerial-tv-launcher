@@ -95,4 +95,4 @@ Two rules hold for all of it:
 - [ ] **Measure on a slow TV.** Startup and scrolling on a 1 GB device such as a Chromecast with Google TV.
 - [x] **Automatic builds.** GitHub Actions builds and tests every push, and on a version tag signs the APK and attaches it to the release (once the keystore secrets are set).
 - [ ] **F-Droid listing.** Open the merge request on fdroiddata and retake the Inputs and home screenshots on a real TV.
-- [ ] **Translations.** Start with Dutch.
+- [x] **Translations.** Dutch, from a JSON file per language that contributors can add without touching code (see CONTRIBUTING.md).
