@@ -40,7 +40,8 @@ Two rules hold for all of it:
 - [x] **4K and HDR clips.** Play Apple's 4K HDR versions on TVs that support them. Choices: 1080p, 4K, 4K HDR, or automatic.
 - [x] **"Where is this?"** The screensaver names the place on screen, using Apple's own captions, which change as the clip moves (114 clips). Apple publishes no coordinates, so there's no map. Choices: on or off.
 - [x] **Your own photos and videos.** Play from a USB stick or SD card as well as, or instead of, the aerials. Choices: mix with aerials or replace them, time per photo.
-- [ ] **Network folders.** The same from a network share (SMB) or a NAS. Choices: server, folder.
+- [x] **Web folders.** A link ending in / plays the videos and photos in that folder's file listing (NAS web shares, nginx, Apache, python http.server).
+- [ ] **SMB shares.** Windows and NAS file shares; the SMB libraries add several MB, so this waits until it's asked for.
 - [x] **Burn-in protection.** Move the screensaver's clock and title slightly every few minutes. Choices: on or off (Android can't tell whether a panel is OLED).
 
 ## The home screen

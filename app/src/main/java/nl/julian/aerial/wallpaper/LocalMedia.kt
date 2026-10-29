@@ -52,5 +52,25 @@ object LocalMedia {
         return Aerial(Uri.parse(url).host ?: url, url, photo = photo, local = true)
     }
 
+    /**
+     * A web folder (a link ending in "/"): the videos and photos in its file
+     * listing, as served by NAS web shares, nginx, Apache or python's http.server.
+     */
+    fun folder(url: String): List<Aerial> = runCatching {
+        val page = (java.net.URL(url).openConnection() as java.net.HttpURLConnection).run {
+            connectTimeout = 8_000
+            readTimeout = 8_000
+            inputStream.use { it.readBytes().decodeToString() }
+        }
+        Regex("""href\s*=\s*"([^"?#]+)"""", RegexOption.IGNORE_CASE).findAll(page)
+            .map { it.groupValues[1] }
+            .filter { href -> MEDIA.any { href.lowercase().endsWith(it) } }
+            .map { href -> java.net.URL(java.net.URL(url), href).toString() }
+            .distinct().take(MAX_PER_KIND)
+            .map(::link).toList()
+    }.getOrDefault(emptyList())
+
+    private val MEDIA = listOf(".mp4", ".mkv", ".mov", ".m4v", ".webm", ".ts", ".jpg", ".jpeg", ".png", ".webp")
+
     private const val MAX_PER_KIND = 1000
 }

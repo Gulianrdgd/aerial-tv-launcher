@@ -82,8 +82,11 @@ fun AerialBackground(
     val lifecycleOwner = LocalLifecycleOwner.current
     val stream = remember(config.videoQuality) { AerialMedia.resolve(context, config.videoQuality) }
     val own = config.ownMedia
-    val local by produceState(emptyList<Aerial>(), own) {
-        value = if (own == OwnMedia.Off) emptyList() else withContext(Dispatchers.IO) { LocalMedia.load(context) }
+    val local by produceState(emptyList<Aerial>(), own, config.links) {
+        value = if (own == OwnMedia.Off) emptyList() else withContext(Dispatchers.IO) {
+            // Links ending in "/" are web folders: their files join your own media.
+            LocalMedia.load(context) + config.links.filter { it.endsWith("/") }.flatMap(LocalMedia::folder)
+        }
     }
 
     val kind = config.scenery.kind
@@ -98,7 +101,7 @@ fun AerialBackground(
         // A scenery with no clips falls back to everything.
         val aerials = timed.ifEmpty { picked }.ifEmpty { all }
         // Links (videos, streams, photos on the web) count as your own media too.
-        val mine = (local + config.links.map(LocalMedia::link)).filter { it.uri !in skipped }
+        val mine = (local + config.links.filterNot { it.endsWith("/") }.map(LocalMedia::link)).filter { it.uri !in skipped }
         val pool = when (own) {
             OwnMedia.Off -> aerials
             OwnMedia.Mix -> aerials + mine

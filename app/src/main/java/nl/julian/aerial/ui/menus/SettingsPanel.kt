@@ -281,7 +281,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(
             Symbols.Disc, "Video and photo links",
             value = (if (config.links.isEmpty()) "None" else "${config.links.size} links") +
-                " · select to add a video, live stream or photo address",
+                " · a video, live stream, photo, or a web folder ending in /",
             onClick = { linkDialog = true },
         )
         MenuRow(
