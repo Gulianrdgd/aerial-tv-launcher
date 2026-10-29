@@ -36,6 +36,8 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
           ./gradlew :app:assembleRelease -PciKeystore="$RUNNER_TEMP/release.keystore"
           cp app/build/outputs/apk/release/app-release.apk "aerial-${GITHUB_REF_NAME#v}.apk"
+          # The same file under a fixed name, so releases/latest/download/aerial.apk always works.
+          cp app/build/outputs/apk/release/app-release.apk aerial.apk
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/v') && env.KEYSTORE_BASE64 != ''
@@ -43,4 +45,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "See the changelog."
-          gh release upload "$GITHUB_REF_NAME" aerial-*.apk --clobber
+          gh release upload "$GITHUB_REF_NAME" aerial*.apk --clobber

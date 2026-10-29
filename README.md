@@ -12,7 +12,7 @@ Aerial is a custom launcher (home screen replacement) for Android TV and Google 
 
 Aerial is free forever. I use it on my own TV, and I'm not going to pay myself for it.
 
-[Download the latest APK](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest) and sideload it with adb (see [Install](#install)).
+[Download the latest APK](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk) and see [Install](#install) for how to get it onto your TV.
 
 ![Aerial Android TV launcher home screen with an aerial video background](docs/screenshots/home.png)
 
@@ -54,16 +54,32 @@ Weather comes from Open-Meteo, which needs no account. Aerial guesses your city 
 
 ## Install
 
-Build a release APK and install it over adb:
+Aerial needs a TV with Android TV or Google TV, version 8.0 or newer. It isn't in an app store yet, so you install the APK yourself. Pick whichever of these suits you.
+
+**With the Downloader app, no computer needed**
+
+1. Install Downloader (free, from AFTVnews) from the Play Store on your TV.
+2. Open it and enter `github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk`. The link always gives the newest version.
+3. When the TV asks, let Downloader install apps from unknown sources, then choose Install.
+
+**With a USB stick**
+
+Download [aerial.apk](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk) on a computer and copy it to the stick. Plug it into the TV and open the file with a file manager app (X-plore or File Commander, for example). Allow the file manager to install apps when asked.
+
+**With adb**
 
 ```sh
-./gradlew :app:assembleRelease -PlocalSign
-adb install -r app/build/outputs/apk/release/app-release.apk
+adb connect <your TV's IP address>
+adb install -r aerial.apk
 ```
 
-`-PlocalSign` signs the build with your local debug key. Without it the release build is unsigned, which is what F-Droid expects.
+Updating works the same way: install the new APK over the old one and your settings stay.
 
-To make it the home screen, open Settings and choose Default home app. On some TVs, Philips among them, the stock launcher has a higher priority and keeps taking over the Home button. In that case, switch the stock launcher off for your user:
+### Make it your home screen
+
+The first time you open Aerial, a short setup walks you through this. On most TVs it opens the TV's own setting, where you choose Aerial as the Home app.
+
+Some TVs, Philips among them, keep opening the stock launcher when you press Home. In that case, switch the stock launcher off for your user over adb:
 
 ```sh
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
@@ -84,6 +100,15 @@ adb shell cmd notification allow_listener nl.julian.aerial/nl.julian.aerial.medi
 ## Development
 
 The app is written in Kotlin with Jetpack Compose and `androidx.tv:tv-material`. Video plays through Media3 ExoPlayer, settings are stored with DataStore, and the colour schemes come from Material Color Utilities.
+
+Build a release APK and install it over adb:
+
+```sh
+./gradlew :app:assembleRelease -PlocalSign
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+`-PlocalSign` signs the build with your local debug key. Without it the release build is unsigned.
 
 Run the unit tests with `./gradlew :app:testDebugUnitTest`.
 
