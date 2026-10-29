@@ -64,7 +64,7 @@ Two rules hold for all of it:
 - [x] **Panels slide in.** On wake, the panels come in one after another. Choices: rise and fade (today), slide in from the side, appear at once.
 - [x] **Clock faces.** Besides the colour pills: a large thin clock, an analog face and a word clock. Choices: face per place (top bar, screensaver).
 - [x] **Seasonal touches.** Snow in December, a frame on New Year's Eve. Choices: each one separately.
-- [ ] **Focus sounds.** Quiet sounds when moving focus or opening an app. Choices: off, soft, volume.
+- [x] **Focus sounds.** Quiet sounds when moving focus or opening an app. Choices: off, soft, volume.
 
 ## Customization
 

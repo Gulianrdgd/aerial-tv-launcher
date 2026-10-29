@@ -225,6 +225,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Speaker, "Focus sounds", value = config.focusSounds.label,
+            onClick = { update { it.copy(focusSounds = it.focusSounds.next()) } },
+        )
+        MenuRow(
             Symbols.Snow, "Snow in December", value = if (config.snow) "On" else "Off",
             onClick = { update { it.copy(snow = !it.snow) } },
         )

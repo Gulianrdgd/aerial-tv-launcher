@@ -52,6 +52,9 @@ enum class TileDepth(val label: String, val degrees: Float) { Off("Off", 0f), Su
 /** The ring around a focused app banner. */
 enum class FocusColor(val label: String) { White("White"), App("The app's colour"), Aerial("The aerial's colour") }
 
+/** Quiet clicks when moving focus or opening something, at [volume]. */
+enum class FocusSounds(val label: String, val volume: Float) { Off("Off", 0f), Soft("Soft", 0.25f), Normal("Normal", 0.6f) }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -118,6 +121,7 @@ data class LauncherConfig(
     val reveal: Reveal = Reveal.Rise,
     /** Light snow over the aerial in December. */
     val snow: Boolean = false,
+    val focusSounds: FocusSounds = FocusSounds.Off,
     /** A gold frame around the screen on 31 December and 1 January. */
     val newYearFrame: Boolean = false,
     val focusColor: FocusColor = FocusColor.White,

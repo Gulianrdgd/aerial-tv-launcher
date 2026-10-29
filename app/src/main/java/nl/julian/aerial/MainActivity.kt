@@ -1,5 +1,6 @@
 package nl.julian.aerial
 
+import android.media.AudioManager
 import nl.julian.aerial.ui.FocusMove
 import android.content.Intent
 import android.os.Bundle
@@ -34,6 +35,8 @@ class MainActivity : ComponentActivity() {
     /** Bumped when the remote's Input button is sent here (see RemoteButtonsService). */
     private val inputsTick = mutableIntStateOf(0)
     private val pictureOff = mutableStateOf(false)
+    @Volatile
+    private var soundVolume = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +56,10 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-            ConfigStore.get(this@MainActivity).config.collect { idleAfterMs = it.idleMinutes * 60_000L }
+            ConfigStore.get(this@MainActivity).config.collect {
+                idleAfterMs = it.idleMinutes * 60_000L
+                soundVolume = it.focusSounds.volume
+            }
         }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -76,6 +82,17 @@ class MainActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
+        if (soundVolume > 0f && !idle.value && !pictureOff.value && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+            val effect = when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> AudioManager.FX_FOCUS_NAVIGATION_LEFT
+                KeyEvent.KEYCODE_DPAD_RIGHT -> AudioManager.FX_FOCUS_NAVIGATION_RIGHT
+                KeyEvent.KEYCODE_DPAD_UP -> AudioManager.FX_FOCUS_NAVIGATION_UP
+                KeyEvent.KEYCODE_DPAD_DOWN -> AudioManager.FX_FOCUS_NAVIGATION_DOWN
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> AudioManager.FX_KEY_CLICK
+                else -> null
+            }
+            effect?.let { getSystemService(AudioManager::class.java)?.playSoundEffect(it, soundVolume) }
+        }
         if (event.action == KeyEvent.ACTION_DOWN) when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> { FocusMove.dx = -1f; FocusMove.dy = 0f }
             KeyEvent.KEYCODE_DPAD_RIGHT -> { FocusMove.dx = 1f; FocusMove.dy = 0f }
