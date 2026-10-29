@@ -16,7 +16,7 @@ Two rules hold for all of it:
 - [x] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
 - [x] **Time limits.** Part of kids mode: apps open only during the allowed hours.
 - [x] **Jellyfin row.** Sign in to your Jellyfin server (More options > System) for a row with Continue watching and Next up. A card opens the Jellyfin app.
-- [ ] **Plex row.** The same for Plex, signing in with a code at plex.tv/link.
+- [x] **Plex row.** Sign in with a code at plex.tv/link (More options > System) for a row with On Deck. A card opens the Plex app.
 - [x] **Background links.** Add the address of a video, a live stream (HLS, such as a webcam) or a photo, played with your own photos and videos.
 - [ ] **Unsplash backgrounds.** Photos from Unsplash (needs an API key).
 - [x] **Tile size.** Normal (6 per row), medium (5) or large (4).

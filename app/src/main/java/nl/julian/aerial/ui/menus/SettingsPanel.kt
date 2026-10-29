@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.PlexRepository
 import nl.julian.aerial.data.HomeAssistant
 import nl.julian.aerial.data.HaConfig
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,6 +81,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var startupOpen by remember { mutableStateOf(false) }
     var kidsAppsOpen by remember { mutableStateOf(false) }
     var haOpen by remember { mutableStateOf(false) }
+    /** Plex sign-in: the code to enter at plex.tv/link while Aerial waits, or why it failed. */
+    var plexCode by remember { mutableStateOf<String?>(null) }
     /** Home Assistant sign-in: 0 = closed, 1 server, 2 token. */
     var haStep by remember { mutableIntStateOf(0) }
     var haServer by remember { mutableStateOf("") }
@@ -550,6 +553,22 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             value = config.homeAssistant?.let { "Connected to ${it.server.substringAfter("://")} · buttons, doorbell" }
                 ?: "Not connected · select to sign in",
             onClick = { if (config.homeAssistant != null) haOpen = true else { haNote = null; haStep = 1 } },
+        )
+        MenuRow(
+            Symbols.MediaPlayer, "Plex",
+            value = plexCode ?: config.plex?.let { "Connected to ${it.server.substringAfter("://").substringBefore('/')} · select to sign out" }
+                ?: "Not connected · select to sign in with a code",
+            onClick = {
+                if (config.plex != null) update { it.copy(plex = null) }
+                else scope.launch {
+                    PlexRepository.newPin(context).onSuccess { pin ->
+                        plexCode = "Go to plex.tv/link and enter ${pin.code}"
+                        PlexRepository.awaitLogin(context, pin)
+                            .onSuccess { login -> plexCode = null; update { it.copy(plex = login) } }
+                            .onFailure { plexCode = "Couldn't sign in: ${it.message}" }
+                    }.onFailure { plexCode = "Couldn't reach Plex: ${it.message}" }
+                }
+            },
         )
         MenuRow(
             Symbols.MediaPlayer, "Jellyfin",

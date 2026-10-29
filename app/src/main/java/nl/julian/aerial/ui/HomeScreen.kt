@@ -504,6 +504,9 @@ private fun HomeContent(
                 JellyfinRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick))
             }
         }
+        HomeSection.Plex -> config.plex?.let { login ->
+            item(key = "plex") { PlexRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick)) }
+        }
         HomeSection.Home -> config.homeAssistant?.let { ha ->
             item(key = "home-assistant") { HomeAssistantRow(ha, Modifier.reveal(index + 1, revealTick)) }
         }
