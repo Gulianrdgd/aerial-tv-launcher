@@ -58,7 +58,7 @@ Two rules hold for all of it:
 ## Looks
 
 - [x] **Frosted glass.** Blur the small video snapshot already taken for the colours and draw it behind the panels, so they look like real frosted glass. Choices: tinted (today), frosted, how much blur.
-- [ ] **Opening animation.** When an app opens, its tile grows to fill the screen first. Choices: on or off, speed.
+- [x] **Opening animation.** When an app opens, its tile grows to fill the screen first. Choices: on or off, speed.
 - [ ] **Tile depth on focus.** Focused tiles tilt slightly toward the direction of movement and catch a soft highlight. Choices: off, subtle, strong.
 - [ ] **Glow in the app's colour.** A tile's focus glow takes its colour from the app's banner. Choices: app colour, aerial colour, white.
 - [ ] **Panels slide in.** On wake, the panels come in one after another. Choices: slide, fade (today), none.

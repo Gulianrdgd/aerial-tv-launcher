@@ -42,6 +42,9 @@ enum class AppOrder(val label: String) { Manual("Your order"), MostUsed("Most us
 /** The panels: tinted (a dark see-through fill) or frosted (the video blurred behind them). */
 enum class Glass(val label: String, val sampleWidth: Int) { Tinted("Tinted", 0), Frosted("Frosted", 64), Heavy("Frosted, more blur", 32) }
 
+/** Opening an app: the tile grows to fill the screen first, taking [ms]. */
+enum class LaunchAnimation(val label: String, val ms: Int) { Off("Off", 0), Fast("Fast", 220), Slow("Slow", 420) }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -100,6 +103,7 @@ data class LauncherConfig(
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
     val tintedTiles: Boolean = false,
     val glass: Glass = Glass.Tinted,
+    val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,
     val weatherDetails: WeatherDetails = WeatherDetails.Both,

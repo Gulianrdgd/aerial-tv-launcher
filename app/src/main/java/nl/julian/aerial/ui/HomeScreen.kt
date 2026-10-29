@@ -1,5 +1,10 @@
 package nl.julian.aerial.ui
 
+import kotlinx.coroutines.delay
+import nl.julian.aerial.data.LaunchAnimation
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.geometry.Rect
 import nl.julian.aerial.data.Glass
 import nl.julian.aerial.theme.LocalFrost
 import androidx.compose.ui.graphics.ImageBitmap
@@ -249,8 +254,13 @@ private fun HomeContent(
     val home = remember(withInputs, config) { arrange(withInputs, config) }
     val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
+    /** Where each tile is on screen, for the opening animation. Not state: nothing redraws when it changes. */
+    val tileBounds = remember { mutableMapOf<String, Rect>() }
+    var opening by remember { mutableStateOf<Pair<AppEntry, Rect>?>(null) }
     val launch: (AppEntry) -> Unit = { app ->
-        AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
+        val from = tileBounds[app.pkg]
+        if (config.launchAnimation != LaunchAnimation.Off && from != null) opening = app to from
+        else AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
         update {
             it.copy(
                 launches = it.launches + (app.pkg to (it.launches[app.pkg] ?: 0) + 1),
@@ -323,6 +333,7 @@ private fun HomeContent(
             onLongPress = { menuFor = app },
             moving = isMoving,
             modifier = modifier
+                .onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() }
                 .focusRequester(requester(app.pkg))
                 .then(if (isMoving) Modifier.moveKeys(inDock, onMove = { move(app.pkg, it) }, onDone = { moving = null }) else Modifier),
         )
@@ -389,7 +400,8 @@ private fun HomeContent(
                     TileRow(recent) { app, m ->
                         AppTile(
                             app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
-                            onLongPress = { menuFor = app }, moving = false, modifier = m,
+                            onLongPress = { menuFor = app }, moving = false,
+                            modifier = m.onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() },
                         )
                     }
                 }
@@ -455,6 +467,16 @@ private fun HomeContent(
         },
         onDismiss = { clipOpen = false },
     )
+    opening?.let { (app, from) ->
+        LaunchZoom(app, from, config.launchAnimation.ms) {
+            AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
+            scope.launch {
+                // Keep covering the home screen until the app is in front.
+                delay(800)
+                opening = null
+            }
+        }
+    }
     if (inputsOpen) InputsPanel(
         inputs,
         docked = home.dock.map { it.pkg }.toSet(),

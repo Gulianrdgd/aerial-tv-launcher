@@ -217,6 +217,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Tune, "Opening animation", value = config.launchAnimation.label,
+            onClick = { update { it.copy(launchAnimation = it.launchAnimation.next()) } },
+        )
+        MenuRow(
             Symbols.Tune, "Panels", value = config.glass.label,
             onClick = { update { it.copy(glass = it.glass.next()) } },
         )
