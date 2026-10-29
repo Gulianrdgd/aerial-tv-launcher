@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.THEME_COLORS
+import nl.julian.aerial.data.ThemeSource
 import android.net.Uri
 import androidx.compose.runtime.produceState
 import nl.julian.aerial.data.UpdateCheck
@@ -53,6 +55,7 @@ private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
 private val PHOTO_STEPS = listOf(10, 15, 30, 60)
 private val DIM_STEPS = listOf(20, 40, 60)
 private val TEXT_STEPS = listOf(100, 110, 120)
+private val OPACITY_STEPS = listOf(62, 80, 45)
 
 /** Launcher settings, in the right-hand side panel. */
 @Composable
@@ -280,6 +283,30 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
 
         Section("Looks")
+        MenuRow(
+            Symbols.Tune, "Colours", value = config.themeSource.label,
+            onClick = { update { it.copy(themeSource = it.themeSource.next()) } },
+        )
+        if (config.themeSource == ThemeSource.Fixed) {
+            MenuRow(
+                Symbols.Tune, "Colour", value = THEME_COLORS.firstOrNull { it.first == config.themeColor }?.second ?: "Custom",
+                onClick = {
+                    update {
+                        val i = THEME_COLORS.indexOfFirst { c -> c.first == it.themeColor }
+                        it.copy(themeColor = THEME_COLORS[(i + 1) % THEME_COLORS.size].first)
+                    }
+                },
+            )
+        }
+        MenuRow(
+            Symbols.Tune, "Panel opacity", value = "${config.panelOpacity}%",
+            onClick = {
+                update {
+                    val i = OPACITY_STEPS.indexOf(it.panelOpacity)
+                    it.copy(panelOpacity = OPACITY_STEPS[(i + 1) % OPACITY_STEPS.size])
+                }
+            },
+        )
         MenuRow(
             Symbols.Tune, "Panels", value = config.glass.label,
             onClick = { update { it.copy(glass = it.glass.next()) } },

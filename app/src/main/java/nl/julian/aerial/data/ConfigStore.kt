@@ -55,6 +55,15 @@ enum class FocusColor(val label: String) { White("White"), App("The app's colour
 /** Quiet clicks when moving focus or opening something, at [volume]. */
 enum class FocusSounds(val label: String, val volume: Float) { Off("Off", 0f), Soft("Soft", 0.25f), Normal("Normal", 0.6f) }
 
+/** Where the colours come from: the aerial on screen, one colour you pick, or black and white. */
+enum class ThemeSource(val label: String) { Aerial("From the aerial"), Fixed("One colour"), Mono("Black and white") }
+
+/** The colours "One colour" cycles through. */
+val THEME_COLORS = listOf(
+    0xFF4A5BA8.toInt() to "Blue", 0xFF2E7D6B.toInt() to "Green", 0xFFB3541E.toInt() to "Orange",
+    0xFFB0305C.toInt() to "Pink", 0xFF6B4FA8.toInt() to "Purple", 0xFF8A7A2E.toInt() to "Gold",
+)
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -116,6 +125,11 @@ data class LauncherConfig(
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
     val tintedTiles: Boolean = false,
     val glass: Glass = Glass.Tinted,
+    val themeSource: ThemeSource = ThemeSource.Aerial,
+    /** With [ThemeSource.Fixed]: one of [THEME_COLORS]. */
+    val themeColor: Int = THEME_COLORS[0].first,
+    /** Panel opacity, in percent. */
+    val panelOpacity: Int = 62,
     val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
     val tileDepth: TileDepth = TileDepth.Off,
     val reveal: Reveal = Reveal.Rise,

@@ -48,7 +48,10 @@ val SECTION_TILE_RADIUS = PANEL_RADIUS - PANEL_PADDING
  * tint washed out to a muddy grey over bright clips; a dark one stays crisp.
  */
 @Composable
-fun panelColor(): Color = LocalSurfaces.current.lowest.copy(alpha = 0.62f)
+fun panelColor(): Color = LocalSurfaces.current.lowest.copy(alpha = LocalPanelAlpha.current)
+
+/** How opaque the panels are (Settings > Panel opacity). */
+val LocalPanelAlpha = staticCompositionLocalOf { 0.62f }
 
 /** Hairline around a panel, like the edge of a glass plate. */
 private val PanelRim = Color.White.copy(alpha = 0.10f)
@@ -79,7 +82,7 @@ fun Modifier.panel(shape: Shape): Modifier {
                 filterQuality = FilterQuality.Low,
             )
         }
-        .background(LocalSurfaces.current.lowest.copy(alpha = 0.38f), shape)
+        .background(LocalSurfaces.current.lowest.copy(alpha = LocalPanelAlpha.current - 0.24f), shape)
         .border(1.dp, PanelRim, shape)
 }
 

@@ -1,5 +1,6 @@
 package nl.julian.aerial.theme
 
+import com.materialkolor.scheme.SchemeMonochrome
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.animateColorAsState
@@ -42,10 +43,11 @@ val LocalSurfaces = compositionLocalOf {
 private const val MIN_SEED_CHROMA = 36.0
 
 /** A complete dark Material You scheme (M3 Expressive spec) for [seed]. */
-fun schemeFromSeed(seed: Int): Pair<ColorScheme, SurfaceContainers> {
+fun schemeFromSeed(seed: Int, mono: Boolean = false): Pair<ColorScheme, SurfaceContainers> {
     val hct = Hct.fromInt(seed)
     val vivid = Hct.from(hct.hue, maxOf(hct.chroma, MIN_SEED_CHROMA), hct.tone)
-    val s = SchemeTonalSpot(vivid, true, 0.0, ColorSpec.SpecVersion.SPEC_2025)
+    val s = if (mono) SchemeMonochrome(vivid, true, 0.0, ColorSpec.SpecVersion.SPEC_2025)
+    else SchemeTonalSpot(vivid, true, 0.0, ColorSpec.SpecVersion.SPEC_2025)
     val m = MaterialDynamicColors()
     fun c(role: com.materialkolor.dynamiccolor.DynamicColor) = Color(role.getArgb(s))
     val scheme = darkColorScheme(
@@ -100,9 +102,11 @@ fun AerialTheme(
     textScale: Float = 1f,
     /** Secondary text at full brightness, for reading from far away. */
     highContrast: Boolean = false,
+    /** Black and white: Material's monochrome scheme instead of a coloured one. */
+    mono: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val (target, surfaces) = remember(seed) { schemeFromSeed(seed ?: DEFAULT_SEED) }
+    val (target, surfaces) = remember(seed, mono) { schemeFromSeed(seed ?: DEFAULT_SEED, mono) }
     val scheme = target.copy(
         primary = target.primary.drift(), onPrimary = target.onPrimary.drift(),
         primaryContainer = target.primaryContainer.drift(), onPrimaryContainer = target.onPrimaryContainer.drift(),

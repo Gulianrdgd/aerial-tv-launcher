@@ -68,7 +68,8 @@ Two rules hold for all of it:
 
 ## Customization
 
-- [ ] **Theme settings.** Colour source (from the aerial, one fixed colour, black and white), panel opacity, corner roundness, tile size and font weight.
+- [x] **Theme settings.** Colours from the aerial, one colour (six to pick from) or black and white; panel opacity.
+- [ ] **More theme settings.** Corner roundness and font weight.
 - [ ] **Layout editor.** Reorder or hide the home screen sections, and choose which tiles go in the top bar and in what order.
 - [ ] **App names and banners.** Rename an app, pick another banner or icon, or use an icon pack.
 - [ ] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.

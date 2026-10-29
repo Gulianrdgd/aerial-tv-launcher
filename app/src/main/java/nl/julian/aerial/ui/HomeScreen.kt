@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.theme.LocalPanelAlpha
+import nl.julian.aerial.data.ThemeSource
 import nl.julian.aerial.data.ClockFace
 import nl.julian.aerial.theme.LocalReveal
 import kotlinx.coroutines.delay
@@ -140,6 +142,7 @@ fun HomeScreen(
 
     var seed by remember { mutableStateOf<Int?>(null) }
     var clip by remember { mutableStateOf<Aerial?>(null) }
+    val themeSeed = if (config?.themeSource == ThemeSource.Fixed) config?.themeColor else seed
     val frost = remember { mutableStateOf<ImageBitmap?>(null) }
     // The staggered entrance plays on cold start and when waking from the
     // screensaver, not on every Home press.
@@ -167,18 +170,18 @@ fun HomeScreen(
         )
         } ?: AmbientBackdrop()
         config?.let { Seasonal(it) }
-        AerialTheme(seed, (config?.textSize ?: 100) / 100f, config?.highContrast == true) {
+        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
                 Scrim()
                 val a = apps
                 val c = config
-                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal) {
+                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal, LocalPanelAlpha provides c.panelOpacity / 100f) {
                     HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver, onPictureOff)
                 }
             }
         }
-        AerialTheme(seed, (config?.textSize ?: 100) / 100f, config?.highContrast == true) {
+        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono) {
             Ambient(
                 clip = clip,
                 weather = weather,

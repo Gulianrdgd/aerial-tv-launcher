@@ -1,5 +1,6 @@
 package nl.julian.aerial.dream
 
+import nl.julian.aerial.data.ThemeSource
 import nl.julian.aerial.ui.Seasonal
 import android.service.dreams.DreamService
 import androidx.compose.foundation.layout.Box
@@ -97,7 +98,7 @@ private fun DreamScreen() {
             onClip = { clip = it },
         )
         Seasonal(cfg)
-        AerialTheme(seed, cfg.textSize / 100f, cfg.highContrast) {
+        AerialTheme(if (cfg.themeSource == ThemeSource.Fixed) cfg.themeColor else seed, cfg.textSize / 100f, cfg.highContrast, cfg.themeSource == ThemeSource.Mono) {
             Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces, shiftText = cfg.shiftText, face = cfg.ambientClockFace)
         }
         NightDim(cfg, weather?.isDay)
