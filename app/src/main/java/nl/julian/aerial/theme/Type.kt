@@ -72,6 +72,28 @@ val ClockStyle = TextStyle(
     fontFeatureSettings = "tnum",
 )
 
+/**
+ * The editorial top bar's clock: bold Google Sans Flex with the roundness
+ * axis off and the display optical size, so large digits stay crisp rather
+ * than soft. Tabular figures keep the time from shifting as it changes.
+ */
+val DisplayClockStyle = TextStyle(
+    fontFamily = FontFamily(
+        Font(
+            R.font.google_sans_flex,
+            weight = FontWeight(700),
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(700),
+                FontVariation.Setting("ROND", 0f),
+                FontVariation.Setting("opsz", 144f),
+            ),
+        )
+    ),
+    fontWeight = FontWeight(700),
+    fontSize = 80.sp, lineHeight = 84.sp,
+    fontFeatureSettings = "tnum",
+)
+
 /** Small-caps label over each widget ("WEDNESDAY 28 OCT", "NOW SHOWING", …). */
 val EyebrowStyle = TextStyle(
     fontFamily = GoogleSansFlex, fontWeight = FontWeight(600),

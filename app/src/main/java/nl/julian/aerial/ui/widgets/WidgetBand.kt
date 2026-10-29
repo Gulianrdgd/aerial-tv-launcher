@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
+import nl.julian.aerial.theme.DisplayClockStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
@@ -470,8 +471,7 @@ private fun EditorialBar(
                 ClockFace.Words -> GlowText(timeInWords(now), MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300)))
                 else -> GlowText(
                     SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
-                    // The classic bar's bold, rounded clock digits, at full size.
-                    ClockStyle.copy(fontSize = 80.sp, lineHeight = 84.sp),
+                    DisplayClockStyle,
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
