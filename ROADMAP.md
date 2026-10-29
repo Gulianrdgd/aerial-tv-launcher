@@ -77,7 +77,7 @@ Two rules hold for all of it:
 - [x] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
 - [x] **Quick settings of your own.** Show, hide and reorder the quick settings tiles (Settings > Home layout).
 - [x] **Remote shortcuts.** Hold Home, or press the red, green, yellow or blue button, to open an app, the input switcher or the screensaver (through the Remote buttons accessibility service).
-- [ ] **Time-of-day layouts.** Different layouts by time, such as a large weather tile in the morning and Continue Watching first in the evening. Choices: times and the layout for each.
+- [x] **Time-of-day layouts.** Put a chosen section first in the morning (06:00 to 12:00) and in the evening (18:00 to midnight), in Settings > Home layout.
 - [ ] **Share a theme.** Export the look as a file or QR code and import someone else's.
 
 ## More ambitious

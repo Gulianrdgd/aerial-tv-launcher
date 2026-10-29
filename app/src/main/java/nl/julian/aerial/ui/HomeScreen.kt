@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import java.time.LocalTime
 import nl.julian.aerial.data.QuickTileKind
 import nl.julian.aerial.ui.menus.entry
 import nl.julian.aerial.ui.menus.FolderPanel
@@ -8,7 +9,7 @@ import nl.julian.aerial.ui.menus.FOLDER_PREFIX
 import nl.julian.aerial.data.THEME_COLORS
 import nl.julian.aerial.data.Folder
 import nl.julian.aerial.ui.menus.RenameDialog
-import nl.julian.aerial.data.sections
+import nl.julian.aerial.data.sectionsAt
 import nl.julian.aerial.data.HomeSection
 import nl.julian.aerial.theme.LocalPanelAlpha
 import nl.julian.aerial.data.ThemeSource
@@ -273,6 +274,13 @@ private fun HomeContent(
         }
     }
     var renaming by remember { mutableStateOf<AppEntry?>(null) }
+    // For morning and evening layouts; checked every few minutes.
+    val hour by produceState(LocalTime.now().hour) {
+        while (true) {
+            delay(300_000)
+            value = LocalTime.now().hour
+        }
+    }
     var openFolder by remember { mutableStateOf<String?>(null) }
     var folderFor by remember { mutableStateOf<AppEntry?>(null) }
     /** Naming a folder: an existing one (rename), or a new one holding [Pair.second]. */
@@ -435,7 +443,7 @@ private fun HomeContent(
         }
         // Every section sits on the same translucent panel as the top bar.
         // Open space above the dock keeps the aerial the main thing on screen.
-        config.sections.forEachIndexed { index, section -> when (section) {
+        config.sectionsAt(hour).forEachIndexed { index, section -> when (section) {
         HomeSection.Dock -> item(key = "dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
                 TileRow(home.dock, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }

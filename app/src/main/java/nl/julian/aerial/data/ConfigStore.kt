@@ -136,6 +136,9 @@ data class LauncherConfig(
     val sectionOrder: List<HomeSection> = HomeSection.entries,
     /** The dock can't be hidden: Home brings focus back to it. */
     val hiddenSections: Set<HomeSection> = setOf(HomeSection.Recent),
+    /** A section to put first in the morning (06–12) and in the evening (18–24); null = the usual order. */
+    val morningFirst: HomeSection? = null,
+    val eveningFirst: HomeSection? = null,
     /** Quick settings tile order, and the ones turned off. */
     val quickOrder: List<QuickTileKind> = QuickTileKind.entries,
     val quickHidden: Set<QuickTileKind> = emptySet(),
@@ -222,6 +225,16 @@ fun LauncherConfig.isNight(isDay: Boolean?): Boolean {
 /** The sections to show, in order. */
 val LauncherConfig.sections: List<HomeSection>
     get() = (sectionOrder + HomeSection.entries).distinct().filter { it == HomeSection.Dock || it !in hiddenSections }
+
+/** [sections] at [hour]: the morning or evening section moves to the top (and shows even if hidden). */
+fun LauncherConfig.sectionsAt(hour: Int): List<HomeSection> {
+    val first = when (hour) {
+        in 6..11 -> morningFirst
+        in 18..23 -> eveningFirst
+        else -> null
+    } ?: return sections
+    return (listOf(first) + sections).distinct()
+}
 
 private val Context.dataStore by preferencesDataStore("launcher")
 

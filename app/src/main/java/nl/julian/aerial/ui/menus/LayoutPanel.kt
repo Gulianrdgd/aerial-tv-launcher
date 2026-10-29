@@ -44,6 +44,18 @@ fun LayoutPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherCon
                 },
             )
         }
+        fun next(current: HomeSection?): HomeSection? {
+            val all = listOf<HomeSection?>(null) + HomeSection.entries
+            return all[(all.indexOf(current) + 1) % all.size]
+        }
+        MenuRow(
+            Symbols.Sun, "Mornings, 06:00 to 12:00", value = config.morningFirst?.let { "${it.label} first" } ?: "The usual order",
+            onClick = { update { it.copy(morningFirst = next(it.morningFirst)) } },
+        )
+        MenuRow(
+            Symbols.Moon, "Evenings, 18:00 to midnight", value = config.eveningFirst?.let { "${it.label} first" } ?: "The usual order",
+            onClick = { update { it.copy(eveningFirst = next(it.eveningFirst)) } },
+        )
         Text(
             "Quick settings",
             style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
