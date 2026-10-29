@@ -1,5 +1,9 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.withLook
+import nl.julian.aerial.data.look
+import nl.julian.aerial.data.encode
+import nl.julian.aerial.data.decodeLook
 import nl.julian.aerial.data.THEME_COLORS
 import nl.julian.aerial.data.ThemeSource
 import android.net.Uri
@@ -83,6 +87,15 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var cityDialog by remember { mutableStateOf(false) }
     var accessDialog by remember { mutableStateOf(false) }
     var backupNote by remember { mutableStateOf<String?>(null) }
+    var lookNote by remember { mutableStateOf<String?>(null) }
+    fun useLook(text: String?) {
+        val look = text?.let(::decodeLook)
+        if (look != null) update { it.withLook(look) }
+        lookNote = if (look != null) "Look applied" else "That file isn't an Aerial look"
+    }
+    val pickLook = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch { useLook(Backup.read(context, uri)) }
+    }
     val pickBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
             backupNote = if (Backup.restore(context, uri)) "Settings restored" else "That file isn't an Aerial backup"
@@ -348,6 +361,27 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(
             Symbols.Sun, "New Year's frame", value = if (config.newYearFrame) "On, 31 Dec and 1 Jan" else "Off",
             onClick = { update { it.copy(newYearFrame = !it.newYearFrame) } },
+        )
+
+        MenuRow(
+            Symbols.Storage, "Share this look", value = lookNote ?: "Saves ${Backup.THEME_FILE} in Downloads",
+            onClick = {
+                scope.launch {
+                    lookNote = Backup.write(context, Backup.THEME_FILE, config.look().encode())?.let { "Saved to $it" } ?: "Couldn't save the look"
+                }
+            },
+        )
+        MenuRow(
+            Symbols.Storage, "Use a shared look", value = "From ${Backup.THEME_FILE} in Downloads",
+            onClick = {
+                scope.launch {
+                    val saved = Backup.read(context, Backup.THEME_FILE)
+                    if (saved != null) useLook(saved)
+                    else if (runCatching { pickLook.launch(arrayOf("application/json", "*/*")) }.isFailure) {
+                        lookNote = "No look found in Downloads"
+                    }
+                }
+            },
         )
 
         Section("Reading")

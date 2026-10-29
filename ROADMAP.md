@@ -78,7 +78,7 @@ Two rules hold for all of it:
 - [x] **Quick settings of your own.** Show, hide and reorder the quick settings tiles (Settings > Home layout).
 - [x] **Remote shortcuts.** Hold Home, or press the red, green, yellow or blue button, to open an app, the input switcher or the screensaver (through the Remote buttons accessibility service).
 - [x] **Time-of-day layouts.** Put a chosen section first in the morning (06:00 to 12:00) and in the evening (18:00 to midnight), in Settings > Home layout.
-- [ ] **Share a theme.** Export the look as a file or QR code and import someone else's.
+- [x] **Share a theme.** Save the look (colours, panels, animations, clock faces, text) as aerial-theme.json in Downloads, and apply someone else's. A theme is too long to type in from a QR code, so it travels as a file.
 
 ## More ambitious
 
