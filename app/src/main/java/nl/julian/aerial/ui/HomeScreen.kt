@@ -492,6 +492,7 @@ private fun HomeContent(
                 status = StatusIcons(config.statusNetwork, config.statusBluetooth, config.statusStorage),
                 onWeather = if (config.weatherDetails != WeatherDetails.Off) { { weatherOpen = true } } else null,
                 railFocus = railFocus,
+                style = config.topBarStyle,
             )
         }
         // Every section sits on the same translucent panel as the top bar.

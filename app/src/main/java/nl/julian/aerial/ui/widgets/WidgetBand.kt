@@ -1,5 +1,10 @@
 package nl.julian.aerial.ui.widgets
 
+import androidx.compose.foundation.layout.Spacer
+import nl.julian.aerial.ui.FocusStyle
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import nl.julian.aerial.data.TopBarStyle
 import androidx.compose.ui.unit.Dp
 import nl.julian.aerial.data.TopTile
 import nl.julian.aerial.data.wifiBarsFlow
@@ -111,7 +116,17 @@ fun WidgetBand(
     order: List<TopTile> = TopTile.entries,
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
+    style: TopBarStyle = TopBarStyle.Editorial,
 ) {
+    if (style == TopBarStyle.Editorial) {
+        EditorialBar(
+            clockFormat, clockFace, if (showMusic) media else null, clip.takeIf { showAerial }, weather.takeIf { showWeather },
+            onWeather, status, modifier,
+        ) {
+            ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
+        }
+        return
+    }
     Row(
         modifier
             .fillMaxWidth()
@@ -414,4 +429,87 @@ internal fun android.content.Context.startSearch() {
 
 internal fun android.content.Context.startSafely(intent: Intent) {
     runCatching { startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}
+
+/** Text straight on the aerial: white, with a soft shadow so it reads on bright clips too. */
+private val OnAerial = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), blurRadius = 16f)
+
+/**
+ * The default top bar: no panel. A large, thin clock sits on the aerial
+ * with the date, weather and (optionally) the clip's name on one line under
+ * it; the buttons float in a pill on the right, with Now Playing beside them.
+ */
+@Composable
+private fun EditorialBar(
+    clockFormat: ClockFormat,
+    clockFace: ClockFace,
+    playing: NowPlaying?,
+    clip: Aerial?,
+    weather: Weather?,
+    onWeather: (() -> Unit)?,
+    status: StatusIcons,
+    modifier: Modifier,
+    buttons: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val now by produceState(Date()) {
+        while (true) {
+            value = Date()
+            delay(60_000L - System.currentTimeMillis() % 60_000L)
+        }
+    }
+    val white = Color.White
+    val soft = Color.White.copy(alpha = 0.82f)
+    Row(
+        modifier.fillMaxWidth().height(BAR_HEIGHT).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            when (clockFace) {
+                ClockFace.Analog -> AnalogClock(now, 84.dp, white, MaterialTheme.colorScheme.primary, soft)
+                ClockFace.Words -> Text(
+                    timeInWords(now), color = white,
+                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300), shadow = OnAerial),
+                )
+                else -> Text(
+                    SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
+                    color = white, maxLines = 1,
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight(250), fontSize = 80.sp, lineHeight = 84.sp,
+                        fontFeatureSettings = "tnum", shadow = OnAerial,
+                    ),
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val line = MaterialTheme.typography.titleMedium.copy(shadow = OnAerial)
+                Text(SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(now), style = line, color = soft, maxLines = 1)
+                StatusRow(status)
+                weather?.let { w ->
+                    Text("·", style = line, color = soft)
+                    val content: @Composable () -> Unit = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(painterResource(skyIcon(w)), w.sky.name, tint = skyTint(w), modifier = Modifier.size(22.dp))
+                            Text("${w.temperature}°", style = line, color = white)
+                            Text(w.rainOutlook, style = line, color = if (w.rainExpected) Color(0xFF9CCBFF) else soft, maxLines = 1)
+                        }
+                    }
+                    // Selectable for the forecast, as the weather tile is in the classic bar.
+                    if (onWeather != null) FocusSurface(
+                        onClick = onWeather, shape = CircleShape, container = Color.Transparent,
+                        style = FocusStyle.Ring, focusedScale = 1.04f,
+                    ) { Box(Modifier.padding(horizontal = 10.dp, vertical = 4.dp)) { content() } }
+                    else content()
+                }
+                clip?.let {
+                    Text("·", style = line, color = soft)
+                    Text(it.title, style = line, color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        playing?.let {
+            NowPlayingCard(it, INNER, Modifier.width(360.dp).height(84.dp))
+            Spacer(Modifier.width(14.dp))
+        }
+        Box(Modifier.height(84.dp)) { buttons() }
+    }
 }

@@ -85,6 +85,9 @@ enum class RemoteKey(val label: String, val keyCode: Int) {
     Blue("Blue button", android.view.KeyEvent.KEYCODE_PROG_BLUE),
 }
 
+/** The top bar: the clock straight on the aerial with the buttons in a pill, or the original panel of tiles. */
+enum class TopBarStyle(val label: String) { Editorial("Editorial"), Classic("Classic") }
+
 /** The parts of the top bar, left to right by default. */
 enum class TopTile(val label: String) { Clock("Clock"), Middle("Aerial name or Now playing"), Weather("Weather"), Buttons("Buttons") }
 
@@ -224,6 +227,7 @@ data class LauncherConfig(
     val newYearFrame: Boolean = false,
     val focusColor: FocusColor = FocusColor.White,
     /** Top bar: show the weather tile. */
+    val topBarStyle: TopBarStyle = TopBarStyle.Editorial,
     val barShowsWeather: Boolean = true,
     val weatherDetails: WeatherDetails = WeatherDetails.Both,
     /** Top bar: show the aerial's name. */

@@ -18,7 +18,7 @@ Aerial is free forever. I use it on my own TV, and I'm not going to pay myself f
 
 ## What's on the home screen
 
-The bar at the top holds the clock, the weather with a two-hour rain forecast, and buttons for inputs, notifications and settings. In Settings you can hide the weather, add the name of the aerial that's playing or a Now Playing card with album art and play controls, and shrink the three buttons to a narrow column of icons.
+At the top, a large clock sits straight on the aerial, with the date and the weather's two-hour rain forecast under it, and the buttons for inputs, notifications and settings float in a small pill on the right. The original top bar, a panel of tiles, is still there as Classic in Settings › Top bar. In Settings you can hide the weather, add the name of the aerial that's playing or a Now Playing card with album art and play controls, and shrink the three buttons to a narrow column of icons.
 
 Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, the rest of your apps, and a row of quick settings.
 

@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.TopBarStyle
 import nl.julian.aerial.data.KidsHours
 import nl.julian.aerial.data.FocusSounds
 import nl.julian.aerial.data.LaunchAnimation
@@ -229,6 +230,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             action(Symbols.Calendar, "Date, time & timezone", "Android TV settings") { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
         )),
         SettingCategory(Symbols.Cloud, "Top bar", listOf(
+            choice(
+                Symbols.Style, "Style", config.topBarStyle, TopBarStyle.entries, { it.label },
+                if (config.topBarStyle == TopBarStyle.Editorial) "The clock on the aerial, buttons in a pill" else "The original panel of tiles",
+            ) { c, v -> c.copy(topBarStyle = v) },
             toggle(Symbols.Cloud, "Weather", config.barShowsWeather, "With the rain forecast") { it.copy(barShowsWeather = !it.barShowsWeather) },
             choice(
                 Symbols.Calendar, "Forecast", config.weatherDetails, WeatherDetails.entries, { it.label },
