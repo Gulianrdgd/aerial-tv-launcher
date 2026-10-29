@@ -81,6 +81,8 @@ data class LauncherConfig(
     /** Times each app was opened from Aerial, and the last few opened (newest first). */
     val launches: Map<String, Int> = emptyMap(),
     val recent: List<String> = emptyList(),
+    /** Sleep timer: when the TV goes to standby (System.currentTimeMillis), 0 = off. */
+    val sleepAt: Long = 0,
     /** How much night mode darkens the screen, in percent. */
     val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,

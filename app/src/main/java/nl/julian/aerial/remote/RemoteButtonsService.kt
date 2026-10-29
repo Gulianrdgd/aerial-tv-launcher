@@ -4,13 +4,18 @@ import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import nl.julian.aerial.MainActivity
 import nl.julian.aerial.data.ConfigStore
@@ -26,8 +31,25 @@ class RemoteButtonsService : AccessibilityService() {
     @Volatile
     private var mode = RemoteButtons.Off
 
+    private var sleepJob: Job? = null
+
     override fun onServiceConnected() {
-        scope.launch { ConfigStore.get(this@RemoteButtonsService).config.collect { mode = it.remoteButtons } }
+        val store = ConfigStore.get(this)
+        scope.launch {
+            store.config.map { it.remoteButtons }.distinctUntilChanged().collect { mode = it }
+        }
+        // The sleep timer lives here: only an accessibility service may put the TV to sleep.
+        scope.launch {
+            store.config.map { it.sleepAt }.distinctUntilChanged().collect { at ->
+                sleepJob?.cancel()
+                if (at <= 0) return@collect
+                sleepJob = launch {
+                    delay(at - System.currentTimeMillis())
+                    store.update { it.copy(sleepAt = 0) }
+                    if (Build.VERSION.SDK_INT >= 28) performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
+                }
+            }
+        }
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {

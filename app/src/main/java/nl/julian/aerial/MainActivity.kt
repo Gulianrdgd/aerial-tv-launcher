@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private val clipMenuTick = mutableIntStateOf(0)
     /** Bumped when the remote's Input button is sent here (see RemoteButtonsService). */
     private val inputsTick = mutableIntStateOf(0)
+    private val pictureOff = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +44,11 @@ class MainActivity : ComponentActivity() {
         // screen. Registered first, so panels' own Back handlers take priority.
         onBackPressedDispatcher.addCallback(this) { }
         setContent {
-            HomeScreen(homeTick.intValue, idle.value, clipMenuTick.intValue, inputsTick.intValue, onStartScreensaver = { idle.value = true })
+            HomeScreen(
+                homeTick.intValue, idle.value, clipMenuTick.intValue, inputsTick.intValue, pictureOff.value,
+                onStartScreensaver = { idle.value = true },
+                onPictureOff = { pictureOff.value = true },
+            )
         }
 
         lifecycleScope.launch {
@@ -70,6 +75,14 @@ class MainActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
+        if (pictureOff.value) {
+            // Any key brings the picture back, and does nothing else.
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                pictureOff.value = false
+                wakeKey = event.keyCode
+            }
+            return true
+        }
         if (idle.value && (event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || event.keyCode == KeyEvent.KEYCODE_ENTER)) {
             when {
                 event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0 -> okHeld = true
@@ -103,6 +116,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        // Home never reaches dispatchKeyEvent, so it turns the picture back on here.
+        pictureOff.value = false
         if (intent.getBooleanExtra(EXTRA_OPEN_INPUTS, false)) {
             idle.value = false
             inputsTick.intValue++

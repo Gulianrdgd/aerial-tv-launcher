@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui
 
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.produceState
 import android.content.Intent
 import android.provider.Settings
 import androidx.annotation.DrawableRes
@@ -50,6 +52,10 @@ fun QuickSettings(
     scenery: Scenery,
     onCycleScenery: () -> Unit,
     onStartScreensaver: () -> Unit,
+    /** Sleep timer end (ms), 0 = off; [onCycleSleep] steps through off, 30, 60 and 90 minutes. */
+    sleepAt: Long,
+    onCycleSleep: () -> Unit,
+    onPictureOff: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val app = LocalContext.current.applicationContext
@@ -92,6 +98,23 @@ fun QuickSettings(
             QuickTile(
                 Symbols.Screensaver, "Screensaver", "Start now", active = false,
                 onClick = onStartScreensaver,
+                modifier = Modifier.weight(1f),
+            )
+            val now by produceState(System.currentTimeMillis(), sleepAt) {
+                while (true) {
+                    value = System.currentTimeMillis()
+                    delay(30_000)
+                }
+            }
+            val left = ((sleepAt - now) / 60_000).toInt() + 1
+            QuickTile(
+                Symbols.Sleep, "Sleep timer", if (sleepAt > now) "In $left min" else "Off", active = sleepAt > now,
+                onClick = onCycleSleep,
+                modifier = Modifier.weight(1f),
+            )
+            QuickTile(
+                Symbols.PictureOff, "Picture off", "Sound keeps playing", active = false,
+                onClick = onPictureOff,
                 modifier = Modifier.weight(1f),
             )
         }

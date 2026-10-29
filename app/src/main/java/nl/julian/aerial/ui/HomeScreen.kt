@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.remote.RemoteButtonsService
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -98,7 +101,16 @@ private val SCREEN_MARGIN = 48.dp
 private val DOCK_GAP = 24.dp
 
 @Composable
-fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int, onStartScreensaver: () -> Unit) {
+fun HomeScreen(
+    homeTick: Int,
+    idle: Boolean,
+    clipMenuTick: Int,
+    inputsTick: Int,
+    /** Black screen while sound keeps playing; any key turns the picture back on (MainActivity). */
+    pictureOff: Boolean,
+    onStartScreensaver: () -> Unit,
+    onPictureOff: () -> Unit,
+) {
     val context = LocalContext.current
     var rescanTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -148,7 +160,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver, onPictureOff)
                 }
             }
         }
@@ -165,6 +177,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
             )
         }
         config?.let { NightDim(it, weather?.isDay) }
+        if (pictureOff) Box(Modifier.fillMaxSize().background(Color.Black))
     }
 }
 
@@ -184,6 +197,7 @@ private fun HomeContent(
     media: NowPlaying?,
     weather: Weather?,
     onStartScreensaver: () -> Unit,
+    onPictureOff: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -393,6 +407,17 @@ private fun HomeContent(
                     }
                 },
                 onStartScreensaver = onStartScreensaver,
+                sleepAt = config.sleepAt,
+                onCycleSleep = {
+                    if (!RemoteButtonsService.isEnabled(context)) {
+                        context.startSafely(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    } else update {
+                        val left = ((it.sleepAt - System.currentTimeMillis()) / 60_000).coerceAtLeast(0)
+                        val next = SLEEP_STEPS.firstOrNull { m -> m > left + 1 } ?: 0
+                        it.copy(sleepAt = if (next == 0) 0 else System.currentTimeMillis() + next * 60_000L)
+                    }
+                },
+                onPictureOff = onPictureOff,
                 modifier = Modifier.reveal(4, revealTick),
             )
         }
@@ -521,3 +546,6 @@ private fun TileRow(
         repeat(COLUMNS - apps.size) { EmptyTileSlot(Modifier.weight(1f)) }
     }
 }
+
+/** Sleep timer steps, in minutes. */
+private val SLEEP_STEPS = listOf(30, 60, 90)
