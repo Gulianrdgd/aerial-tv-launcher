@@ -53,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import nl.julian.aerial.data.AerialTime
 import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.data.COLUMNS
@@ -84,6 +85,7 @@ import nl.julian.aerial.ui.widgets.WidgetBand
 import nl.julian.aerial.ui.widgets.startSafely
 import nl.julian.aerial.wallpaper.Aerial
 import nl.julian.aerial.wallpaper.AerialBackground
+import java.time.LocalTime
 
 /** TV overscan-safe side margin (Android TV guideline: 48dp). */
 private val SCREEN_MARGIN = 48.dp
@@ -129,6 +131,13 @@ fun HomeScreen(homeTick: Int, idle: Boolean, onStartScreensaver: () -> Unit) {
         config?.let { cfg ->
         AerialBackground(
             kind = cfg.scenery.kind,
+            time = when (cfg.aerialTime) {
+                AerialTime.Any -> null
+                AerialTime.Day -> "day"
+                AerialTime.Night -> "night"
+                // Weather knows sunrise and sunset; until it loads, guess from the clock.
+                AerialTime.Sun -> if (weather?.isDay ?: (LocalTime.now().hour in 7..18)) "day" else "night"
+            },
             onSeed = { seed = it },
             onClip = { clip = it },
         )

@@ -19,6 +19,9 @@ enum class Scenery(val label: String, val kind: String?) {
     Space("From space", "space"),
 }
 
+/** When day and night clips play, matching the `d` tag in aerials.json. */
+enum class AerialTime(val label: String) { Any("Any time"), Sun("Follow the sun"), Day("Day only"), Night("Night only") }
+
 enum class ClockFormat(val label: String) { System("Same as the TV"), H24("24-hour"), H12("12-hour") }
 
 enum class TempUnit(val label: String) { Auto("Automatic"), Celsius("Celsius (°C)"), Fahrenheit("Fahrenheit (°F)") }
@@ -32,6 +35,7 @@ data class LauncherConfig(
     val order: List<String> = emptyList(),
     val hidden: Set<String> = emptySet(),
     val scenery: Scenery = Scenery.All,
+    val aerialTime: AerialTime = AerialTime.Any,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */

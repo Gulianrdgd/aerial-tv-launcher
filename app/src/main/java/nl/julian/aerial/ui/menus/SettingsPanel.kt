@@ -65,6 +65,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(scenery = it.scenery.next()) } },
         )
         MenuRow(
+            Symbols.Moon, "Day and night", value = config.aerialTime.label,
+            onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } },
+        )
+        MenuRow(
             Symbols.Timer, "Screensaver",
             value = if (config.idleMinutes == 0) "Off" else "After ${config.idleMinutes} min without input",
             onClick = {

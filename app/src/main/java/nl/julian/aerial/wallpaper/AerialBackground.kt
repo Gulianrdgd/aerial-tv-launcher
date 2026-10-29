@@ -58,6 +58,8 @@ fun AerialBackground(
     modifier: Modifier = Modifier,
     /** Which scenery to play (city, nature, …); null = everything. */
     kind: String? = null,
+    /** "day" or "night" to play only those clips (and ones that suit any time); null = all. */
+    time: String? = null,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
@@ -66,11 +68,12 @@ fun AerialBackground(
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val queue = remember(kind) {
+    val queue = remember(kind, time) {
         val all = Aerials.load(context)
         val picked = all.filter { kind == null || it.kind == kind }
+        val timed = picked.filter { time == null || it.time.isEmpty() || it.time == time }
         // A scenery with no clips falls back to everything.
-        AerialQueue(picked.ifEmpty { all })
+        AerialQueue(timed.ifEmpty { picked }.ifEmpty { all })
     }
     var current by remember { mutableStateOf<Aerial?>(null) }
     LaunchedEffect(queue) {
