@@ -93,7 +93,7 @@ fun QuickSettings(
                 onClick = { ctx.startSafely(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, modifier = m,
             )
             QuickTileKind.Display -> QuickTile(
-                Symbols.Tune, "Display", "Picture & sound", active = false,
+                Symbols.DisplaySettings, "Display", "Picture & sound", active = false,
                 onClick = { ctx.startSafely(Intent(Settings.ACTION_DISPLAY_SETTINGS)) }, modifier = m,
             )
             QuickTileKind.Scenery -> QuickTile(

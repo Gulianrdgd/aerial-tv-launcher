@@ -54,9 +54,9 @@ fun AppMenu(
                 MenuRow(Symbols.Move, "Move", act(AppAction.Move))
                 if (inDock) MenuRow(Symbols.Unpin, "Remove from dock", act(AppAction.Unpin))
                 else MenuRow(Symbols.Pin, "Pin to dock", act(AppAction.Pin))
-                MenuRow(Symbols.Tune, "Rename", act(AppAction.Rename))
+                MenuRow(Symbols.Edit, "Rename", act(AppAction.Rename))
                 if (folder) {
-                    MenuRow(Symbols.Tune, "Change colour", act(AppAction.Colour))
+                    MenuRow(Symbols.Palette, "Change colour", act(AppAction.Colour))
                     MenuRow(Symbols.Delete, "Delete folder", act(AppAction.DeleteFolder))
                 } else {
                     iconOnly?.let { MenuRow(Symbols.Show, if (it) "Show its banner" else "Show icon and name", act(AppAction.Look)) }

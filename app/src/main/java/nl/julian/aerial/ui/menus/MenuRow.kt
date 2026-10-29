@@ -41,7 +41,7 @@ fun MenuRow(
             .fillMaxWidth()
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
         headlineContent = { Text(title, maxLines = 1) },
-        supportingContent = value?.let { { Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis) } },
+        supportingContent = value?.let { { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) } },
         leadingContent = {
             Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ListItemDefaults.IconSize))
         },

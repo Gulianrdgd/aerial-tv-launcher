@@ -213,21 +213,21 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(barShowsMusic = !it.barShowsMusic) } },
         )
         MenuRow(
-            Symbols.Tune, "Buttons", value = if (config.compactButtons) "Icons only, stacked" else "Icons with labels",
+            Symbols.SmartButton, "Buttons", value = if (config.compactButtons) "Icons only, stacked" else "Icons with labels",
             onClick = { update { it.copy(compactButtons = !it.compactButtons) } },
         )
 
         Section("Home screen")
         MenuRow(
-            Symbols.Tune, "Home layout", value = "Sections and quick settings: show, hide, reorder",
+            Symbols.Layout, "Home layout", value = "Sections and quick settings: show, hide, reorder",
             onClick = { layout = true },
         )
         MenuRow(
-            Symbols.Tune, "Tile size", value = when (config.tilesPerRow) { 4 -> "Large, 4 per row"; 5 -> "Medium, 5 per row"; else -> "Normal, 6 per row" },
+            Symbols.Grid, "Tile size", value = when (config.tilesPerRow) { 4 -> "Large, 4 per row"; 5 -> "Medium, 5 per row"; else -> "Normal, 6 per row" },
             onClick = { update { it.copy(tilesPerRow = if (it.tilesPerRow <= 4) 6 else it.tilesPerRow - 1) } },
         )
         MenuRow(
-            Symbols.Tune, "Tile style",
+            Symbols.Style, "Tile style",
             value = if (config.tintedTiles) "Tinted to the aerial" else "App banners",
             onClick = { update { it.copy(tintedTiles = !it.tintedTiles) } },
         )
@@ -286,13 +286,13 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(Symbols.Landscape, "Aerials", value = "Links, quality, favourites, captions", onClick = { page = "Aerials" }, focusRequester = firstMore)
         MenuRow(Symbols.Clock, "Clock & weather", value = "Clock faces, date and time", onClick = { page = "Clock & weather" })
         MenuRow(Symbols.Cloud, "Top bar", value = "Forecast, search, status icons", onClick = { page = "Top bar" })
-        MenuRow(Symbols.Tune, "Looks", value = "Colours, panels, animations, sounds", onClick = { page = "Looks" })
+        MenuRow(Symbols.Sparkle, "Looks", value = "Colours, panels, animations, sounds", onClick = { page = "Looks" })
         MenuRow(Symbols.Show, "Reading", value = "Text size and contrast", onClick = { page = "Reading" })
         MenuRow(Symbols.Play, "Apps", value = "Order of All apps", onClick = { page = "Apps" })
-        MenuRow(Symbols.Timer, "Kids mode", value = "Chosen apps, hours and a PIN", onClick = { page = "Kids mode" })
+        MenuRow(Symbols.Kids, "Kids mode", value = "Chosen apps, hours and a PIN", onClick = { page = "Kids mode" })
         MenuRow(Symbols.Moon, "Night mode", value = "Dim the screen in the evening", onClick = { page = "Night mode" })
         MenuRow(Symbols.Home, "Connected services", value = "Home Assistant, Plex, Jellyfin", onClick = { page = "Connected services" })
-        MenuRow(Symbols.Input, "Remote", value = "Remote buttons and shortcuts", onClick = { page = "Remote" })
+        MenuRow(Symbols.Remote, "Remote", value = "Remote buttons and shortcuts", onClick = { page = "Remote" })
         MenuRow(Symbols.Settings, "System", value = "Updates, backup, setup", onClick = { page = "System" })
     } else key(page) {
         // One short page per category; Back returns to More options.
@@ -332,7 +332,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                         )
                     }
                     MenuRow(
-                        Symbols.Tune, "Burn-in protection",
+                        Symbols.Shield, "Burn-in protection",
                         value = if (config.shiftText) "Screensaver text moves a little every few minutes" else "Off · for OLED TVs",
                         onClick = { update { it.copy(shiftText = !it.shiftText) } },
                     )
@@ -379,12 +379,12 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     }
                     "Looks" -> {
                     MenuRow(
-                        Symbols.Tune, "Colours", value = config.themeSource.label,
+                        Symbols.Palette, "Colours", value = config.themeSource.label,
                         onClick = { update { it.copy(themeSource = it.themeSource.next()) } },
                     )
                     if (config.themeSource == ThemeSource.Fixed) {
                         MenuRow(
-                            Symbols.Tune, "Colour", value = THEME_COLORS.firstOrNull { it.first == config.themeColor }?.second ?: "Custom",
+                            Symbols.Palette, "Colour", value = THEME_COLORS.firstOrNull { it.first == config.themeColor }?.second ?: "Custom",
                             onClick = {
                                 update {
                                     val i = THEME_COLORS.indexOfFirst { c -> c.first == it.themeColor }
@@ -395,7 +395,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     }
                     val packs = remember { IconPacks.installed(context) }
                     MenuRow(
-                        Symbols.Tune, "Icon pack",
+                        Symbols.IconPack, "Icon pack",
                         value = when {
                             packs.isEmpty() -> "None installed · for tinted and icon tiles"
                             else -> packs.firstOrNull { it.first == config.iconPack }?.second ?: "App icons"
@@ -408,15 +408,15 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                         },
                     )
                     MenuRow(
-                        Symbols.Tune, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
+                        Symbols.Corners, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
                         onClick = { update { it.copy(roundness = when (it.roundness) { 100 -> 140; 140 -> 40; else -> 100 }) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Text weight", value = when (config.fontWeight) { -100 -> "Lighter"; 100 -> "Bolder"; else -> "Normal" },
+                        Symbols.TextWeight, "Text weight", value = when (config.fontWeight) { -100 -> "Lighter"; 100 -> "Bolder"; else -> "Normal" },
                         onClick = { update { it.copy(fontWeight = when (it.fontWeight) { 0 -> 100; 100 -> -100; else -> 0 }) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Panel opacity", value = "${config.panelOpacity}%",
+                        Symbols.Opacity, "Panel opacity", value = "${config.panelOpacity}%",
                         onClick = {
                             update {
                                 val i = OPACITY_STEPS.indexOf(it.panelOpacity)
@@ -425,23 +425,23 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                         },
                     )
                     MenuRow(
-                        Symbols.Tune, "Panels", value = config.glass.label,
+                        Symbols.Blur, "Panels", value = config.glass.label,
                         onClick = { update { it.copy(glass = it.glass.next()) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Panels appear", value = config.reveal.label,
+                        Symbols.Motion, "Panels appear", value = config.reveal.label,
                         onClick = { update { it.copy(reveal = it.reveal.next()) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Tile depth", value = config.tileDepth.label,
+                        Symbols.Depth, "Tile depth", value = config.tileDepth.label,
                         onClick = { update { it.copy(tileDepth = it.tileDepth.next()) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Focus ring", value = config.focusColor.label,
+                        Symbols.FocusRing, "Focus ring", value = config.focusColor.label,
                         onClick = { update { it.copy(focusColor = it.focusColor.next()) } },
                     )
                     MenuRow(
-                        Symbols.Tune, "Opening animation", value = config.launchAnimation.label,
+                        Symbols.Animation, "Opening animation", value = config.launchAnimation.label,
                         onClick = { update { it.copy(launchAnimation = it.launchAnimation.next()) } },
                     )
                     MenuRow(
@@ -479,7 +479,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     }
                     "Reading" -> {
                     MenuRow(
-                        Symbols.Tune, "Text size", value = "${config.textSize}%",
+                        Symbols.TextSize, "Text size", value = "${config.textSize}%",
                         onClick = {
                             update {
                                 val i = TEXT_STEPS.indexOf(it.textSize)
@@ -488,19 +488,19 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                         },
                     )
                     MenuRow(
-                        Symbols.Tune, "Contrast", value = if (config.highContrast) "High · all text at full brightness" else "Normal",
+                        Symbols.Contrast, "Contrast", value = if (config.highContrast) "High · all text at full brightness" else "Normal",
                         onClick = { update { it.copy(highContrast = !it.highContrast) } },
                     )
                     }
                     "Apps" -> {
                     MenuRow(
-                        Symbols.Tune, "Order of All apps", value = config.appOrder.label,
+                        Symbols.Sort, "Order of All apps", value = config.appOrder.label,
                         onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
                     )
                     }
                     "Kids mode" -> {
                     MenuRow(
-                        Symbols.Tune, "Kids mode",
+                        Symbols.Kids, "Kids mode",
                         value = if (config.kidsMode) "On · only the kids' apps, top bar buttons need the PIN"
                         else "Off · only chosen apps, at chosen hours, PIN for the rest",
                         onClick = {
@@ -528,7 +528,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                         },
                     )
                     MenuRow(
-                        Symbols.Tune, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",
+                        Symbols.PinCode, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",
                         onClick = { pinThenOn = false; pinDialog = true },
                     )
                     }
@@ -539,7 +539,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     )
                     if (config.nightMode != NightMode.Off) {
                         MenuRow(
-                            Symbols.Tune, "How much", value = "${config.nightDim}% darker",
+                            Symbols.Brightness, "How much", value = "${config.nightDim}% darker",
                             onClick = {
                                 update {
                                     val i = DIM_STEPS.indexOf(it.nightDim)
@@ -585,11 +585,11 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                     "Remote" -> {
                     val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
                     MenuRow(
-                        Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
+                        Symbols.Shortcut, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
                         onClick = { shortcutsOpen = true },
                     )
                     MenuRow(
-                        Symbols.Tune, "Remote buttons",
+                        Symbols.Remote, "Remote buttons",
                         value = when {
                             config.remoteButtons == RemoteButtons.Off -> "Off · for TVs where Input or Home stop working"
                             remoteOn -> "${config.remoteButtons.label} open Aerial"
