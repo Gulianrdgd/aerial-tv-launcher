@@ -35,9 +35,9 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import nl.julian.aerial.theme.LocalSurfaces
 
-/** Rename an app tile with the TV keyboard; empty, or "Original name", goes back to the app's own name. */
+/** A name typed with the TV keyboard (apps, folders). [resetLabel] adds a button that saves "". */
 @Composable
-fun RenameDialog(current: String, original: String, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+fun RenameDialog(title: String, current: String, resetLabel: String?, onSave: (String) -> Unit, onDismiss: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val field = remember { FocusRequester() }
     var text by remember { mutableStateOf(current) }
@@ -51,7 +51,7 @@ fun RenameDialog(current: String, original: String, onSave: (String) -> Unit, on
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text("Rename $original", style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                Text(title, style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
                 BasicTextField(
                     value = text,
                     onValueChange = { text = it },
@@ -69,7 +69,7 @@ fun RenameDialog(current: String, original: String, onSave: (String) -> Unit, on
                         .padding(horizontal = 20.dp, vertical = 14.dp),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.align(Alignment.End)) {
-                    DialogButton("Original name", primary = false) { onSave("") }
+                    resetLabel?.let { DialogButton(it, primary = false) { onSave("") } }
                     DialogButton("Save", primary = true) { onSave(text.trim()) }
                 }
             }

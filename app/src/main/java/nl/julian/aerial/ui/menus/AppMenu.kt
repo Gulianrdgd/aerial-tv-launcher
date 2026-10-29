@@ -20,7 +20,7 @@ import nl.julian.aerial.data.AppEntry
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 
-enum class AppAction { Open, Move, Pin, Unpin, Rename, Look, Hide, Info, Uninstall }
+enum class AppAction { Open, Move, Pin, Unpin, Rename, Look, AddToFolder, Colour, DeleteFolder, Hide, Info, Uninstall }
 
 /** Long-press menu for one app: a Material dialog centred over the dimmed home screen. */
 @Composable
@@ -31,6 +31,8 @@ fun AppMenu(
     onDismiss: () -> Unit,
     /** Shown with its icon instead of its banner (null: the app has no banner to switch to). */
     iconOnly: Boolean? = null,
+    /** A folder tile: folder actions instead of app ones. */
+    folder: Boolean = false,
 ) {
     val first = remember { FocusRequester() }
     Overlay(onDismiss) {
@@ -53,10 +55,16 @@ fun AppMenu(
                 if (inDock) MenuRow(Symbols.Unpin, "Remove from dock", act(AppAction.Unpin))
                 else MenuRow(Symbols.Pin, "Pin to dock", act(AppAction.Pin))
                 MenuRow(Symbols.Tune, "Rename", act(AppAction.Rename))
-                iconOnly?.let { MenuRow(Symbols.Show, if (it) "Show its banner" else "Show icon and name", act(AppAction.Look)) }
-                MenuRow(Symbols.Hide, "Hide", act(AppAction.Hide))
-                MenuRow(Symbols.Info, "App info", act(AppAction.Info))
-                if (!app.isSystem) MenuRow(Symbols.Delete, "Uninstall", act(AppAction.Uninstall))
+                if (folder) {
+                    MenuRow(Symbols.Tune, "Change colour", act(AppAction.Colour))
+                    MenuRow(Symbols.Delete, "Delete folder", act(AppAction.DeleteFolder))
+                } else {
+                    iconOnly?.let { MenuRow(Symbols.Show, if (it) "Show its banner" else "Show icon and name", act(AppAction.Look)) }
+                    MenuRow(Symbols.Folder, "Add to folder", act(AppAction.AddToFolder))
+                    MenuRow(Symbols.Hide, "Hide", act(AppAction.Hide))
+                    MenuRow(Symbols.Info, "App info", act(AppAction.Info))
+                    if (!app.isSystem) MenuRow(Symbols.Delete, "Uninstall", act(AppAction.Uninstall))
+                }
             }
         }
     }

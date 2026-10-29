@@ -28,6 +28,8 @@ object Symbols {
     val Sleep = R.drawable.ms_bedtime_off
     val PictureOff = R.drawable.ms_tv_off
     val Storage = R.drawable.ms_hard_drive
+    val Folder = R.drawable.ms_folder
+    val NewFolder = R.drawable.ms_create_new_folder
     val Block = R.drawable.ms_block
     val Timer = R.drawable.ms_timer
     val Music = R.drawable.ms_music_note

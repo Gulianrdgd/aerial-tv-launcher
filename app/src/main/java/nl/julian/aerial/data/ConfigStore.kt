@@ -83,6 +83,10 @@ enum class ClockFormat(val label: String) { System("Same as the TV"), H24("24-ho
 
 enum class TempUnit(val label: String) { Auto("Automatic"), Celsius("Celsius (°C)"), Fahrenheit("Fahrenheit (°F)") }
 
+/** A folder tile on the home screen: [apps] (packages) are shown inside it instead of in All apps. */
+@Serializable
+data class Folder(val id: String, val name: String, val color: Int = THEME_COLORS[0].first, val apps: List<String> = emptyList())
+
 @Immutable
 @Serializable
 data class LauncherConfig(
@@ -95,6 +99,7 @@ data class LauncherConfig(
     val names: Map<String, String> = emptyMap(),
     /** Apps shown with their icon and name instead of their banner. */
     val iconOnly: Set<String> = emptySet(),
+    val folders: List<Folder> = emptyList(),
     val scenery: Scenery = Scenery.All,
     val aerialTime: AerialTime = AerialTime.Any,
     val ambientInfo: AmbientInfo = AmbientInfo.All,

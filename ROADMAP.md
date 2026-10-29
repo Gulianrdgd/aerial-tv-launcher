@@ -74,7 +74,7 @@ Two rules hold for all of it:
 - [ ] **Top bar order.** Choose which tiles go in the top bar and in what order.
 - [x] **App names and banners.** Rename an app, or show its icon and name instead of its banner (hold OK on the app).
 - [ ] **Icon packs.** Use an installed icon pack for app tiles.
-- [ ] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
+- [x] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
 - [ ] **Quick settings of your own.** Choose which shortcuts appear in the quick settings row and in what order.
 - [ ] **Remote shortcuts.** Choose what a long press on Home or another button does: open an app, switch inputs, start the screensaver.
 - [ ] **Time-of-day layouts.** Different layouts by time, such as a large weather tile in the morning and Continue Watching first in the evening. Choices: times and the layout for each.

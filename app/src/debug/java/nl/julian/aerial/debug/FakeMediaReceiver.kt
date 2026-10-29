@@ -43,7 +43,8 @@ class FakeMediaReceiver : BroadcastReceiver() {
             "set-config" -> runBlocking {
                 val store = ConfigStore.get(context)
                 val raw = intent.getStringExtra("value") ?: return@runBlocking
-                val value = raw.toBooleanStrictOrNull()?.let { JsonPrimitive(it) }
+                val value = if (raw.startsWith("[") || raw.startsWith("{")) Json.parseToJsonElement(raw)
+                else raw.toBooleanStrictOrNull()?.let { JsonPrimitive(it) }
                     ?: raw.toLongOrNull()?.let { JsonPrimitive(it) } ?: JsonPrimitive(raw)
                 val cfg = Json.parseToJsonElement(store.export()).jsonObject
                 store.import(JsonObject(cfg + (intent.getStringExtra("key")!! to value)).toString())

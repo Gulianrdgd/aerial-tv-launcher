@@ -1,5 +1,11 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.ui.menus.entry
+import nl.julian.aerial.ui.menus.FolderPanel
+import nl.julian.aerial.ui.menus.FolderChooser
+import nl.julian.aerial.ui.menus.FOLDER_PREFIX
+import nl.julian.aerial.data.THEME_COLORS
+import nl.julian.aerial.data.Folder
 import nl.julian.aerial.ui.menus.RenameDialog
 import nl.julian.aerial.data.sections
 import nl.julian.aerial.data.HomeSection
@@ -266,8 +272,15 @@ private fun HomeContent(
         }
     }
     var renaming by remember { mutableStateOf<AppEntry?>(null) }
-    val withInputs = remember(named, inputs, config.dock) {
-        named + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
+    var openFolder by remember { mutableStateOf<String?>(null) }
+    var folderFor by remember { mutableStateOf<AppEntry?>(null) }
+    /** Naming a folder: an existing one (rename), or a new one holding [Pair.second]. */
+    var namingFolder by remember { mutableStateOf<Pair<Folder?, String?>?>(null) }
+    fun folderOf(pkg: String) = config.folders.firstOrNull { FOLDER_PREFIX + it.id == pkg }
+    // Apps in a folder leave All apps and the dock; each folder is a tile of its own.
+    val withInputs = remember(named, inputs, config.dock, config.folders) {
+        val inFolders = config.folders.flatMap { it.apps }.toSet()
+        named.filter { it.pkg !in inFolders } + config.folders.map { it.entry(app) } + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
     }
     val home = remember(withInputs, config) { arrange(withInputs, config) }
     val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
@@ -275,7 +288,11 @@ private fun HomeContent(
     /** Where each tile is on screen, for the opening animation. Not state: nothing redraws when it changes. */
     val tileBounds = remember { mutableMapOf<String, Rect>() }
     var opening by remember { mutableStateOf<Pair<AppEntry, Rect>?>(null) }
-    val launch: (AppEntry) -> Unit = { app ->
+    val launch: (AppEntry) -> Unit = launch@{ app ->
+        if (app.pkg.startsWith(FOLDER_PREFIX)) {
+            openFolder = app.pkg.removePrefix(FOLDER_PREFIX)
+            return@launch
+        }
         val from = tileBounds[app.pkg]
         if (config.launchAnimation != LaunchAnimation.Off && from != null) opening = app to from
         else AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
@@ -306,7 +323,18 @@ private fun HomeContent(
                 refocusDock = true
                 update { cfg -> cfg.copy(dock = arrange(withInputs, cfg).dock.map { it.pkg } - pkg) }
             }
-            AppAction.Rename -> renaming = app
+            AppAction.Rename -> folderOf(pkg)?.let { namingFolder = it to null } ?: run { renaming = app }
+            AppAction.AddToFolder -> folderFor = app
+            AppAction.Colour -> update { cfg ->
+                cfg.copy(folders = cfg.folders.map { f ->
+                    if (FOLDER_PREFIX + f.id != pkg) f
+                    else f.copy(color = THEME_COLORS[(THEME_COLORS.indexOfFirst { it.first == f.color } + 1) % THEME_COLORS.size].first)
+                })
+            }
+            AppAction.DeleteFolder -> {
+                refocusDock = true
+                update { cfg -> cfg.copy(folders = cfg.folders.filter { FOLDER_PREFIX + it.id != pkg }, dock = cfg.dock?.minus(pkg)) }
+            }
             AppAction.Look -> update {
                 it.copy(iconOnly = if (pkg in it.iconOnly) it.iconOnly - pkg else it.iconOnly + pkg)
             }
@@ -476,6 +504,7 @@ private fun HomeContent(
             inDock = home.dock.any { it.pkg == app.pkg },
             onAction = { act(app, it) },
             onDismiss = { menuFor = null },
+            folder = app.pkg.startsWith(FOLDER_PREFIX),
             iconOnly = when {
                 app.pkg in config.iconOnly -> true
                 apps.firstOrNull { it.pkg == app.pkg }?.banner != null -> false
@@ -483,10 +512,54 @@ private fun HomeContent(
             },
         )
     }
+    openFolder?.let { id ->
+        config.folders.firstOrNull { it.id == id }?.let { folder ->
+            val byPkg = named.associateBy { it.pkg }
+            FolderPanel(
+                folder, folder.apps.mapNotNull { byPkg[it] }, config.tintedTiles,
+                onLaunch = { openFolder = null; launch(it) },
+                onRemove = { a -> update { cfg -> cfg.copy(folders = cfg.folders.map { f -> if (f.id == id) f.copy(apps = f.apps - a.pkg) else f }) } },
+                onDismiss = { openFolder = null },
+            )
+        } ?: run { openFolder = null }
+    }
+    folderFor?.let { a ->
+        FolderChooser(
+            config.folders,
+            onPick = { f ->
+                folderFor = null
+                if (f == null) namingFolder = null to a.pkg
+                else update { cfg ->
+                    cfg.copy(
+                        folders = cfg.folders.map { if (it.id == f.id) it.copy(apps = (it.apps + a.pkg).distinct()) else it },
+                        dock = cfg.dock?.minus(a.pkg),
+                    )
+                }
+                refocusDock = true
+            },
+            onDismiss = { folderFor = null },
+        )
+    }
+    namingFolder?.let { (existing, pkg) ->
+        RenameDialog(
+            title = if (existing != null) "Rename folder" else "New folder", current = existing?.name ?: "", resetLabel = null,
+            onSave = { name ->
+                namingFolder = null
+                if (name.isNotEmpty()) update { cfg ->
+                    if (existing != null) cfg.copy(folders = cfg.folders.map { if (it.id == existing.id) it.copy(name = name) else it })
+                    else cfg.copy(
+                        folders = cfg.folders + Folder(System.currentTimeMillis().toString(), name, apps = listOfNotNull(pkg)),
+                        dock = pkg?.let { p -> cfg.dock?.minus(p) } ?: cfg.dock,
+                    )
+                }
+            },
+            onDismiss = { namingFolder = null },
+        )
+    }
     renaming?.let { app ->
         val original = apps.firstOrNull { it.pkg == app.pkg }?.label ?: app.label
         RenameDialog(
-            current = config.names[app.pkg] ?: original, original = original,
+            title = "Rename $original", current = config.names[app.pkg] ?: original, resetLabel = "Original name",
             onSave = { name ->
                 update { it.copy(names = if (name.isEmpty() || name == original) it.names - app.pkg else it.names + (app.pkg to name)) }
                 renaming = null
