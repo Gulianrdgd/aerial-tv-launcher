@@ -77,6 +77,11 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(showPlaces = !it.showPlaces) } },
         )
         MenuRow(
+            Symbols.Tune, "Burn-in protection",
+            value = if (config.shiftText) "Screensaver text moves a little every few minutes" else "Off · for OLED TVs",
+            onClick = { update { it.copy(shiftText = !it.shiftText) } },
+        )
+        MenuRow(
             Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label,
             onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } },
         )

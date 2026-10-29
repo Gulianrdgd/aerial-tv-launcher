@@ -165,6 +165,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
                 visible = idle,
                 info = config?.ambientInfo ?: AmbientInfo.All,
                 showPlaces = config?.showPlaces == true,
+                shiftText = config?.shiftText == true,
             )
         }
     }

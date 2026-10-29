@@ -101,7 +101,7 @@ private fun DreamScreen() {
             onClip = { clip = it },
         )
         AerialTheme(seed) {
-            Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces)
+            Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces, shiftText = cfg.shiftText)
         }
     }
 }

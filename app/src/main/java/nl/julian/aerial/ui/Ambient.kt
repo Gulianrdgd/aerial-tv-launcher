@@ -81,6 +81,7 @@ fun Ambient(
     info: AmbientInfo = AmbientInfo.All,
     /** Show where the camera is (for clips that have captions) instead of the scenery. */
     showPlaces: Boolean = false,
+    shiftText: Boolean = false,
 ) {
     val alpha by animateFloatAsState(
         if (visible) 1f else 0f,
@@ -90,7 +91,23 @@ fun Ambient(
     if (alpha == 0f || info == AmbientInfo.None) return
     val all = info == AmbientInfo.All
 
-    Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) {
+    // Burn-in protection: a new small offset every three minutes, eased in.
+    val shift by produceState(Offset.Zero, shiftText) {
+        value = Offset.Zero
+        while (shiftText) {
+            delay(180_000)
+            value = Offset((-16..16).random().toFloat(), (-12..12).random().toFloat())
+        }
+    }
+    val dx by animateFloatAsState(shift.x, tween(4_000, easing = FluidEasing), label = "dx")
+    val dy by animateFloatAsState(shift.y, tween(4_000, easing = FluidEasing), label = "dy")
+    Box(
+        Modifier.fillMaxSize().graphicsLayer {
+            this.alpha = alpha
+            translationX = dx.dp.toPx()
+            translationY = dy.dp.toPx()
+        }
+    ) {
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
