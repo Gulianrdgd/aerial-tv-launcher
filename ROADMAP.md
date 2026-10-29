@@ -89,6 +89,6 @@ Two rules hold for all of it:
 ## Quality and distribution
 
 - [ ] **Speed on slow TVs.** A baseline profile, plus startup and scrolling measurements on a 1 GB device such as a Chromecast with Google TV.
-- [ ] **Automatic builds.** GitHub Actions builds and tests every push and attaches the APK to a release when a tag is pushed.
+- [x] **Automatic builds.** GitHub Actions builds and tests every push, and on a version tag signs the APK and attaches it to the release (once the keystore secrets are set).
 - [ ] **F-Droid listing.** Open the merge request on fdroiddata and retake the Inputs and home screenshots on a real TV.
 - [ ] **Translations.** Start with Dutch.

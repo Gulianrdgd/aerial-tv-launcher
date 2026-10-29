@@ -83,6 +83,8 @@ The app is written in Kotlin with Jetpack Compose and `androidx.tv:tv-material`.
 
 Run the unit tests with `./gradlew :app:testDebugUnitTest`.
 
+GitHub Actions builds and tests every push. When a `v*` tag is pushed it also signs a release APK and attaches it to the release, but only if the repository has these secrets: `KEYSTORE_BASE64` (the keystore, base64-encoded), `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`. Use the same key as earlier releases, or the new APK won't install over the old one.
+
 Debug builds have test hooks for the emulator. They all go through one receiver:
 
 ```sh

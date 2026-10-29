@@ -16,6 +16,16 @@ android {
         versionName = "0.2.0"
     }
 
+    // CI releases (see .github/workflows/build.yml): the keystore comes from a secret.
+    if (project.hasProperty("ciKeystore")) {
+        signingConfigs.create("ci") {
+            storeFile = file(project.property("ciKeystore") as String)
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -23,7 +33,11 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Unsigned by default: F-Droid signs with its own key. Pass
             // -PlocalSign to sign with the debug key for installing yourself.
-            signingConfig = if (project.hasProperty("localSign")) signingConfigs.getByName("debug") else null
+            signingConfig = when {
+                project.hasProperty("ciKeystore") -> signingConfigs.getByName("ci")
+                project.hasProperty("localSign") -> signingConfigs.getByName("debug")
+                else -> null
+            }
         }
     }
 
