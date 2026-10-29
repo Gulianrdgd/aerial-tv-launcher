@@ -58,6 +58,8 @@ data class LauncherConfig(
     val barShowsAerial: Boolean = false,
     /** Top bar: show what's playing, with controls, while music plays. */
     val barShowsMusic: Boolean = false,
+    /** Top bar: a search button that opens the Assistant. */
+    val barShowsSearch: Boolean = false,
     /** Top bar: inputs, alerts and settings as a narrow column of icons. */
     val compactButtons: Boolean = false,
     val clockFormat: ClockFormat = ClockFormat.System,

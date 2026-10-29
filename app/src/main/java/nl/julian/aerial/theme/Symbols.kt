@@ -24,6 +24,7 @@ object Symbols {
     val Home = R.drawable.ms_home
     val Landscape = R.drawable.ms_landscape
     val Favorite = R.drawable.ms_favorite
+    val Search = R.drawable.ms_search
     val Block = R.drawable.ms_block
     val Timer = R.drawable.ms_timer
     val Music = R.drawable.ms_music_note

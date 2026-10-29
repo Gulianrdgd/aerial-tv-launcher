@@ -88,6 +88,8 @@ fun WidgetBand(
     onOpenNotifications: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Shows a search button first in the rail. */
+    onSearch: (() -> Unit)? = null,
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
 ) {
@@ -116,7 +118,7 @@ fun WidgetBand(
             val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
             WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle)
         }
-        ControlRail(notificationCount, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
+        ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
     }
 }
 
@@ -212,6 +214,7 @@ internal fun sceneryLabel(kind: String) = when (kind) {
 @Composable
 private fun ControlRail(
     notifications: Int,
+    onSearch: (() -> Unit)?,
     onInputs: () -> Unit,
     onNotifications: () -> Unit,
     onSettings: () -> Unit,
@@ -233,7 +236,11 @@ private fun ControlRail(
         .topHighlight(tile)
         .padding(4.dp)
     val segments: @Composable (Modifier) -> Unit = { size ->
-        RailSegment(Symbols.Input, "Inputs", onInputs, focus.inputs, first, size, stacked)
+        if (onSearch != null) {
+            RailSegment(Symbols.Search, "Search", onSearch, focus.search, first, size, stacked)
+            SegmentDivider(stacked)
+        }
+        RailSegment(Symbols.Input, "Inputs", onInputs, focus.inputs, if (onSearch != null) RoundedCornerShape(inner) else first, size, stacked)
         SegmentDivider(stacked)
         RailSegment(Symbols.Notifications, "Alerts", onNotifications, focus.notifications, RoundedCornerShape(inner), size, stacked, notifications)
         SegmentDivider(stacked)
@@ -259,6 +266,7 @@ private fun SegmentDivider(horizontal: Boolean) {
 }
 
 class RailFocus(
+    val search: FocusRequester = FocusRequester(),
     val inputs: FocusRequester = FocusRequester(),
     val notifications: FocusRequester = FocusRequester(),
     val settings: FocusRequester = FocusRequester(),
@@ -321,6 +329,16 @@ internal fun ClockFormat.is24Hour(context: android.content.Context) = when (this
     ClockFormat.H24 -> true
     ClockFormat.H12 -> false
     ClockFormat.System -> DateFormat.is24HourFormat(context)
+}
+
+/**
+ * Voice search: the Assistant, else the system's global search, else
+ * whatever search the TV hands an activity (TVs differ in what they register).
+ */
+internal fun android.content.Context.startSearch() {
+    val tries = listOf(Intent.ACTION_ASSIST, android.app.SearchManager.INTENT_ACTION_GLOBAL_SEARCH)
+    if (tries.any { runCatching { startActivity(Intent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess }) return
+    (this as? android.app.Activity)?.startSearch(null, false, null, true)
 }
 
 internal fun android.content.Context.startSafely(intent: Intent) {

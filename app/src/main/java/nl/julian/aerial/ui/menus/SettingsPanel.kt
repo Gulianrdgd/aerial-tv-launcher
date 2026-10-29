@@ -127,6 +127,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(barShowsMusic = !it.barShowsMusic) } },
         )
         MenuRow(
+            Symbols.Search, "Search button", value = if (config.barShowsSearch) "Shown, opens the Assistant" else "Hidden",
+            onClick = { update { it.copy(barShowsSearch = !it.barShowsSearch) } },
+        )
+        MenuRow(
             Symbols.Tune, "Buttons", value = if (config.compactButtons) "Icons only, stacked" else "Icons with labels",
             onClick = { update { it.copy(compactButtons = !it.compactButtons) } },
         )
