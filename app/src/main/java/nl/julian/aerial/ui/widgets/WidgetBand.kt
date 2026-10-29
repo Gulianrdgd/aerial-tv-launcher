@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui.widgets
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import nl.julian.aerial.data.ClockFace
 import nl.julian.aerial.data.networkFlow
 import nl.julian.aerial.data.lowStorageFlow
 import nl.julian.aerial.data.bluetoothOnFlow
@@ -83,6 +86,7 @@ internal fun tileColor() = LocalSurfaces.current.high.copy(alpha = 0.88f)
 @Composable
 fun WidgetBand(
     clockFormat: ClockFormat,
+    clockFace: ClockFace = ClockFace.Standard,
     media: NowPlaying?,
     clip: Aerial?,
     weather: Weather?,
@@ -119,7 +123,7 @@ fun WidgetBand(
         // clock and weather split the free space equally.
         val compact = playing != null
         val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
-        ClockTile(clockFormat, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)), status)
+        ClockTile(clockFormat, clockFace, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)), status)
         when {
             playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
             showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
@@ -138,7 +142,7 @@ fun WidgetBand(
  * colours), with the date underneath.
  */
 @Composable
-private fun ClockTile(format: ClockFormat, modifier: Modifier, status: StatusIcons = StatusIcons()) {
+private fun ClockTile(format: ClockFormat, face: ClockFace, modifier: Modifier, status: StatusIcons = StatusIcons()) {
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     // Ticks exactly on the minute boundary, not every second.
@@ -160,9 +164,20 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier, status: StatusIco
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
-            DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
+        when (face) {
+            ClockFace.Standard -> Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
+                DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
+            }
+            ClockFace.Thin -> Text(
+                "$hours:$minutes", maxLines = 1, color = cs.onSurface,
+                style = ClockStyle.copy(fontWeight = FontWeight(250), fontSize = 54.sp, lineHeight = 58.sp),
+            )
+            ClockFace.Analog -> AnalogClock(now, 64.dp, cs.onSurface, cs.primary, cs.onSurfaceVariant.copy(alpha = 0.5f))
+            ClockFace.Words -> Text(
+                timeInWords(now), maxLines = 2, color = cs.onSurface, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleLarge,
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(

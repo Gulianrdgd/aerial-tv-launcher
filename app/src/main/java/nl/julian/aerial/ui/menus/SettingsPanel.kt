@@ -160,6 +160,14 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Clock & weather")
         MenuRow(
+            Symbols.Clock, "Clock face", value = config.clockFace.label,
+            onClick = { update { it.copy(clockFace = it.clockFace.next()) } },
+        )
+        MenuRow(
+            Symbols.Screensaver, "Screensaver clock", value = config.ambientClockFace.label,
+            onClick = { update { it.copy(ambientClockFace = it.ambientClockFace.next()) } },
+        )
+        MenuRow(
             Symbols.Clock, "Clock", value = config.clockFormat.label,
             onClick = { update { it.copy(clockFormat = it.clockFormat.next()) } },
         )

@@ -61,6 +61,9 @@ enum class RemoteButtons(val label: String) { Off("Off"), Input("Input button"),
 /** What the screensaver shows over the aerial. */
 enum class AmbientInfo(val label: String) { All("Clock, weather, clip and music"), Clock("Clock only"), None("Nothing") }
 
+/** How the time is drawn: [Standard] is the colour pills in the top bar and plain digits on the screensaver. */
+enum class ClockFace(val label: String) { Standard("Standard"), Thin("Large and thin"), Analog("Analog"), Words("In words") }
+
 enum class ClockFormat(val label: String) { System("Same as the TV"), H24("24-hour"), H12("12-hour") }
 
 enum class TempUnit(val label: String) { Auto("Automatic"), Celsius("Celsius (°C)"), Fahrenheit("Fahrenheit (°F)") }
@@ -131,6 +134,8 @@ data class LauncherConfig(
     /** Top bar: inputs, alerts and settings as a narrow column of icons. */
     val compactButtons: Boolean = false,
     val clockFormat: ClockFormat = ClockFormat.System,
+    val clockFace: ClockFace = ClockFace.Standard,
+    val ambientClockFace: ClockFace = ClockFace.Standard,
     val tempUnit: TempUnit = TempUnit.Auto,
     /** City for the weather; empty = derived from the TV's timezone. */
     val weatherCity: String = "",

@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.ui.widgets.timeInWords
+import nl.julian.aerial.ui.widgets.AnalogClock
+import nl.julian.aerial.data.ClockFace
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -82,6 +85,7 @@ fun Ambient(
     /** Show where the camera is (for clips that have captions) instead of the scenery. */
     showPlaces: Boolean = false,
     shiftText: Boolean = false,
+    face: ClockFace = ClockFace.Standard,
 ) {
     val alpha by animateFloatAsState(
         if (visible) 1f else 0f,
@@ -131,7 +135,7 @@ fun Ambient(
                     Spacer(Modifier.height(6.dp))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AmbientClock(clockFormat)
+                    AmbientClock(clockFormat, face)
                     weather?.takeIf { all }?.let {
                         Spacer(Modifier.width(20.dp))
                         Icon(
@@ -161,7 +165,7 @@ private fun placeNow(clip: Aerial): String? {
 }
 
 @Composable
-private fun AmbientClock(format: ClockFormat) {
+private fun AmbientClock(format: ClockFormat, face: ClockFace) {
     val context = LocalContext.current
     val now by produceState(Date()) {
         while (true) {
@@ -170,7 +174,12 @@ private fun AmbientClock(format: ClockFormat) {
         }
     }
     val time = SimpleDateFormat(if (format.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now)
-    Text(time, style = style(26, 500).copy(fontFeatureSettings = "tnum"))
+    when (face) {
+        ClockFace.Standard -> Text(time, style = style(26, 500).copy(fontFeatureSettings = "tnum"))
+        ClockFace.Thin -> Text(time, style = style(64, 200).copy(fontFeatureSettings = "tnum"))
+        ClockFace.Analog -> AnalogClock(now, 56.dp, Color.White, Color.White, Faint)
+        ClockFace.Words -> Text(timeInWords(now), style = style(26, 400))
+    }
 }
 
 /** What's playing: album art with title and artist, on a dark translucent chip. */

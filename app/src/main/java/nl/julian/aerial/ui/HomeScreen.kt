@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.ClockFace
 import nl.julian.aerial.theme.LocalReveal
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.LaunchAnimation
@@ -186,6 +187,7 @@ fun HomeScreen(
                 info = config?.ambientInfo ?: AmbientInfo.All,
                 showPlaces = config?.showPlaces == true,
                 shiftText = config?.shiftText == true,
+                face = config?.ambientClockFace ?: ClockFace.Standard,
             )
         }
         config?.let { NightDim(it, weather?.isDay) }
@@ -364,6 +366,7 @@ private fun HomeContent(
         item(key = "widgets") {
             WidgetBand(
                 clockFormat = config.clockFormat,
+                clockFace = config.clockFace,
                 media = media,
                 clip = clip,
                 weather = weather,
