@@ -9,11 +9,11 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -24,17 +24,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -48,8 +50,8 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.LocalContentColor
 import androidx.tv.material3.MaterialTheme
 import nl.julian.aerial.theme.FluidEasing
-import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.theme.LocalSurfaces
+import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.Text
 import nl.julian.aerial.ui.tr
 
@@ -77,7 +79,7 @@ sealed interface SettingItem {
         val onPick: (Int) -> Unit,
     ) : SettingItem
 
-    /** Opens something: a dialog, a sign-in, the TV's own settings. */
+    /** Opens something: a page of its own, a dialog, a sign-in, the TV's own settings. */
     data class Action(
         @DrawableRes override val icon: Int,
         override val title: String,
@@ -89,14 +91,51 @@ sealed interface SettingItem {
 /** A category in the left pane, and its settings. */
 data class SettingCategory(@DrawableRes val icon: Int, val name: String, val items: List<SettingItem>)
 
+/** Lets a page opened from Settings (Home layout, Remote shortcuts…) draw itself in the right pane. */
+class SettingsHost {
+    var title by mutableStateOf<String?>(null)
+    var back: (() -> Unit)? = null
+}
+
+val LocalSettingsHost = staticCompositionLocalOf<SettingsHost?> { null }
+
+/**
+ * A page of rows with a title. Inside Settings it fills the right pane and
+ * its title joins the path at the top; anywhere else it's a side panel.
+ */
+@Composable
+fun SettingsPage(
+    title: String,
+    onDismiss: () -> Unit,
+    initialFocus: FocusRequester?,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val host = LocalSettingsHost.current ?: return SidePanel(title, onDismiss, initialFocus, content)
+    SideEffect {
+        host.title = title
+        host.back = onDismiss
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp), content = content)
+    LaunchedEffect(title) {
+        withFrameNanos { }
+        initialFocus?.let { runCatching { it.requestFocus() } }
+    }
+}
+
 /**
  * Settings as two panes, like the TV's own settings: categories on the
  * left, the focused category's settings on the right, and the path at the
  * top ("Settings › Looks › Panels"). A choice opens the list of all its
- * options in the right pane. Back always goes one level up.
+ * options in the right pane, and so do pages such as Home layout
+ * ([subpage]). Back always goes one level up.
  */
 @Composable
-fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
+fun SettingsScreen(
+    categories: List<SettingCategory>,
+    onDismiss: () -> Unit,
+    /** A page opened from one of the rows, shown in the right pane; null = the category's rows. */
+    subpage: (@Composable () -> Unit)? = null,
+) {
     var selected by remember { mutableIntStateOf(0) }
     /** The choice whose options are open in the right pane, by index in the selected category. */
     var picking by remember { mutableStateOf<Int?>(null) }
@@ -105,45 +144,50 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
     val category = categories[selected.coerceIn(categories.indices)]
     val rows = remember(selected, category.items.size) { List(category.items.size) { FocusRequester() } }
     val pickerFirst = remember { FocusRequester() }
-    var returnTo by remember { mutableStateOf<Int?>(null) }
+    val host = remember { SettingsHost() }
+    /** The row focused last, so focus goes back to it when its options or page close. */
+    var lastRow by remember { mutableIntStateOf(0) }
+    var restoreRow by remember { mutableIntStateOf(0) }
     /**
-     * True while the right pane swaps its rows for a choice's options (or back):
-     * the focused row disappears for a moment and focus may pass through the
-     * categories, which mustn't switch the category.
+     * The category follows focus only when you move through the categories
+     * yourself. When the right pane swaps its rows, focus can pass through the
+     * left list for a moment; that mustn't switch the category.
      */
-    var swapping by remember { mutableStateOf(false) }
+    var movingInLeft by remember { mutableStateOf(false) }
 
     fun toLeft() = runCatching { left[selected].requestFocus() }
-    fun closePicker() {
-        swapping = true
-        returnTo = picking
-        picking = null
+    fun up() {
+        when {
+            subpage != null -> host.back?.invoke()
+            picking != null -> picking = null
+            else -> toLeft()
+        }
     }
 
-    Overlay(onDismiss = {
-        when {
-            picking != null -> closePicker()
-            inRight -> toLeft()
-            else -> onDismiss()
-        }
-    }) {
+    Overlay(onDismiss = { if (inRight || subpage != null || picking != null) up() else onDismiss() }) {
         Column(
             Modifier
                 .fillMaxSize()
                 .padding(horizontal = 40.dp, vertical = 28.dp)
+                // Nearly opaque: the home screen behind shouldn't compete with the settings.
                 .background(LocalSurfaces.current.lowest.copy(alpha = 0.97f), RoundedCornerShape(32.dp))
                 .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(32.dp))
                 .padding(horizontal = 24.dp, vertical = 22.dp),
         ) {
-            Breadcrumb(listOfNotNull("Settings", category.name, picking?.let { category.items.getOrNull(it)?.title }))
+            val third = if (subpage != null) host.title else picking?.let { category.items.getOrNull(it)?.title }
+            Breadcrumb(listOfNotNull("Settings", category.name, third))
             Spacer(Modifier.height(18.dp))
             Row(Modifier.fillMaxSize()) {
-                // Left: categories. Focusing one shows its settings; OK or Right moves into them.
+                // Left: categories. Moving through them shows their settings; OK or Right moves into them.
                 Column(
                     Modifier
                         .width(300.dp)
                         .fillMaxHeight()
                         .verticalScroll(rememberScrollState())
+                        .onPreviewKeyEvent { e ->
+                            if (e.type == KeyEventType.KeyDown && (e.key == Key.DirectionUp || e.key == Key.DirectionDown)) movingInLeft = true
+                            false
+                        }
                         .focusGroup(),
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
@@ -153,7 +197,12 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
                             onClick = { runCatching { rows.firstOrNull()?.requestFocus() } },
                             focusRequester = left[i],
                             modifier = Modifier
-                                .onFocusChanged { if (it.isFocused && !swapping && selected != i) { selected = i; picking = null } }
+                                .onFocusChanged {
+                                    if (it.isFocused && movingInLeft) {
+                                        movingInLeft = false
+                                        if (selected != i) { selected = i; picking = null }
+                                    }
+                                }
                                 .onPreviewKeyEvent { e ->
                                     if (e.key == Key.DirectionRight && e.type == KeyEventType.KeyDown) {
                                         runCatching { rows.firstOrNull()?.requestFocus() }
@@ -165,7 +214,7 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
                     }
                 }
                 Box(Modifier.padding(horizontal = 20.dp).width(1.dp).fillMaxHeight().background(Color.White.copy(alpha = 0.10f)))
-                // Right: the category's settings, or one choice's options. Left or Back returns to the categories.
+                // Right: the category's settings, one choice's options, or a page. Left or Back goes one level up.
                 Column(
                     Modifier
                         .weight(1f)
@@ -174,7 +223,7 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
                         .onFocusChanged { inRight = it.hasFocus }
                         .onPreviewKeyEvent { e ->
                             if (e.key == Key.DirectionLeft && e.type == KeyEventType.KeyDown) {
-                                if (picking != null) closePicker() else toLeft()
+                                up()
                                 true
                             } else false
                         }
@@ -182,35 +231,50 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     val open = picking?.let { category.items.getOrNull(it) as? SettingItem.Choice }
-                    if (open != null) {
-                        open.description?.let { Hint(it) }
-                        open.options.forEachIndexed { o, label ->
-                            MenuRow(
-                                if (o == open.selected) Symbols.RadioOn else Symbols.RadioOff, label,
-                                focusRequester = if (o == open.selected) pickerFirst else null,
-                                onClick = {
-                                    open.onPick(o)
-                                    closePicker()
-                                },
-                            )
+                    when {
+                        subpage != null -> CompositionLocalProvider(LocalSettingsHost provides host) { subpage() }
+                        open != null -> {
+                            open.description?.let { Hint(it) }
+                            open.options.forEachIndexed { o, label ->
+                                MenuRow(
+                                    if (o == open.selected) Symbols.RadioOn else Symbols.RadioOff, label,
+                                    focusRequester = if (o == open.selected) pickerFirst else null,
+                                    onClick = {
+                                        open.onPick(o)
+                                        picking = null
+                                    },
+                                )
+                            }
+                            LaunchedEffect(picking) {
+                                withFrameNanos { }
+                                runCatching { pickerFirst.requestFocus() }
+                            }
                         }
-                        LaunchedEffect(picking) {
-                            withFrameNanos { }
-                            runCatching { pickerFirst.requestFocus() }
-                            swapping = false
-                        }
-                    } else {
-                        category.items.forEachIndexed { i, item -> ItemRow(item, rows[i]) { swapping = true; picking = i } }
-                        LaunchedEffect(returnTo) {
-                            val back = returnTo ?: return@LaunchedEffect
-                            withFrameNanos { }
-                            runCatching { rows[back].requestFocus() }
-                            returnTo = null
-                            swapping = false
+                        else -> {
+                            category.items.forEachIndexed { i, item ->
+                                ItemRow(item, rows[i], onFocused = { lastRow = i }) { picking = i }
+                            }
+                            // Back from a choice or a page: focus the row that opened it.
+                            LaunchedEffect(restoreRow) {
+                                if (restoreRow == 0) return@LaunchedEffect
+                                withFrameNanos { }
+                                runCatching { rows[lastRow.coerceIn(rows.indices)].requestFocus() }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+    // Count each time a choice or page closes, so the row that opened it takes focus again.
+    val anyOpen = subpage != null || picking != null
+    var wasOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(anyOpen) {
+        if (!anyOpen && wasOpen) restoreRow++
+        wasOpen = anyOpen
+        if (subpage == null) {
+            host.title = null
+            host.back = null
         }
     }
     LaunchedEffect(Unit) {
@@ -220,20 +284,21 @@ fun SettingsScreen(categories: List<SettingCategory>, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun ItemRow(item: SettingItem, requester: FocusRequester, onOpenChoice: () -> Unit) {
+private fun ItemRow(item: SettingItem, requester: FocusRequester, onFocused: () -> Unit, onOpenChoice: () -> Unit) {
+    val track = Modifier.onFocusChanged { if (it.isFocused) onFocused() }
     when (item) {
         is SettingItem.Toggle -> MenuRow(
-            item.icon, item.title, value = item.description, focusRequester = requester,
+            item.icon, item.title, value = item.description, focusRequester = requester, modifier = track,
             onClick = item.onToggle,
             trailing = { Switch(item.checked) },
         )
         is SettingItem.Choice -> MenuRow(
-            item.icon, item.title, value = item.description, focusRequester = requester,
+            item.icon, item.title, value = item.description, focusRequester = requester, modifier = track,
             onClick = onOpenChoice,
             trailing = { ValueChevron(item.options.getOrElse(item.selected) { "" }) },
         )
         is SettingItem.Action -> MenuRow(
-            item.icon, item.title, value = item.value, focusRequester = requester,
+            item.icon, item.title, value = item.value, focusRequester = requester, modifier = track,
             onClick = item.onClick,
             trailing = { Icon(painterResource(Symbols.Chevron), null, Modifier.size(22.dp)) },
         )

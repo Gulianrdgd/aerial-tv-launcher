@@ -19,7 +19,7 @@ import nl.julian.aerial.theme.Symbols
 fun LayoutPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherConfig) -> Unit, onDismiss: () -> Unit) {
     val first = remember { FocusRequester() }
     val order = (config.sectionOrder + HomeSection.entries).distinct()
-    SidePanel("Home layout", onDismiss, initialFocus = first) {
+    SettingsPage("Home layout", onDismiss, initialFocus = first) {
         order.forEachIndexed { i, section ->
             val hidden = section != HomeSection.Dock && section in config.hiddenSections
             MenuRow(
@@ -27,6 +27,10 @@ fun LayoutPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherCon
                 value = when {
                     section == HomeSection.Dock -> "Always shown"
                     hidden -> "Hidden · select to show"
+                    // These rows only appear once you've signed in (Settings > Connected services).
+                    section == HomeSection.Jellyfin && config.jellyfin == null ||
+                        section == HomeSection.Plex && config.plex == null ||
+                        section == HomeSection.Home && config.homeAssistant == null -> "Shown once you sign in · select to hide"
                     else -> "Shown · select to hide"
                 },
                 focusRequester = if (i == 0) first else null,

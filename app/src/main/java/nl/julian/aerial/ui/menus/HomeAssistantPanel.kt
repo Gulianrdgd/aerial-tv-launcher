@@ -35,7 +35,7 @@ fun HomeAssistantPanel(
     val cams = all.filter { it.domain == "camera" }.map { it.id }
     fun name(id: String?) = id?.let { i -> all.firstOrNull { it.id == i }?.name ?: i } ?: "None"
 
-    SidePanel("Home Assistant", onDismiss, initialFocus = first) {
+    SettingsPage("Home Assistant", onDismiss, initialFocus = first) {
         MenuRow(
             Symbols.Close, "Sign out", value = ha.server.substringAfter("://"), focusRequester = first,
             onClick = { update { it.copy(homeAssistant = null) }; onDismiss() },

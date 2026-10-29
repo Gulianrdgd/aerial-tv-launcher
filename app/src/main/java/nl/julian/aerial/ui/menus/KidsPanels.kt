@@ -43,7 +43,7 @@ fun TimesUp(message: String, onDismiss: () -> Unit) {
 fun KidsAppsPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherConfig) -> Unit, onDismiss: () -> Unit) {
     val apps = remember { AppRepository.memoryCache.orEmpty().sortedBy { it.label.lowercase() } }
     val first = remember { FocusRequester() }
-    SidePanel("Kids' apps", onDismiss, initialFocus = first) {
+    SettingsPage("Kids' apps", onDismiss, initialFocus = first) {
         apps.forEachIndexed { i, a ->
             val allowed = a.pkg in config.kidsApps
             MenuRow(

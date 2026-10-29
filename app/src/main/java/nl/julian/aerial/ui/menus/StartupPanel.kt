@@ -22,7 +22,7 @@ fun StartupPanel(config: LauncherConfig, update: ((LauncherConfig) -> LauncherCo
         update { it.copy(startup = target) }
         onDismiss()
     }
-    SidePanel("When the TV turns on", onDismiss, initialFocus = first) {
+    SettingsPage("When the TV turns on", onDismiss, initialFocus = first) {
         MenuRow(Symbols.Home, "Home screen", onClick = { set(null) }, focusRequester = first,
             value = if (config.startup == null) "Chosen" else null)
         inputs.forEach { input ->

@@ -379,12 +379,16 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )),
     )
 
-    if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
-    else if (haOpen) HomeAssistantPanel(config, { change -> update(change) }, onDismiss = { haOpen = false })
-    else if (kidsAppsOpen) KidsAppsPanel(config, { change -> update(change) }, onDismiss = { kidsAppsOpen = false })
-    else if (startupOpen) StartupPanel(config, { change -> update(change) }, onDismiss = { startupOpen = false })
-    else if (shortcutsOpen) ShortcutsPanel(config, remoteOn, { change -> update(change) }, onDismiss = { shortcutsOpen = false })
-    else SettingsScreen(categories, onDismiss)
+    // Pages opened from a row draw in the right pane, one level deeper.
+    val subpage: (@Composable () -> Unit)? = when {
+        layout -> { { LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false }) } }
+        haOpen -> { { HomeAssistantPanel(config, { change -> update(change) }, onDismiss = { haOpen = false }) } }
+        kidsAppsOpen -> { { KidsAppsPanel(config, { change -> update(change) }, onDismiss = { kidsAppsOpen = false }) } }
+        startupOpen -> { { StartupPanel(config, { change -> update(change) }, onDismiss = { startupOpen = false }) } }
+        shortcutsOpen -> { { ShortcutsPanel(config, remoteOn, { change -> update(change) }, onDismiss = { shortcutsOpen = false }) } }
+        else -> null
+    }
+    SettingsScreen(categories, onDismiss, subpage)
 
     if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
     if (pinDialog) RenameDialog(

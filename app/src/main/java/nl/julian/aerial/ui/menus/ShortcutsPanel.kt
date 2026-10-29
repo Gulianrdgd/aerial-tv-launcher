@@ -35,7 +35,7 @@ fun ShortcutsPanel(
     val first = remember { FocusRequester() }
     val key = picking
     if (key == null) {
-        SidePanel("Remote shortcuts", onDismiss, initialFocus = first) {
+        SettingsPage("Remote shortcuts", onDismiss, initialFocus = first) {
             if (!serviceOn) {
                 Text(
                     "Turn on Remote buttons first (More options > System), so Aerial can see these keys.",
@@ -58,7 +58,7 @@ fun ShortcutsPanel(
             update { it.copy(shortcuts = if (action == null) it.shortcuts - key else it.shortcuts + (key to action)) }
             picking = null
         }
-        SidePanel(key.label, onDismiss = { picking = null }, initialFocus = firstChoice) {
+        SettingsPage(key.label, onDismiss = { picking = null }, initialFocus = firstChoice) {
             MenuRow(Symbols.Close, "Nothing", onClick = { set(null) }, focusRequester = firstChoice)
             MenuRow(Symbols.Input, "Input switcher", onClick = { set("inputs") })
             MenuRow(Symbols.Screensaver, "Screensaver", onClick = { set("screensaver") })
