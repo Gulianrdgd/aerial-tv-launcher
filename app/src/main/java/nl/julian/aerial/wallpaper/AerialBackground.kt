@@ -1,5 +1,7 @@
 package nl.julian.aerial.wallpaper
 
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
 import android.util.Log
 import android.view.SurfaceView
 import androidx.annotation.OptIn
@@ -74,6 +76,8 @@ fun AerialBackground(
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
     onClip: (Aerial) -> Unit = {},
+    /** With frosted glass: a tiny copy of the picture every few seconds, to draw blurred behind the panels. */
+    onFrame: (ImageBitmap?) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -240,6 +244,19 @@ fun AerialBackground(
         if (lastSeed == null || !seedsSimilar(lastSeed!!, seed)) {
             lastSeed = seed
             onSeed(seed)
+        }
+    }
+
+    val sampleWidth = config.glass.sampleWidth
+    LaunchedEffect(sampleWidth, surfaceView) {
+        onFrame(null)
+        val view = surfaceView ?: return@LaunchedEffect
+        if (sampleWidth == 0) return@LaunchedEffect
+        while (true) {
+            delay(3_000)
+            if (photo == null && reveal.value > 0.5f) {
+                FrameSampler.frame(view, sampleWidth, sampleWidth * 9 / 16)?.let { onFrame(it.asImageBitmap()) }
+            }
         }
     }
 

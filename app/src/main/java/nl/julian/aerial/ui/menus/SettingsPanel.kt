@@ -217,6 +217,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Tune, "Panels", value = config.glass.label,
+            onClick = { update { it.copy(glass = it.glass.next()) } },
+        )
+        MenuRow(
             Symbols.Tune, "Text size", value = "${config.textSize}%",
             onClick = {
                 update {

@@ -1,5 +1,21 @@
 package nl.julian.aerial.theme
 
+import androidx.compose.runtime.State
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -37,11 +53,35 @@ fun panelColor(): Color = LocalSurfaces.current.lowest.copy(alpha = 0.62f)
 /** Hairline around a panel, like the edge of a glass plate. */
 private val PanelRim = Color.White.copy(alpha = 0.10f)
 
-/** Translucent panel: dark fill plus a hairline rim. */
+/**
+ * Frosted glass: holds a tiny frame of the video, stretched across the screen
+ * behind the panels; null = tinted. A State, read only while drawing, so a
+ * new frame redraws the panels without recomposing them.
+ */
+val LocalFrost = staticCompositionLocalOf<State<ImageBitmap?>?> { null }
+
+/** Translucent panel: dark fill plus a hairline rim; over the blurred video when [LocalFrost] has a frame. */
 @Composable
-fun Modifier.panel(shape: Shape): Modifier = this
-    .background(panelColor(), shape)
-    .border(1.dp, PanelRim, shape)
+fun Modifier.panel(shape: Shape): Modifier {
+    val frost = LocalFrost.current ?: return this.background(panelColor(), shape).border(1.dp, PanelRim, shape)
+    val root = LocalView.current.rootView
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    return this
+        .onGloballyPositioned { origin = it.positionInRoot() }
+        .clip(shape)
+        .drawBehind {
+            val frame = frost.value ?: return@drawBehind
+            // Lined up with the screen, so the panel shows the blurred picture right behind it.
+            drawImage(
+                frame,
+                dstOffset = IntOffset(-origin.x.toInt(), -origin.y.toInt()),
+                dstSize = IntSize(root.width, root.height),
+                filterQuality = FilterQuality.Low,
+            )
+        }
+        .background(LocalSurfaces.current.lowest.copy(alpha = 0.38f), shape)
+        .border(1.dp, PanelRim, shape)
+}
 
 /** Thin light line along the inside top edge of a tile, so it reads as a raised surface. */
 fun Modifier.topHighlight(shape: Shape): Modifier =

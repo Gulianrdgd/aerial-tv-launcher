@@ -21,6 +21,18 @@ object FrameSampler {
     private const val H = 63
     private val main = Handler(Looper.getMainLooper())
 
+    /** A [w]×[h] copy of the picture, for frosted glass (stretched, it's already a blur), or null. */
+    suspend fun frame(view: SurfaceView, w: Int, h: Int): Bitmap? {
+        if (!view.holder.surface.isValid) return null
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val ok = suspendCancellableCoroutine { cont ->
+            runCatching {
+                PixelCopy.request(view, bmp, { result -> cont.resume(result == PixelCopy.SUCCESS) }, main)
+            }.onFailure { cont.resume(false) }
+        }
+        return if (ok) bmp else null.also { bmp.recycle() }
+    }
+
     suspend fun seed(view: SurfaceView): Int? {
         if (!view.holder.surface.isValid) return null
         val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)

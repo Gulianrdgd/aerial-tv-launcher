@@ -1,5 +1,11 @@
 package nl.julian.aerial.debug
 
+import nl.julian.aerial.data.ConfigStore
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.Json
+import kotlinx.coroutines.runBlocking
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -18,7 +24,7 @@ import android.os.SystemClock
 /**
  * Debug builds only: test hooks for an emulator. Actions: play, pause, stop
  * (a fake playing track for Now Playing) and input-on / input-off (the fake
- * TV input for the input switcher).
+ * TV input for the input switcher), and set-config (any setting, by key).
  */
 class FakeMediaReceiver : BroadcastReceiver() {
 
@@ -33,6 +39,15 @@ class FakeMediaReceiver : BroadcastReceiver() {
                 else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                 PackageManager.DONT_KILL_APP,
             )
+            // am broadcast ... -a set-config --es key glass --es value Frosted
+            "set-config" -> runBlocking {
+                val store = ConfigStore.get(context)
+                val raw = intent.getStringExtra("value") ?: return@runBlocking
+                val value = raw.toBooleanStrictOrNull()?.let { JsonPrimitive(it) }
+                    ?: raw.toLongOrNull()?.let { JsonPrimitive(it) } ?: JsonPrimitive(raw)
+                val cfg = Json.parseToJsonElement(store.export()).jsonObject
+                store.import(JsonObject(cfg + (intent.getStringExtra("key")!! to value)).toString())
+            }
         }
     }
 

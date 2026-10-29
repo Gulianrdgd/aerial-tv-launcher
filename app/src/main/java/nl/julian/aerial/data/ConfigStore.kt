@@ -39,6 +39,9 @@ enum class NightMode(val label: String) { Off("Off"), Sun("After sunset"), Late(
 /** How All apps is ordered. */
 enum class AppOrder(val label: String) { Manual("Your order"), MostUsed("Most used first") }
 
+/** The panels: tinted (a dark see-through fill) or frosted (the video blurred behind them). */
+enum class Glass(val label: String, val sampleWidth: Int) { Tinted("Tinted", 0), Frosted("Frosted", 64), Heavy("Frosted, more blur", 32) }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -96,6 +99,7 @@ data class LauncherConfig(
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
     val tintedTiles: Boolean = false,
+    val glass: Glass = Glass.Tinted,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,
     val weatherDetails: WeatherDetails = WeatherDetails.Both,
