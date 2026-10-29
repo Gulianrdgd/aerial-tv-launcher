@@ -16,27 +16,28 @@ Aerial is free forever. I use it on my own TV, and I'm not going to pay myself f
 
 ![Aerial Android TV launcher home screen with an aerial video background](docs/screenshots/home.png)
 
-## What's on the home screen
+## Features
 
-At the top, a large, bold clock sits straight on the aerial, with the date and the weather's two-hour rain forecast under it, and the buttons for inputs, notifications and settings float in a small pill on the right. The original top bar, a panel of tiles, is still there as Classic in Settings › Top bar. In Settings you can hide the weather, add the name of the aerial that's playing or a Now Playing card with album art and play controls, and shrink the three buttons to a narrow column of icons.
+- **Home screen:** a bold clock on the aerial with the date and a two-hour rain forecast, a six-app dock with each app's own banner, a Continue Watching row from your streaming apps, quick settings, and the rest of your apps. Hold OK on an app to move, pin, hide or uninstall it.
+- **Screensaver:** after two minutes without input the panels fade and the aerial plays full screen, much like Chromecast's ambient mode, with its name, the time, the weather and whatever is playing. It can also be the TV's own Android screensaver, so it shows over any app.
+- **Aerials your way:** pick cities, nature, underwater or space, play day clips by day and night clips after sunset, like or skip clips by holding OK, and play 4K HDR on TVs that support it.
+- **Your own backgrounds:** photos and videos from a USB stick or SD card, or the address of a video, a live stream or a web folder.
+- **Now Playing and notifications:** a card with album art and play controls, and a notifications panel.
+- **Media rows:** Jellyfin (Continue watching, Next up) and Plex (On Deck) rows, after you sign in.
+- **Inputs:** switch HDMI ports by the names you gave them, and pin an input such as "HDMI 2 · PlayStation" to the dock.
+- **Everyday extras:** weather forecast by the hour or day, night mode that dims the panels, a sleep timer, picture off with sound still playing, status icons for network and storage, and an optional app or input that opens when the TV turns on.
+- **Kids mode:** apps open only during the hours you allow.
+- **Burn-in protection:** the screensaver's clock and title drift slightly every few minutes.
 
-Below the bar there's a gap where you just see the aerial. Then come your six dock apps with their own banners, a Continue Watching row filled by your streaming apps, the rest of your apps, and a row of quick settings.
-
-Hold OK on an app to open, move, pin, hide or uninstall it, or to open its app info. Pressing Home while you're already home jumps back to the top.
-
-After two minutes without input the panels fade out and the aerial plays full screen, much like Chromecast's ambient mode: the clip's name and scenery, the time and the weather sit in the bottom left, and whatever is playing shows in the top right. Any button brings the home screen back.
+Everything added since 0.2 is off until you turn it on. [ROADMAP.md](ROADMAP.md) lists what's there and what's planned.
 
 ![Aerial screensaver with clip name, time and weather](docs/screenshots/screensaver.png)
-
-## Inputs
-
-The inputs button in the top bar lists the TV's HDMI ports first, in port order, then the other inputs. Each one shows the name you gave it on the TV, with an icon for the kind of device that's plugged in.
 
 ![Input switcher listing HDMI ports](docs/screenshots/inputs.png)
 
 ## Aerials
 
-There are 265 clips at 1080p, from Apple's TV screensaver, from Fire TV and from community collections. Each one is tagged as city, nature, underwater or space, so you can pick the scenery in Settings or in the quick settings row.
+There are 265 clips, at 1080p or 4K on the Apple ones, from Apple's TV screensaver, from Fire TV and from community collections. Each one is tagged as city, nature, underwater or space, so you can pick the scenery in Settings or in the quick settings row.
 
 Clips stream when they're shown and nothing is downloaded ahead. The last one or two clips stay in a 300 MB cache, so the screen comes up straight away after a restart and still has something to play when you're offline.
 
@@ -48,7 +49,7 @@ Settings open from the gear in the top bar. The categories are on the left and t
 
 ![Aerial's setup on first start, at the Aerials step](docs/screenshots/setup.png)
 
-On first start a short setup asks about the Home button, the aerials, the clock and weather, and access. You can run it again from Settings › System. Everything Aerial added since 0.2 is off until you turn it on; [ROADMAP.md](ROADMAP.md) lists what's there and what's planned.
+On first start a short setup asks about the Home button, the aerials, the clock and weather, and access. You can run it again from Settings › System.
 
 Weather comes from Open-Meteo, which needs no account. Aerial guesses your city from the TV's timezone, and you can type a different one.
 
