@@ -38,7 +38,6 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -92,13 +91,14 @@ fun AerialBackground(
     val skipped = config.skipped
     val favourites = if (config.favouriteMode == FavouriteMode.Normal) emptySet() else config.favourites
     val onlyFavourites = config.favouriteMode == FavouriteMode.Only
-    val queue = remember(kind, time, skipped, favourites, onlyFavourites, local) {
+    val queue = remember(kind, time, skipped, favourites, onlyFavourites, local, config.links) {
         val all = Aerials.load(context).filter { it.uri !in skipped }
         val picked = all.filter { kind == null || it.kind == kind }
         val timed = picked.filter { time == null || it.time.isEmpty() || it.time == time }
         // A scenery with no clips falls back to everything.
         val aerials = timed.ifEmpty { picked }.ifEmpty { all }
-        val mine = local.filter { it.uri !in skipped }
+        // Links (videos, streams, photos on the web) count as your own media too.
+        val mine = (local + config.links.map(LocalMedia::link)).filter { it.uri !in skipped }
         val pool = when (own) {
             OwnMedia.Off -> aerials
             OwnMedia.Mix -> aerials + mine
@@ -214,7 +214,7 @@ fun AerialBackground(
         photo = null
         val item = MediaItem.fromUri(clip.stream(stream))
         // Your own videos play straight from storage, so they don't push the aerials out of the cache.
-        if (clip.local) p.setMediaSource(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)).createMediaSource(item))
+        if (clip.local) p.setMediaSource(DefaultMediaSourceFactory(DefaultDataSource.Factory(context)).createMediaSource(item))
         else p.setMediaItem(item)
         p.prepare()
         delay(STALL_MS)

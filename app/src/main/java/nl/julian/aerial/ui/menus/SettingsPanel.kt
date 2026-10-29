@@ -73,6 +73,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var layout by remember { mutableStateOf(false) }
     var shortcutsOpen by remember { mutableStateOf(false) }
     var startupOpen by remember { mutableStateOf(false) }
+    var linkDialog by remember { mutableStateOf(false) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
@@ -252,6 +253,12 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     // Back on this page returns to the main page instead of closing Settings.
     } else SidePanel("More options", onDismiss = { more = false }, initialFocus = firstMore) {
         Section("Aerials")
+        MenuRow(
+            Symbols.Disc, "Video and photo links",
+            value = (if (config.links.isEmpty()) "None" else "${config.links.size} links") +
+                " · select to add a video, live stream or photo address",
+            onClick = { linkDialog = true },
+        )
         MenuRow(
             Symbols.Location, "Where is this?", focusRequester = firstMore,
             value = if (config.showPlaces) "Screensaver names the place on screen" else "Off · shows the scenery",
@@ -492,6 +499,23 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
 
     if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
+    if (linkDialog) RenameDialog(
+        title = "Add a link", current = "https://", resetLabel = if (config.links.isEmpty()) null else "Remove all links",
+        onSave = { url ->
+            linkDialog = false
+            update {
+                when {
+                    url.isEmpty() -> it.copy(links = emptyList())
+                    url.startsWith("http") && url.length > 10 -> it.copy(
+                        links = (it.links + url).distinct(),
+                        ownMedia = if (it.ownMedia == OwnMedia.Off) OwnMedia.Mix else it.ownMedia,
+                    )
+                    else -> it
+                }
+            }
+        },
+        onDismiss = { linkDialog = false },
+    )
     if (cityDialog) {
         CityDialog(
             current = config.weatherCity,

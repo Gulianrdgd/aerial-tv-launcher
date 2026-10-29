@@ -16,7 +16,8 @@ Two rules hold for all of it:
 - [x] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
 - [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.
 - [ ] **Plex and Jellyfin row.** Show recent and unwatched items from your own media server. Choices: server, libraries, row position.
-- [ ] **Background add-ons.** Other sources for the background, such as Unsplash, a folder of photos or a webcam stream. Choices: source, how often it changes.
+- [x] **Background links.** Add the address of a video, a live stream (HLS, such as a webcam) or a photo, played with your own photos and videos.
+- [ ] **Unsplash backgrounds.** Photos from Unsplash (needs an API key).
 - [x] **Tile size.** Normal (6 per row), medium (5) or large (4).
 - [x] **Hidden from recent apps.** Keep Aerial out of the recent apps screen. Choices: on or off.
 

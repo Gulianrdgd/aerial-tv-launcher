@@ -45,5 +45,12 @@ object LocalMedia {
         }
     }.getOrNull().orEmpty()
 
+    /** A web link as a clip: a photo when it ends like an image, otherwise a video or live stream. */
+    fun link(url: String): Aerial {
+        val path = Uri.parse(url).path.orEmpty().lowercase()
+        val photo = listOf(".jpg", ".jpeg", ".png", ".webp").any { path.endsWith(it) }
+        return Aerial(Uri.parse(url).host ?: url, url, photo = photo, local = true)
+    }
+
     private const val MAX_PER_KIND = 1000
 }

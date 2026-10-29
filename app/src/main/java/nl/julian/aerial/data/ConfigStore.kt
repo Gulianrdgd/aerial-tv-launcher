@@ -132,6 +132,8 @@ data class LauncherConfig(
     val ownMedia: OwnMedia = OwnMedia.Off,
     /** How long each of your own photos stays on screen. */
     val photoSeconds: Int = 15,
+    /** Web links to videos, live streams or photos, played with your own media. */
+    val links: List<String> = emptyList(),
     val nightMode: NightMode = NightMode.Off,
     val appOrder: AppOrder = AppOrder.Manual,
     /** Section order; sections missing here (added in a later version) follow in their default order. */
