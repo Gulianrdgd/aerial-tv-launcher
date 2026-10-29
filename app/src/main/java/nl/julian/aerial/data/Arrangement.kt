@@ -28,7 +28,11 @@ fun arrange(apps: List<AppEntry>, config: LauncherConfig): HomeApps {
     }
     val rank = config.order.withIndex().associate { (i, pkg) -> pkg to i }
     // Manually ordered apps first, in their order; the rest stay alphabetical (scan order).
-    val grid = visible.filter { it !in dock }.sortedBy { rank[it.pkg] ?: Int.MAX_VALUE }
+    val manual = compareBy<AppEntry> { rank[it.pkg] ?: Int.MAX_VALUE }
+    val grid = visible.filter { it !in dock }.sortedWith(
+        if (config.appOrder == AppOrder.MostUsed) compareByDescending<AppEntry> { config.launches[it.pkg] ?: 0 }.then(manual)
+        else manual
+    )
     return HomeApps(dock, grid)
 }
 

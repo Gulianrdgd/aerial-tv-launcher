@@ -228,10 +228,16 @@ private fun HomeContent(
     }
     val home = remember(withInputs, config) { arrange(withInputs, config) }
     val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
+    fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
     val launch: (AppEntry) -> Unit = { app ->
         AppRepository.launchIntent(context, app.pkg)?.let { context.startSafely(it) }
+        update {
+            it.copy(
+                launches = it.launches + (app.pkg to (it.launches[app.pkg] ?: 0) + 1),
+                recent = (listOf(app.pkg) + it.recent - app.pkg).take(COLUMNS * 2),
+            )
+        }
     }
-    fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     /** Moves [pkg] within its list; computed from the latest stored config so fast presses don't race. */
     fun move(pkg: String, delta: Int) = update { cfg ->
@@ -350,6 +356,23 @@ private fun HomeContent(
         }
         item(key = "watch-next") {
             WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
+        }
+        val recent = if (config.recentRow) {
+            val byPkg = withInputs.associateBy { it.pkg }
+            config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }
+                .mapNotNull { byPkg[it] }.take(COLUMNS)
+        } else emptyList()
+        if (recent.isNotEmpty()) {
+            item(key = "recent") {
+                SectionPanel(Modifier.reveal(3, revealTick), title = "Recent") {
+                    TileRow(recent) { app, m ->
+                        AppTile(
+                            app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
+                            onLongPress = { menuFor = app }, moving = false, modifier = m,
+                        )
+                    }
+                }
+            }
         }
         if (gridRows.isNotEmpty()) {
             item(key = "apps") {

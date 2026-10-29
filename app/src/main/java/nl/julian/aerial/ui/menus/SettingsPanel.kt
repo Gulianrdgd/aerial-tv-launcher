@@ -194,6 +194,14 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Tune, "Order of All apps", value = config.appOrder.label,
+            onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
+        )
+        MenuRow(
+            Symbols.Clock, "Recent row", value = if (config.recentRow) "Shown above All apps" else "Hidden",
+            onClick = { update { it.copy(recentRow = !it.recentRow) } },
+        )
+        MenuRow(
             Symbols.Tune, "Tile style",
             value = if (config.tintedTiles) "Tinted to the aerial" else "App banners",
             onClick = { update { it.copy(tintedTiles = !it.tintedTiles) } },

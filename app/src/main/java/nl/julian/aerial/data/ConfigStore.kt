@@ -35,6 +35,9 @@ enum class WeatherDetails(val label: String) { Both("Next hours and days"), Hour
 /** When the screen dims for the evening. */
 enum class NightMode(val label: String) { Off("Off"), Sun("After sunset"), Late("22:00 to 07:00") }
 
+/** How All apps is ordered. */
+enum class AppOrder(val label: String) { Manual("Your order"), MostUsed("Most used first") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -72,6 +75,12 @@ data class LauncherConfig(
     /** How long each of your own photos stays on screen. */
     val photoSeconds: Int = 15,
     val nightMode: NightMode = NightMode.Off,
+    val appOrder: AppOrder = AppOrder.Manual,
+    /** A row with the last apps opened, above All apps. */
+    val recentRow: Boolean = false,
+    /** Times each app was opened from Aerial, and the last few opened (newest first). */
+    val launches: Map<String, Int> = emptyMap(),
+    val recent: List<String> = emptyList(),
     /** How much night mode darkens the screen, in percent. */
     val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
