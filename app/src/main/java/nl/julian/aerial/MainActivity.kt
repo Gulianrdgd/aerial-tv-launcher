@@ -1,5 +1,6 @@
 package nl.julian.aerial
 
+import nl.julian.aerial.ui.FocusMove
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
@@ -75,6 +76,12 @@ class MainActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
+        if (event.action == KeyEvent.ACTION_DOWN) when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> { FocusMove.dx = -1f; FocusMove.dy = 0f }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> { FocusMove.dx = 1f; FocusMove.dy = 0f }
+            KeyEvent.KEYCODE_DPAD_UP -> { FocusMove.dx = 0f; FocusMove.dy = -1f }
+            KeyEvent.KEYCODE_DPAD_DOWN -> { FocusMove.dx = 0f; FocusMove.dy = 1f }
+        }
         if (pictureOff.value) {
             // Any key brings the picture back, and does nothing else.
             if (event.action == KeyEvent.ACTION_DOWN) {

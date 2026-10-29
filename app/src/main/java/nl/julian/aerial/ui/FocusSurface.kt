@@ -56,13 +56,15 @@ fun FocusSurface(
     focusedScale: Float = 1.06f,
     onLongClick: (() -> Unit)? = null,
     highlighted: Boolean = false,
+    /** Colour of the focus ring (Ring style); null = the usual light ring. */
+    ring: Color? = null,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val invert = style == FocusStyle.Invert && !highlighted
-    val ringColor = if (highlighted) cs.primary else cs.onSurface
+    val ringColor = if (highlighted) cs.primary else ring ?: cs.onSurface
 
     Surface(
         onClick = onClick,

@@ -45,6 +45,12 @@ enum class Glass(val label: String, val sampleWidth: Int) { Tinted("Tinted", 0),
 /** Opening an app: the tile grows to fill the screen first, taking [ms]. */
 enum class LaunchAnimation(val label: String, val ms: Int) { Off("Off", 0), Fast("Fast", 220), Slow("Slow", 420) }
 
+/** A focused tile tilts toward the direction focus moved by [degrees], then settles. */
+enum class TileDepth(val label: String, val degrees: Float) { Off("Off", 0f), Subtle("Subtle", 5f), Strong("Strong", 10f) }
+
+/** The ring around a focused app banner. */
+enum class FocusColor(val label: String) { White("White"), App("The app's colour"), Aerial("The aerial's colour") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -104,6 +110,8 @@ data class LauncherConfig(
     val tintedTiles: Boolean = false,
     val glass: Glass = Glass.Tinted,
     val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
+    val tileDepth: TileDepth = TileDepth.Off,
+    val focusColor: FocusColor = FocusColor.White,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,
     val weatherDetails: WeatherDetails = WeatherDetails.Both,

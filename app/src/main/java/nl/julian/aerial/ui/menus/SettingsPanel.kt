@@ -217,6 +217,14 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Tune, "Tile depth", value = config.tileDepth.label,
+            onClick = { update { it.copy(tileDepth = it.tileDepth.next()) } },
+        )
+        MenuRow(
+            Symbols.Tune, "Focus ring", value = config.focusColor.label,
+            onClick = { update { it.copy(focusColor = it.focusColor.next()) } },
+        )
+        MenuRow(
             Symbols.Tune, "Opening animation", value = config.launchAnimation.label,
             onClick = { update { it.copy(launchAnimation = it.launchAnimation.next()) } },
         )

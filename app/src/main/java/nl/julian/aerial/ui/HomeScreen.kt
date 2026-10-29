@@ -332,6 +332,8 @@ private fun HomeContent(
             tinted = config.tintedTiles,
             onLongPress = { menuFor = app },
             moving = isMoving,
+            depth = config.tileDepth.degrees,
+            focusColor = config.focusColor,
             modifier = modifier
                 .onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() }
                 .focusRequester(requester(app.pkg))
@@ -401,6 +403,7 @@ private fun HomeContent(
                         AppTile(
                             app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
                             onLongPress = { menuFor = app }, moving = false,
+                            depth = config.tileDepth.degrees, focusColor = config.focusColor,
                             modifier = m.onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() },
                         )
                     }
