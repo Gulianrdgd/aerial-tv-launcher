@@ -12,7 +12,7 @@ Two rules hold for all of it:
 ## Setup and settings
 
 - [x] **Setup wizard.** On first start: Home app, aerials, clock and weather, home screen, access. Settings > More options > System > Run setup again.
-- [x] **Settings in pages.** More options is a list of categories (Aerials, Looks, Kids mode, Connected services, Remote…), each a short page.
+- [x] **Two-pane settings.** Categories on the left, their settings on the right, the path at the top (Settings › Looks › Panels). Choices open a list of all their options, on/off settings have a switch, Back goes one level up.
 
 ## From users of other launchers
 

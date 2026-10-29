@@ -55,6 +55,9 @@ object Symbols {
     val Grid = R.drawable.ms_grid_view
     val Style = R.drawable.ms_style
     val Arrow = R.drawable.ms_arrow_forward
+    val Chevron = R.drawable.ms_chevron_right
+    val RadioOn = R.drawable.ms_radio_button_checked
+    val RadioOff = R.drawable.ms_radio_button_unchecked
     val Sleep = R.drawable.ms_bedtime_off
     val PictureOff = R.drawable.ms_tv_off
     val Storage = R.drawable.ms_hard_drive

@@ -31,6 +31,8 @@ fun MenuRow(
     value: String? = null,
     focusRequester: FocusRequester? = null,
     onLongClick: (() -> Unit)? = null,
+    /** Shown at the end of the row, e.g. a switch or the current value. */
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val cs = MaterialTheme.colorScheme
     ListItem(
@@ -42,6 +44,7 @@ fun MenuRow(
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
         headlineContent = { Text(title, maxLines = 1) },
         supportingContent = value?.let { { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) } },
+        trailingContent = trailing,
         leadingContent = {
             Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(ListItemDefaults.IconSize))
         },
