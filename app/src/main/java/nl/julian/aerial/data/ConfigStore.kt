@@ -116,6 +116,10 @@ data class LauncherConfig(
     val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
     val tileDepth: TileDepth = TileDepth.Off,
     val reveal: Reveal = Reveal.Rise,
+    /** Light snow over the aerial in December. */
+    val snow: Boolean = false,
+    /** A gold frame around the screen on 31 December and 1 January. */
+    val newYearFrame: Boolean = false,
     val focusColor: FocusColor = FocusColor.White,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,

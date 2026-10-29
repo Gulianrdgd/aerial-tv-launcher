@@ -225,6 +225,14 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Snow, "Snow in December", value = if (config.snow) "On" else "Off",
+            onClick = { update { it.copy(snow = !it.snow) } },
+        )
+        MenuRow(
+            Symbols.Sun, "New Year's frame", value = if (config.newYearFrame) "On, 31 Dec and 1 Jan" else "Off",
+            onClick = { update { it.copy(newYearFrame = !it.newYearFrame) } },
+        )
+        MenuRow(
             Symbols.Tune, "Panels appear", value = config.reveal.label,
             onClick = { update { it.copy(reveal = it.reveal.next()) } },
         )

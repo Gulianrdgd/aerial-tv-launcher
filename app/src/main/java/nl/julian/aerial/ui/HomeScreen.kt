@@ -166,6 +166,7 @@ fun HomeScreen(
             onFrame = { frost.value = it },
         )
         } ?: AmbientBackdrop()
+        config?.let { Seasonal(it) }
         AerialTheme(seed, (config?.textSize ?: 100) / 100f, config?.highContrast == true) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
