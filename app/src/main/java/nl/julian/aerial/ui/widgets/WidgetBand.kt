@@ -435,7 +435,7 @@ internal fun android.content.Context.startSafely(intent: Intent) {
 private val OnAerial = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), blurRadius = 16f)
 
 /**
- * The default top bar: no panel. A large, thin clock sits on the aerial
+ * The default top bar: no panel. A large, bold clock sits on the aerial
  * with the date, weather and (optionally) the clip's name on one line under
  * it; the buttons float in a pill on the right, with Now Playing beside them.
  */
@@ -474,10 +474,8 @@ private fun EditorialBar(
                 else -> Text(
                     SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
                     color = white, maxLines = 1,
-                    style = MaterialTheme.typography.displayLarge.copy(
-                        fontWeight = FontWeight(250), fontSize = 80.sp, lineHeight = 84.sp,
-                        fontFeatureSettings = "tnum", shadow = OnAerial,
-                    ),
+                    // The classic bar's bold, rounded clock digits, at full size.
+                    style = ClockStyle.copy(fontSize = 80.sp, lineHeight = 84.sp, shadow = OnAerial),
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
