@@ -1,0 +1,3 @@
+A new top bar: a large, bold clock straight on the aerial, with the date and weather under it and the buttons in a small pill. The original panel is still there as Classic in Settings › Top bar.
+Smoother text on bright clips, and the buttons share the dock's panel.
+Fixed: the Screensaver remote shortcut ended the screensaver straight away.
