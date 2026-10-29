@@ -161,6 +161,8 @@ data class LauncherConfig(
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** What each remote key does: "inputs", "screensaver" or "app:<package>". */
     val shortcuts: Map<RemoteKey, String> = emptyMap(),
+    /** When the TV turns on: null = the home screen, "app:<package>" or "input:<id>". */
+    val startup: String? = null,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */

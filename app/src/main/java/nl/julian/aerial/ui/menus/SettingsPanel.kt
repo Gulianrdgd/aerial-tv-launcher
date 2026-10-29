@@ -72,6 +72,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var more by remember { mutableStateOf(false) }
     var layout by remember { mutableStateOf(false) }
     var shortcutsOpen by remember { mutableStateOf(false) }
+    var startupOpen by remember { mutableStateOf(false) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
@@ -104,6 +105,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
     // Simple first: everyday settings here, everything else under More options.
     if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
+    else if (startupOpen) StartupPanel(config, { change -> update(change) }, onDismiss = { startupOpen = false })
     else if (shortcutsOpen) ShortcutsPanel(
         config, RemoteButtonsService.isEnabled(context), { change -> update(change) }, onDismiss = { shortcutsOpen = false },
     )
@@ -226,6 +228,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                 onClick = { context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateCheck.PAGE))) },
             )
         }
+        MenuRow(
+            Symbols.Play, "When the TV turns on", value = startupLabel(config.startup, emptyList()),
+            onClick = { startupOpen = true },
+        )
         MenuRow(
             Symbols.Home, "Default home app",
             value = "Switch launchers",

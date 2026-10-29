@@ -1,5 +1,10 @@
 package nl.julian.aerial
 
+import nl.julian.aerial.data.AppRepository
+import kotlinx.coroutines.flow.first
+import android.content.IntentFilter
+import android.content.Context
+import android.content.BroadcastReceiver
 import android.media.AudioManager
 import nl.julian.aerial.ui.FocusMove
 import android.content.Intent
@@ -54,6 +59,10 @@ class MainActivity : ComponentActivity() {
                 onPictureOff = { pictureOff.value = true },
             )
         }
+
+        // Start with an app or input: after a boot, and whenever the screen comes back on.
+        if (savedInstanceState == null && SystemClock.elapsedRealtime() < 3 * 60_000L) runStartup()
+        registerReceiver(screenOn, IntentFilter(Intent.ACTION_SCREEN_ON))
 
         lifecycleScope.launch {
             ConfigStore.get(this@MainActivity).config.collect {
@@ -136,6 +145,23 @@ class MainActivity : ComponentActivity() {
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private val screenOn = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = runStartup()
+    }
+
+    private fun runStartup() {
+        lifecycleScope.launch {
+            val target = ConfigStore.get(this@MainActivity).config.first().startup ?: return@launch
+            val pkg = if (target.startsWith("app:")) target.removePrefix("app:") else target
+            AppRepository.launchIntent(this@MainActivity, pkg)?.let { runCatching { startActivity(it) } }
+        }
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(screenOn) }
+        super.onDestroy()
     }
 
     override fun onNewIntent(intent: Intent) {
