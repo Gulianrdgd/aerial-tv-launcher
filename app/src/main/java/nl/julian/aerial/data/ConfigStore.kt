@@ -117,6 +117,8 @@ data class LauncherConfig(
     val names: Map<String, String> = emptyMap(),
     /** Apps shown with their icon and name instead of their banner. */
     val iconOnly: Set<String> = emptySet(),
+    /** Package of the icon pack to use, or null for the apps' own icons. */
+    val iconPack: String? = null,
     val folders: List<Folder> = emptyList(),
     /** Apps left out of Continue Watching. */
     val watchNextHidden: Set<String> = emptySet(),

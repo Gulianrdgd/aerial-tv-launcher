@@ -74,7 +74,7 @@ Two rules hold for all of it:
 - [x] **Layout editor.** Show, hide and reorder the home screen sections (Settings > Home layout).
 - [x] **Top bar order.** Rearrange the clock, weather, middle tile and buttons (Settings > Home layout); each can still be shown or hidden in the Top bar settings.
 - [x] **App names and banners.** Rename an app, or show its icon and name instead of its banner (hold OK on the app).
-- [ ] **Icon packs.** Use an installed icon pack for app tiles.
+- [x] **Icon packs.** Use an installed icon pack (ADW/Nova format) on tinted and icon tiles.
 - [x] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
 - [x] **Quick settings of your own.** Show, hide and reorder the quick settings tiles (Settings > Home layout).
 - [x] **Remote shortcuts.** Hold Home, or press the red, green, yellow or blue button, to open an app, the input switcher or the screensaver (through the Remote buttons accessibility service).

@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui
 
+import androidx.compose.ui.graphics.asImageBitmap
+import nl.julian.aerial.data.IconPacks
 import nl.julian.aerial.theme.LocalRoundness
 import nl.julian.aerial.data.TopTile
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -270,10 +272,17 @@ private fun HomeContent(
 
     // Inputs pinned to the dock join the apps as tiles of their own.
     // The user's own names, and icon-and-name tiles where they turned the banner off.
-    val named = remember(apps, config.names, config.iconOnly) {
+    val packIcons by produceState(emptyMap<String, ImageBitmap>(), config.iconPack) {
+        value = config.iconPack?.let { pack -> IconPacks.load(context, pack).mapValues { it.value.asImageBitmap() } }.orEmpty()
+    }
+    val named = remember(apps, config.names, config.iconOnly, packIcons) {
         apps.map { a ->
-            if (a.pkg !in config.names && a.pkg !in config.iconOnly) a
-            else a.copy(label = config.names[a.pkg] ?: a.label, banner = if (a.pkg in config.iconOnly) null else a.banner)
+            if (a.pkg !in config.names && a.pkg !in config.iconOnly && a.pkg !in packIcons) a
+            else a.copy(
+                label = config.names[a.pkg] ?: a.label,
+                banner = if (a.pkg in config.iconOnly) null else a.banner,
+                icon = packIcons[a.pkg] ?: a.icon,
+            )
         }
     }
     var renaming by remember { mutableStateOf<AppEntry?>(null) }

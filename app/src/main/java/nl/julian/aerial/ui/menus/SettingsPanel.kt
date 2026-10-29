@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.IconPacks
 import nl.julian.aerial.data.withLook
 import nl.julian.aerial.data.look
 import nl.julian.aerial.data.encode
@@ -345,6 +346,20 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                 },
             )
         }
+        val packs = remember { IconPacks.installed(context) }
+        MenuRow(
+            Symbols.Tune, "Icon pack",
+            value = when {
+                packs.isEmpty() -> "None installed · for tinted and icon tiles"
+                else -> packs.firstOrNull { it.first == config.iconPack }?.second ?: "App icons"
+            },
+            onClick = {
+                if (packs.isNotEmpty()) update {
+                    val choices = listOf<String?>(null) + packs.map { p -> p.first }
+                    it.copy(iconPack = choices[(choices.indexOf(it.iconPack) + 1) % choices.size])
+                }
+            },
+        )
         MenuRow(
             Symbols.Tune, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
             onClick = { update { it.copy(roundness = when (it.roundness) { 100 -> 140; 140 -> 40; else -> 100 }) } },
