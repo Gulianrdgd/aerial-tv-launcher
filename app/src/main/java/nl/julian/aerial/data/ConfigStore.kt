@@ -32,6 +32,9 @@ enum class OwnMedia(val label: String) { Off("Off"), Mix("Mixed with the aerials
 /** What selecting the weather tile shows. [Off] leaves the tile display-only. */
 enum class WeatherDetails(val label: String) { Both("Next hours and days"), Hourly("Next hours"), Daily("Next days"), Off("Off") }
 
+/** When the screen dims for the evening. */
+enum class NightMode(val label: String) { Off("Off"), Sun("After sunset"), Late("22:00 to 07:00") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -68,6 +71,9 @@ data class LauncherConfig(
     val ownMedia: OwnMedia = OwnMedia.Off,
     /** How long each of your own photos stays on screen. */
     val photoSeconds: Int = 15,
+    val nightMode: NightMode = NightMode.Off,
+    /** How much night mode darkens the screen, in percent. */
+    val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
@@ -100,6 +106,16 @@ fun LauncherConfig.aerialTimeTag(isDay: Boolean?): String? = when (aerialTime) {
     AerialTime.Day -> "day"
     AerialTime.Night -> "night"
     AerialTime.Sun -> if (isDay ?: (LocalTime.now().hour in 7..18)) "day" else "night"
+}
+
+/** True while [NightMode] should dim the screen; [isDay] is from the weather, null until it loads. */
+fun LauncherConfig.isNight(isDay: Boolean?): Boolean {
+    val hour = LocalTime.now().hour
+    return when (nightMode) {
+        NightMode.Off -> false
+        NightMode.Sun -> !(isDay ?: (hour in 7..18))
+        NightMode.Late -> hour >= 22 || hour < 7
+    }
 }
 
 private val Context.dataStore by preferencesDataStore("launcher")

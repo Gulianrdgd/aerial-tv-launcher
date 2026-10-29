@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.NightMode
 import nl.julian.aerial.data.OwnMedia
 import nl.julian.aerial.data.RemoteButtons
 import nl.julian.aerial.data.WatchNextRepository
@@ -46,6 +47,7 @@ import nl.julian.aerial.ui.widgets.startSafely
 
 private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
 private val PHOTO_STEPS = listOf(10, 15, 30, 60)
+private val DIM_STEPS = listOf(20, 40, 60)
 
 /** Launcher settings, in the right-hand side panel. */
 @Composable
@@ -211,6 +213,23 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             value = if (nowPlayingAccess) "On" else "Off · select to see how to turn it on",
             onClick = { if (!nowPlayingAccess) accessDialog = true },
         )
+
+        Section("Night mode")
+        MenuRow(
+            Symbols.Moon, "Dim the screen", value = config.nightMode.label,
+            onClick = { update { it.copy(nightMode = it.nightMode.next()) } },
+        )
+        if (config.nightMode != NightMode.Off) {
+            MenuRow(
+                Symbols.Tune, "How much", value = "${config.nightDim}% darker",
+                onClick = {
+                    update {
+                        val i = DIM_STEPS.indexOf(it.nightDim)
+                        it.copy(nightDim = DIM_STEPS[(i + 1) % DIM_STEPS.size])
+                    }
+                },
+            )
+        }
 
         Section("System")
         val remoteOn = remember { RemoteButtonsService.isEnabled(context) }

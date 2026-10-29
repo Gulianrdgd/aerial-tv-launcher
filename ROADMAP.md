@@ -44,7 +44,7 @@ Two rules hold for all of it:
 ## The home screen
 
 - [x] **Weather details.** Select the weather tile to see the forecast for the coming hours and days. Choices: hourly, daily, or both.
-- [ ] **Night mode.** Dim the panels and lower the video brightness in the evening. Choices: start and end times or follow sunset, how much to dim.
+- [x] **Night mode.** Dim the panels and the video in the evening. Choices: after sunset or 22:00 to 07:00, how much to dim (20, 40 or 60%).
 - [ ] **Recently used.** Order apps by how often they're opened, or add a row with the last few apps. Choices: manual order, most used, or a separate row.
 - [ ] **Sleep timer and screen off.** Quick settings to turn the TV off after 30, 60 or 90 minutes, and to turn the screen off while audio keeps playing. Choices: which timer lengths appear.
 - [ ] **Status icons.** Small icons in the top bar for Wi-Fi strength, Bluetooth devices and low storage. Choices: each icon separately.

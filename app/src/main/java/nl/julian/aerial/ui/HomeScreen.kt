@@ -164,6 +164,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
                 shiftText = config?.shiftText == true,
             )
         }
+        config?.let { NightDim(it, weather?.isDay) }
     }
 }
 

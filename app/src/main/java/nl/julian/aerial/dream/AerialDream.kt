@@ -26,6 +26,7 @@ import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.ui.Ambient
+import nl.julian.aerial.ui.NightDim
 import nl.julian.aerial.wallpaper.Aerial
 import nl.julian.aerial.wallpaper.AerialBackground
 
@@ -97,5 +98,6 @@ private fun DreamScreen() {
         AerialTheme(seed) {
             Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces, shiftText = cfg.shiftText)
         }
+        NightDim(cfg, weather?.isDay)
     }
 }
