@@ -34,7 +34,9 @@ import kotlinx.coroutines.launch
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.RemoteButtons
 import nl.julian.aerial.data.WatchNextRepository
+import nl.julian.aerial.remote.RemoteButtonsService
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
@@ -159,6 +161,21 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
 
         Section("System")
+        val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
+        MenuRow(
+            Symbols.Tune, "Remote buttons",
+            value = when {
+                config.remoteButtons == RemoteButtons.Off -> "Off · for TVs where Input or Home stop working"
+                remoteOn -> "${config.remoteButtons.label} open Aerial"
+                else -> "${config.remoteButtons.label} · turn on Aerial in Accessibility settings"
+            },
+            onClick = {
+                update { it.copy(remoteButtons = it.remoteButtons.next()) }
+                if (!remoteOn && config.remoteButtons == RemoteButtons.Off) {
+                    context.startSafely(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+            },
+        )
         MenuRow(
             Symbols.Home, "Default home app",
             value = "Switch launchers",

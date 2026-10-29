@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Aerial</string>
+    <string name="remote_buttons_description">Sends the remote\'s Input button (and Home, if you choose) to Aerial, for TVs where they stop working once the stock launcher is off. Aerial reads no other keys and nothing on screen.</string>
 </resources>

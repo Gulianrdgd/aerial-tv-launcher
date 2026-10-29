@@ -31,7 +31,7 @@ Two rules hold for all of it:
 ## Setup
 
 - [x] **Easier notification access.** Settings explains why Now Playing and notifications need access, shows the adb command and a QR code to the instructions.
-- [ ] **Keep the remote's buttons working.** An optional accessibility service that handles Home and Input on TVs where they misbehave once the stock launcher is disabled. Choices: which buttons it handles.
+- [x] **Keep the remote's buttons working.** An optional accessibility service that handles Home and Input on TVs where they misbehave once the stock launcher is disabled. Choices: which buttons it handles.
 
 ## The aerials
 

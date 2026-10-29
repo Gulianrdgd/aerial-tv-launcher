@@ -98,7 +98,7 @@ private val SCREEN_MARGIN = 48.dp
 private val DOCK_GAP = 24.dp
 
 @Composable
-fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, onStartScreensaver: () -> Unit) {
+fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int, onStartScreensaver: () -> Unit) {
     val context = LocalContext.current
     var rescanTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -151,7 +151,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, onStartScreensav
                 val a = apps
                 val c = config
                 if (a != null && c != null) {
-                    HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, clip, media, weather, onStartScreensaver)
+                    HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver)
                 }
             }
         }
@@ -178,6 +178,8 @@ private fun HomeContent(
     revealTick: Int,
     /** Bumped when OK is held during the screensaver: open the panel for the clip on screen. */
     clipMenuTick: Int,
+    /** Bumped when the remote's Input button opens the inputs panel. */
+    inputsTick: Int,
     clip: Aerial?,
     media: NowPlaying?,
     weather: Weather?,
@@ -202,6 +204,7 @@ private fun HomeContent(
     val railFocus = remember { RailFocus() }
     /** Where focus goes back to when the open panel closes. */
     var returnFocus by remember { mutableStateOf<FocusRequester?>(null) }
+    LaunchedEffect(inputsTick) { if (inputsTick > 0) { returnFocus = railFocus.inputs; inputsOpen = true } }
     LaunchedEffect(settingsOpen, inputsOpen, notificationsOpen, clipOpen) {
         if (!settingsOpen && !inputsOpen && !notificationsOpen && !clipOpen) {
             returnFocus?.let {

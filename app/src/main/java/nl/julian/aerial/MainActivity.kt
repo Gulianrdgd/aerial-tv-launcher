@@ -30,9 +30,12 @@ class MainActivity : ComponentActivity() {
     /** OK went down during the screensaver: a short press wakes, a long one opens the clip panel. */
     private var okHeld = false
     private val clipMenuTick = mutableIntStateOf(0)
+    /** Bumped when the remote's Input button is sent here (see RemoteButtonsService). */
+    private val inputsTick = mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent.getBooleanExtra(EXTRA_OPEN_INPUTS, false)) inputsTick.intValue++
         // The aerial SurfaceView sits behind the window; an opaque window
         // background would cover it.
         window.setBackgroundDrawable(null)
@@ -40,7 +43,7 @@ class MainActivity : ComponentActivity() {
         // screen. Registered first, so panels' own Back handlers take priority.
         onBackPressedDispatcher.addCallback(this) { }
         setContent {
-            HomeScreen(homeTick.intValue, idle.value, clipMenuTick.intValue, onStartScreensaver = { idle.value = true })
+            HomeScreen(homeTick.intValue, idle.value, clipMenuTick.intValue, inputsTick.intValue, onStartScreensaver = { idle.value = true })
         }
 
         lifecycleScope.launch {
@@ -100,9 +103,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_OPEN_INPUTS, false)) {
+            idle.value = false
+            inputsTick.intValue++
+            return
+        }
         if (!intent.hasCategory(Intent.CATEGORY_HOME)) return
         lastInput = SystemClock.uptimeMillis()
         if (idle.value) idle.value = false else homeTick.intValue++
     }
 
+    companion object {
+        const val EXTRA_OPEN_INPUTS = "nl.julian.aerial.OPEN_INPUTS"
+    }
 }

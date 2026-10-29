@@ -26,6 +26,9 @@ enum class AerialTime(val label: String) { Any("Any time"), Sun("Follow the sun"
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
+/** Which remote buttons the accessibility service sends to Aerial. */
+enum class RemoteButtons(val label: String) { Off("Off"), Input("Input button"), InputHome("Input and Home buttons") }
+
 /** What the screensaver shows over the aerial. */
 enum class AmbientInfo(val label: String) { All("Clock, weather, clip and music"), Clock("Clock only"), None("Nothing") }
 
@@ -48,6 +51,7 @@ data class LauncherConfig(
     val favourites: Set<String> = emptySet(),
     val skipped: Set<String> = emptySet(),
     val favouriteMode: FavouriteMode = FavouriteMode.Normal,
+    val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
