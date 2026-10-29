@@ -90,6 +90,8 @@ fun WidgetBand(
     modifier: Modifier = Modifier,
     /** Shows a search button first in the rail. */
     onSearch: (() -> Unit)? = null,
+    /** Makes the weather tile selectable, opening the forecast. */
+    onWeather: (() -> Unit)? = null,
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
 ) {
@@ -116,7 +118,7 @@ fun WidgetBand(
         }
         weather?.takeIf { showWeather }?.let {
             val size = if (middle) Modifier.width(weatherWidth) else Modifier.weight(1f)
-            WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle)
+            WeatherTile(it, INNER, Modifier.fillMaxHeight().then(size), compact, wide = !middle, onClick = onWeather)
         }
         ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
     }

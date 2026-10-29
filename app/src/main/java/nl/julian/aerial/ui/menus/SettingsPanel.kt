@@ -37,6 +37,7 @@ import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.OwnMedia
 import nl.julian.aerial.data.RemoteButtons
 import nl.julian.aerial.data.WatchNextRepository
+import nl.julian.aerial.data.WeatherDetails
 import nl.julian.aerial.remote.RemoteButtonsService
 import nl.julian.aerial.wallpaper.LocalMedia
 import nl.julian.aerial.theme.LocalSurfaces
@@ -167,6 +168,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(
             Symbols.Cloud, "Weather", value = if (config.barShowsWeather) "Shown, with the rain forecast" else "Hidden",
             onClick = { update { it.copy(barShowsWeather = !it.barShowsWeather) } },
+        )
+        MenuRow(
+            Symbols.Calendar, "Forecast", value = config.weatherDetails.label + if (config.weatherDetails != WeatherDetails.Off) " · select the weather tile" else "",
+            onClick = { update { it.copy(weatherDetails = it.weatherDetails.next()) } },
         )
         MenuRow(
             Symbols.Screensaver, "Aerial name", value = if (config.barShowsAerial) "Shown" else "Hidden",

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +33,8 @@ import nl.julian.aerial.data.Weather
 import nl.julian.aerial.theme.EyebrowStyle
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.theme.topHighlight
+import nl.julian.aerial.ui.FocusStyle
+import nl.julian.aerial.ui.FocusSurface
 
 /**
  * Sky glyph; beside it the place, the temperature with the next two hours
@@ -46,7 +49,16 @@ fun WeatherTile(
     compact: Boolean = false,
     /** The tile has the bar's free space: larger icon, temperature and rain bars. */
     wide: Boolean = false,
+    /** Makes the tile focusable; selecting it opens the forecast. */
+    onClick: (() -> Unit)? = null,
 ) {
+    if (onClick != null) {
+        FocusSurface(
+            onClick = onClick, shape = RoundedCornerShape(radius), modifier = modifier,
+            container = Color.Transparent, style = FocusStyle.Ring, focusedScale = 1.03f,
+        ) { WeatherTile(weather, radius, Modifier.fillMaxSize(), compact, wide) }
+        return
+    }
     val cs = MaterialTheme.colorScheme
     Row(
         modifier

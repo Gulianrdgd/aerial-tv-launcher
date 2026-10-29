@@ -20,6 +20,12 @@ import java.util.concurrent.TimeUnit
 enum class Sky { Clear, PartlyCloudy, Cloudy, Fog, Rain, Snow, Storm }
 
 @Immutable
+/** [time] is local, "2026-10-29T14:00". */
+data class HourForecast(val time: String, val temperature: Int, val sky: Sky, val isDay: Boolean)
+
+/** [date] is local, "2026-10-29". */
+data class DayForecast(val date: String, val sky: Sky, val high: Int, val low: Int)
+
 data class Weather(
     val place: String,
     val temperature: Int,
@@ -27,6 +33,10 @@ data class Weather(
     val isDay: Boolean,
     /** Precipitation (mm) per 15 minutes for the next 2 hours, 8 values. */
     val rain: List<Float> = emptyList(),
+    /** The next 12 hours, from this hour. */
+    val hours: List<HourForecast> = emptyList(),
+    /** Today and the next 6 days. */
+    val days: List<DayForecast> = emptyList(),
 ) {
     /** True when any meaningful rain (≥ 0.1 mm per quarter) is expected in the next 2 hours. */
     val rainExpected: Boolean get() = rain.any { it >= RAIN_MM }
@@ -68,7 +78,24 @@ object WeatherRepository {
         val is_day: Int = 1,
     )
     @Serializable private data class Minutely(val precipitation: List<Double?> = emptyList())
-    @Serializable private data class ForecastResponse(val current: Current, val minutely_15: Minutely? = null)
+    @Serializable private data class Hourly(
+        val time: List<String> = emptyList(),
+        val temperature_2m: List<Double?> = emptyList(),
+        val weather_code: List<Int?> = emptyList(),
+        val is_day: List<Int?> = emptyList(),
+    )
+    @Serializable private data class Daily(
+        val time: List<String> = emptyList(),
+        val weather_code: List<Int?> = emptyList(),
+        val temperature_2m_max: List<Double?> = emptyList(),
+        val temperature_2m_min: List<Double?> = emptyList(),
+    )
+    @Serializable private data class ForecastResponse(
+        val current: Current,
+        val minutely_15: Minutely? = null,
+        val hourly: Hourly? = null,
+        val daily: Daily? = null,
+    )
 
     /** Geocoded places by the name that was looked up. */
     private val places = java.util.concurrent.ConcurrentHashMap<String, GeoResult>()
@@ -123,6 +150,11 @@ object WeatherRepository {
             .addQueryParameter("current", "temperature_2m,weather_code,is_day")
             .addQueryParameter("minutely_15", "precipitation")
             .addQueryParameter("forecast_minutely_15", "8")
+            .addQueryParameter("hourly", "temperature_2m,weather_code,is_day")
+            .addQueryParameter("forecast_hours", "12")
+            .addQueryParameter("daily", "weather_code,temperature_2m_max,temperature_2m_min")
+            .addQueryParameter("forecast_days", "7")
+            .addQueryParameter("timezone", "auto")
             .apply { if (fahrenheit) addQueryParameter("temperature_unit", "fahrenheit") }
             .build()
         val forecast = json.decodeFromString<ForecastResponse>(get(url.toString()))
@@ -133,6 +165,19 @@ object WeatherRepository {
             sky = skyFor(current.weather_code),
             isDay = current.is_day == 1,
             rain = forecast.minutely_15?.precipitation.orEmpty().map { (it ?: 0.0).toFloat() },
+            hours = forecast.hourly?.let { h ->
+                h.time.indices.mapNotNull { i ->
+                    val t = h.temperature_2m.getOrNull(i) ?: return@mapNotNull null
+                    HourForecast(h.time[i], Math.round(t).toInt(), skyFor(h.weather_code.getOrNull(i) ?: 0), h.is_day.getOrNull(i) != 0)
+                }
+            }.orEmpty(),
+            days = forecast.daily?.let { d ->
+                d.time.indices.mapNotNull { i ->
+                    val hi = d.temperature_2m_max.getOrNull(i) ?: return@mapNotNull null
+                    val lo = d.temperature_2m_min.getOrNull(i) ?: return@mapNotNull null
+                    DayForecast(d.time[i], skyFor(d.weather_code.getOrNull(i) ?: 0), Math.round(hi).toInt(), Math.round(lo).toInt())
+                }
+            }.orEmpty(),
         )
     }
 

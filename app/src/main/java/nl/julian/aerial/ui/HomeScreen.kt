@@ -65,6 +65,7 @@ import nl.julian.aerial.data.NotificationsRepository
 import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.Weather
+import nl.julian.aerial.data.WeatherDetails
 import nl.julian.aerial.data.Scenery
 import nl.julian.aerial.data.WeatherRepository
 import nl.julian.aerial.data.arrange
@@ -79,6 +80,7 @@ import nl.julian.aerial.ui.menus.AppAction
 import nl.julian.aerial.ui.menus.AppMenu
 import nl.julian.aerial.ui.menus.ClipPanel
 import nl.julian.aerial.ui.menus.InputsPanel
+import nl.julian.aerial.ui.menus.WeatherPanel
 import nl.julian.aerial.ui.menus.dockEntry
 import nl.julian.aerial.ui.menus.dockKey
 import nl.julian.aerial.ui.menus.NotificationsPanel
@@ -197,6 +199,7 @@ private fun HomeContent(
     var inputsOpen by remember { mutableStateOf(false) }
     var notificationsOpen by remember { mutableStateOf(false) }
     var clipOpen by remember { mutableStateOf(false) }
+    var weatherOpen by remember { mutableStateOf(false) }
     LaunchedEffect(clipMenuTick) { if (clipMenuTick > 0 && clip != null) clipOpen = true }
     val railFocus = remember { RailFocus() }
     /** Where focus goes back to when the open panel closes. */
@@ -333,6 +336,7 @@ private fun HomeContent(
                 onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
                 modifier = Modifier.reveal(0, revealTick).then(scrollTopOnFocus),
                 onSearch = if (config.barShowsSearch) { { context.startSearch() } } else null,
+                onWeather = if (config.weatherDetails != WeatherDetails.Off) { { weatherOpen = true } } else null,
                 railFocus = railFocus,
             )
         }
@@ -381,6 +385,7 @@ private fun HomeContent(
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
+    if (weatherOpen) weather?.let { WeatherPanel(it, config.weatherDetails, onDismiss = { weatherOpen = false }) }
     if (clipOpen && clip != null) ClipPanel(
         clip,
         favourite = clip.uri in config.favourites,

@@ -29,6 +29,9 @@ enum class VideoQuality(val label: String) { HD("1080p"), UHD("4K"), Hdr("4K HDR
 /** Photos and videos from a USB stick or SD card, besides or instead of the aerials. */
 enum class OwnMedia(val label: String) { Off("Off"), Mix("Mixed with the aerials"), Only("Instead of the aerials") }
 
+/** What selecting the weather tile shows. [Off] leaves the tile display-only. */
+enum class WeatherDetails(val label: String) { Both("Next hours and days"), Hourly("Next hours"), Daily("Next days"), Off("Off") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -72,6 +75,7 @@ data class LauncherConfig(
     val tintedTiles: Boolean = false,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,
+    val weatherDetails: WeatherDetails = WeatherDetails.Both,
     /** Top bar: show the aerial's name. */
     val barShowsAerial: Boolean = false,
     /** Top bar: show what's playing, with controls, while music plays. */
