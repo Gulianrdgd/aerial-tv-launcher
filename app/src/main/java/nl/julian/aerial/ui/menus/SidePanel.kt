@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,5 +70,9 @@ fun SidePanel(
             }
         }
     }
-    LaunchedEffect(Unit) { initialFocus?.let { runCatching { it.requestFocus() } } }
+    LaunchedEffect(Unit) {
+        // One frame first, so the rows are laid out; on a cold start focus could otherwise land anywhere.
+        withFrameNanos { }
+        initialFocus?.let { runCatching { it.requestFocus() } }
+    }
 }

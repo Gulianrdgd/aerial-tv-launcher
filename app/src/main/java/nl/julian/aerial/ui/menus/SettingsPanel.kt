@@ -142,9 +142,35 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         config, RemoteButtonsService.isEnabled(context), { change -> update(change) }, onDismiss = { shortcutsOpen = false },
     )
     else if (page == null) SidePanel("Settings", onDismiss, initialFocus = first) {
+        Section("System")
+        val newVersion by produceState<String?>(null, config.updateCheck) {
+            value = if (config.updateCheck) UpdateCheck.newer(context) else null
+        }
+        newVersion?.let { version ->
+            MenuRow(
+                Symbols.Info, "Aerial $version is out", value = "Download it from ${UpdateCheck.PAGE.removePrefix("https://")}",
+                focusRequester = first,
+                onClick = { context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateCheck.PAGE))) },
+            )
+        }
+        MenuRow(
+            Symbols.Play, "When the TV turns on", value = startupLabel(config.startup, emptyList()),
+            focusRequester = if (newVersion == null) first else null,
+            onClick = { startupOpen = true },
+        )
+        MenuRow(
+            Symbols.Home, "Default home app",
+            value = "Switch launchers",
+            onClick = { context.startSafely(Intent(Settings.ACTION_HOME_SETTINGS)) },
+        )
+        MenuRow(
+            Symbols.Settings, "Android TV settings",
+            onClick = { context.startSafely(Intent(Settings.ACTION_SETTINGS)) },
+        )
+
         Section("Aerials")
         MenuRow(
-            Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
+            Symbols.Landscape, "Scenery", value = config.scenery.label,
             onClick = { update { it.copy(scenery = it.scenery.next()) } },
         )
         MenuRow(
@@ -254,29 +280,6 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { if (!nowPlayingAccess) accessDialog = true },
         )
 
-        Section("System")
-        val newVersion by produceState<String?>(null, config.updateCheck) {
-            value = if (config.updateCheck) UpdateCheck.newer(context) else null
-        }
-        newVersion?.let { version ->
-            MenuRow(
-                Symbols.Info, "Aerial $version is out", value = "Download it from ${UpdateCheck.PAGE.removePrefix("https://")}",
-                onClick = { context.startSafely(Intent(Intent.ACTION_VIEW, Uri.parse(UpdateCheck.PAGE))) },
-            )
-        }
-        MenuRow(
-            Symbols.Play, "When the TV turns on", value = startupLabel(config.startup, emptyList()),
-            onClick = { startupOpen = true },
-        )
-        MenuRow(
-            Symbols.Home, "Default home app",
-            value = "Switch launchers",
-            onClick = { context.startSafely(Intent(Settings.ACTION_HOME_SETTINGS)) },
-        )
-        MenuRow(
-            Symbols.Settings, "Android TV settings",
-            onClick = { context.startSafely(Intent(Settings.ACTION_SETTINGS)) },
-        )
         MenuRow(
             Symbols.Tune, "More options", value = "Looks, night mode, backup, remote buttons and more",
             onClick = { page = MORE },
