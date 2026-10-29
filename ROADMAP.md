@@ -15,7 +15,8 @@ Two rules hold for all of it:
 - [x] **Explain an empty Continue Watching row.** An empty row says why. Hold OK on a show to leave its app out; Settings brings them back.
 - [x] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
 - [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.
-- [ ] **Plex and Jellyfin row.** Show recent and unwatched items from your own media server. Choices: server, libraries, row position.
+- [x] **Jellyfin row.** Sign in to your Jellyfin server (More options > System) for a row with Continue watching and Next up. A card opens the Jellyfin app.
+- [ ] **Plex row.** The same for Plex, signing in with a code at plex.tv/link.
 - [x] **Background links.** Add the address of a video, a live stream (HLS, such as a webcam) or a photo, played with your own photos and videos.
 - [ ] **Unsplash backgrounds.** Photos from Unsplash (needs an API key).
 - [x] **Tile size.** Normal (6 per row), medium (5) or large (4).

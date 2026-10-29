@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Plain http is allowed for addresses the user types in: a Jellyfin server or
+  a video link on the home network rarely has https. Aerial's own connections
+  (Open-Meteo, Apple, GitHub) all use https.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

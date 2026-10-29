@@ -479,6 +479,11 @@ private fun HomeContent(
                 onHideApp = { pkg -> update { it.copy(watchNextHidden = it.watchNextHidden + pkg) } },
             )
         }
+        HomeSection.Jellyfin -> config.jellyfin?.let { login ->
+            item(key = "jellyfin") {
+                JellyfinRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick))
+            }
+        }
         HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }
             val recent = config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }

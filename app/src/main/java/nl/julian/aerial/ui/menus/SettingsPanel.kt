@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui.menus
 
+import androidx.compose.runtime.mutableIntStateOf
+import nl.julian.aerial.data.JellyfinRepository
 import nl.julian.aerial.data.IconPacks
 import nl.julian.aerial.data.withLook
 import nl.julian.aerial.data.look
@@ -75,6 +77,11 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var shortcutsOpen by remember { mutableStateOf(false) }
     var startupOpen by remember { mutableStateOf(false) }
     var linkDialog by remember { mutableStateOf(false) }
+    /** Jellyfin sign-in, one field at a time: 0 = closed, 1 server, 2 username, 3 password. */
+    var jfStep by remember { mutableIntStateOf(0) }
+    var jfServer by remember { mutableStateOf("") }
+    var jfUser by remember { mutableStateOf("") }
+    var jfNote by remember { mutableStateOf<String?>(null) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
@@ -502,6 +509,15 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
         )
         MenuRow(
+            Symbols.MediaPlayer, "Jellyfin",
+            value = config.jellyfin?.let { "Connected to ${it.server.substringAfter("://")} · select to sign out" }
+                ?: "Not connected · select to sign in and show a Jellyfin row",
+            onClick = {
+                if (config.jellyfin != null) update { it.copy(jellyfin = null) }
+                else { jfNote = null; jfStep = 1 }
+            },
+        )
+        MenuRow(
             Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
             onClick = { shortcutsOpen = true },
         )
@@ -522,6 +538,28 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
 
     if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
+    when (jfStep) {
+        1 -> RenameDialog(
+            "Jellyfin server", current = jfServer.ifEmpty { "http://" }, resetLabel = null, note = jfNote ?: "For example http://192.168.1.10:8096",
+            onSave = { jfServer = it; jfStep = if (it.length > 7) 2 else 0 }, onDismiss = { jfStep = 0 },
+        )
+        2 -> RenameDialog(
+            "Username", current = jfUser, resetLabel = null,
+            onSave = { jfUser = it; jfStep = 3 }, onDismiss = { jfStep = 0 },
+        )
+        3 -> RenameDialog(
+            "Password", current = "", resetLabel = null, password = true,
+            onSave = { pw ->
+                jfStep = 0
+                scope.launch {
+                    JellyfinRepository.login(context, jfServer, jfUser, pw)
+                        .onSuccess { login -> update { it.copy(jellyfin = login) } }
+                        .onFailure { jfNote = "Couldn't sign in: ${it.message}"; jfStep = 1 }
+                }
+            },
+            onDismiss = { jfStep = 0 },
+        )
+    }
     if (linkDialog) RenameDialog(
         title = "Add a link", current = "https://", resetLabel = if (config.links.isEmpty()) null else "Remove all links",
         onSave = { url ->

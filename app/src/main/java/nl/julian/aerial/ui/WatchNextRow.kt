@@ -54,9 +54,9 @@ import nl.julian.aerial.theme.SectionPanel
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
-private const val VISIBLE_CARDS = 4
+internal const val VISIBLE_CARDS = 4
 private const val TITLE = "Continue watching"
-private val GAP = 20.dp
+internal val GAP = 20.dp
 
 /**
  * Monet's big top row: what you were watching, newest first. Without
@@ -129,7 +129,7 @@ fun WatchNextRow(
 }
 
 @Composable
-private fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) {
+internal fun WatchNextCard(item: WatchNextItem, radius: Dp, modifier: Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) {
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,

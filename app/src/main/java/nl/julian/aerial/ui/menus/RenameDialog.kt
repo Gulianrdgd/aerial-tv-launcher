@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui.menus
 
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +39,17 @@ import nl.julian.aerial.theme.LocalSurfaces
 
 /** A name typed with the TV keyboard (apps, folders). [resetLabel] adds a button that saves "". */
 @Composable
-fun RenameDialog(title: String, current: String, resetLabel: String?, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+fun RenameDialog(
+    title: String,
+    current: String,
+    resetLabel: String?,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+    /** Masks what's typed. */
+    password: Boolean = false,
+    /** Shown under the title, e.g. why a sign-in failed. */
+    note: String? = null,
+) {
     val cs = MaterialTheme.colorScheme
     val field = remember { FocusRequester() }
     var text by remember { mutableStateOf(current) }
@@ -52,10 +64,12 @@ fun RenameDialog(title: String, current: String, resetLabel: String?, onSave: (S
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(title, style = MaterialTheme.typography.headlineSmall, color = cs.onSurface)
+                note?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = cs.onSurfaceVariant) }
                 BasicTextField(
                     value = text,
                     onValueChange = { text = it },
                     singleLine = true,
+                    visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
                     textStyle = MaterialTheme.typography.titleLarge.copy(color = cs.onSurface),
                     cursorBrush = SolidColor(cs.primary),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),

@@ -30,6 +30,7 @@
         android:maxSdkVersion="32" />
 
     <application
+        android:networkSecurityConfig="@xml/network_security"
         android:allowBackup="true"
         android:banner="@drawable/app_banner"
         android:icon="@drawable/app_icon"

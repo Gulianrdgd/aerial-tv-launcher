@@ -65,7 +65,9 @@ val THEME_COLORS = listOf(
 )
 
 /** The home screen's sections below the top bar, in the order the user chose. */
-enum class HomeSection(val label: String) { Dock("Dock"), WatchNext("Continue watching"), Recent("Recent"), Apps("All apps"), Quick("Quick settings") }
+enum class HomeSection(val label: String) {
+    Dock("Dock"), WatchNext("Continue watching"), Jellyfin("Jellyfin"), Recent("Recent"), Apps("All apps"), Quick("Quick settings"),
+}
 
 /** The quick settings tiles. */
 enum class QuickTileKind(val label: String) {
@@ -173,6 +175,8 @@ data class LauncherConfig(
     val shortcuts: Map<RemoteKey, String> = emptyMap(),
     /** When the TV turns on: null = the home screen, "app:<package>" or "input:<id>". */
     val startup: String? = null,
+    /** Signed-in Jellyfin server for the Jellyfin row; null = not connected. */
+    val jellyfin: JellyfinLogin? = null,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
@@ -278,8 +282,8 @@ class ConfigStore(context: Context) {
         }
     }
 
-    /** All settings as JSON, for a backup. */
-    suspend fun export(): String = json.encodeToString(LauncherConfig.serializer(), config.first())
+    /** All settings as JSON, for a backup; without the Jellyfin token, as Downloads is readable by other apps. */
+    suspend fun export(): String = json.encodeToString(LauncherConfig.serializer(), config.first().copy(jellyfin = null))
 
     /** Replaces all settings with a backup; false if [text] isn't one. */
     suspend fun import(text: String): Boolean {
