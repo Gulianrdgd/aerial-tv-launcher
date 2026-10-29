@@ -76,7 +76,7 @@ Two rules hold for all of it:
 - [ ] **Icon packs.** Use an installed icon pack for app tiles.
 - [x] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
 - [x] **Quick settings of your own.** Show, hide and reorder the quick settings tiles (Settings > Home layout).
-- [ ] **Remote shortcuts.** Choose what a long press on Home or another button does: open an app, switch inputs, start the screensaver.
+- [x] **Remote shortcuts.** Hold Home, or press the red, green, yellow or blue button, to open an app, the input switcher or the screensaver (through the Remote buttons accessibility service).
 - [ ] **Time-of-day layouts.** Different layouts by time, such as a large weather tile in the morning and Continue Watching first in the evening. Choices: times and the layout for each.
 - [ ] **Share a theme.** Export the look as a file or QR code and import someone else's.
 

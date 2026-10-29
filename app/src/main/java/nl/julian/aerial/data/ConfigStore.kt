@@ -73,6 +73,15 @@ enum class QuickTileKind(val label: String) {
     Screensaver("Screensaver"), Sleep("Sleep timer"), PictureOff("Picture off"),
 }
 
+/** Remote buttons a shortcut can be put on (through the Remote buttons accessibility service). */
+enum class RemoteKey(val label: String, val keyCode: Int) {
+    HoldHome("Hold Home", android.view.KeyEvent.KEYCODE_HOME),
+    Red("Red button", android.view.KeyEvent.KEYCODE_PROG_RED),
+    Green("Green button", android.view.KeyEvent.KEYCODE_PROG_GREEN),
+    Yellow("Yellow button", android.view.KeyEvent.KEYCODE_PROG_YELLOW),
+    Blue("Blue button", android.view.KeyEvent.KEYCODE_PROG_BLUE),
+}
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -143,6 +152,8 @@ data class LauncherConfig(
     /** How much night mode darkens the screen, in percent. */
     val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
+    /** What each remote key does: "inputs", "screensaver" or "app:<package>". */
+    val shortcuts: Map<RemoteKey, String> = emptyMap(),
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */

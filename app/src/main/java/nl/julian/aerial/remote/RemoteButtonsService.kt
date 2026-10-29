@@ -1,5 +1,7 @@
 package nl.julian.aerial.remote
 
+import nl.julian.aerial.data.RemoteKey
+import nl.julian.aerial.data.AppRepository
 import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
@@ -30,13 +32,18 @@ class RemoteButtonsService : AccessibilityService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     @Volatile
     private var mode = RemoteButtons.Off
+    @Volatile
+    private var shortcuts: Map<RemoteKey, String> = emptyMap()
 
     private var sleepJob: Job? = null
 
     override fun onServiceConnected() {
         val store = ConfigStore.get(this)
         scope.launch {
-            store.config.map { it.remoteButtons }.distinctUntilChanged().collect { mode = it }
+            store.config.collect {
+                mode = it.remoteButtons
+                shortcuts = it.shortcuts
+            }
         }
         // The sleep timer lives here: only an accessibility service may put the TV to sleep.
         scope.launch {
@@ -53,6 +60,21 @@ class RemoteButtonsService : AccessibilityService() {
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
+        // A colour button with a shortcut on it.
+        RemoteKey.entries.firstOrNull { it != RemoteKey.HoldHome && it.keyCode == event.keyCode }?.let { key ->
+            val action = shortcuts[key] ?: return@let
+            if (event.action == KeyEvent.ACTION_UP) perform(action)
+            return true
+        }
+        // Hold Home: a short press still goes home, a hold runs the shortcut.
+        val holdHome = shortcuts[RemoteKey.HoldHome]
+        if (event.keyCode == KeyEvent.KEYCODE_HOME && holdHome != null) {
+            if (event.action == KeyEvent.ACTION_UP) {
+                if (event.eventTime - event.downTime >= HOLD_MS) perform(holdHome)
+                else start(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
+            }
+            return true
+        }
         val intent = when {
             event.keyCode == KeyEvent.KEYCODE_TV_INPUT && mode != RemoteButtons.Off ->
                 Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_INPUTS, true)
@@ -66,6 +88,18 @@ class RemoteButtonsService : AccessibilityService() {
         return true
     }
 
+    private fun perform(action: String) {
+        when {
+            action == "inputs" -> start(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_INPUTS, true))
+            action == "screensaver" -> start(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_SCREENSAVER, true))
+            action.startsWith("app:") -> AppRepository.launchIntent(this, action.removePrefix("app:"))?.let(::start)
+        }
+    }
+
+    private fun start(intent: Intent) {
+        runCatching { startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
     override fun onInterrupt() = Unit
 
@@ -75,6 +109,8 @@ class RemoteButtonsService : AccessibilityService() {
     }
 
     companion object {
+        private const val HOLD_MS = 600L
+
         fun isEnabled(context: Context): Boolean {
             val me = ComponentName(context, RemoteButtonsService::class.java)
             val on = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)

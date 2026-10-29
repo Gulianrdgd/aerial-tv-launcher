@@ -67,6 +67,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     val firstMore = remember { FocusRequester() }
     var more by remember { mutableStateOf(false) }
     var layout by remember { mutableStateOf(false) }
+    var shortcutsOpen by remember { mutableStateOf(false) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
@@ -90,6 +91,9 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
     // Simple first: everyday settings here, everything else under More options.
     if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
+    else if (shortcutsOpen) ShortcutsPanel(
+        config, RemoteButtonsService.isEnabled(context), { change -> update(change) }, onDismiss = { shortcutsOpen = false },
+    )
     else if (!more) SidePanel("Settings", onDismiss, initialFocus = first) {
         Section("Aerials")
         MenuRow(
@@ -408,6 +412,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             },
         )
         val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
+        MenuRow(
+            Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
+            onClick = { shortcutsOpen = true },
+        )
         MenuRow(
             Symbols.Tune, "Remote buttons",
             value = when {

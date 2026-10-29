@@ -147,6 +147,10 @@ class MainActivity : ComponentActivity() {
             inputsTick.intValue++
             return
         }
+        if (intent.getBooleanExtra(EXTRA_SCREENSAVER, false)) {
+            idle.value = true
+            return
+        }
         if (!intent.hasCategory(Intent.CATEGORY_HOME)) return
         lastInput = SystemClock.uptimeMillis()
         if (idle.value) idle.value = false else homeTick.intValue++
@@ -154,5 +158,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_OPEN_INPUTS = "nl.julian.aerial.OPEN_INPUTS"
+        const val EXTRA_SCREENSAVER = "nl.julian.aerial.SCREENSAVER"
     }
 }
