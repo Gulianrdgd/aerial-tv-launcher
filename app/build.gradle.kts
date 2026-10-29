@@ -13,8 +13,8 @@ android {
         applicationId = "nl.julian.aerial"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.0"
+        versionCode = 4
+        versionName = "0.3.0"
     }
 
     // CI releases (see .github/workflows/build.yml): the keystore comes from a secret.
