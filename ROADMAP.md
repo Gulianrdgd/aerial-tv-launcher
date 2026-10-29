@@ -11,7 +11,7 @@ Two rules hold for all of it:
 
 ## From users of other launchers
 
-- [ ] **Notice when Aerial isn't Home any more.** Firmware updates and reboots often hand Home back to the stock launcher. Aerial detects it and shows how to fix it, with the adb command for TVs that need it.
+- [x] **Notice when Aerial isn't Home any more.** Firmware updates and reboots often hand Home back to the stock launcher. Aerial detects it and shows how to fix it, with the adb command for TVs that need it.
 - [ ] **Explain an empty Continue Watching row.** Say that apps have to support the row, and list which installed apps do. Choices: which apps may appear in the row.
 - [ ] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
 - [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.

@@ -149,6 +149,8 @@ data class LauncherConfig(
     val sleepAt: Long = 0,
     /** Settings asks GitHub for a newer release (sideloaded builds only). */
     val updateCheck: Boolean = true,
+    /** Warn on the home screen when Aerial is no longer the default Home app. */
+    val homeWarning: Boolean = true,
     /** Font size multiplier, in percent. */
     val textSize: Int = 100,
     val highContrast: Boolean = false,

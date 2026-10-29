@@ -447,6 +447,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
         val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
         MenuRow(
+            Symbols.Home, "Warn when Aerial isn't Home", value = if (config.homeWarning) "On" else "Off",
+            onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
+        )
+        MenuRow(
             Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
             onClick = { shortcutsOpen = true },
         )

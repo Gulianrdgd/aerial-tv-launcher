@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import java.time.LocalTime
 import nl.julian.aerial.data.QuickTileKind
 import nl.julian.aerial.ui.menus.entry
@@ -274,6 +275,12 @@ private fun HomeContent(
         }
     }
     var renaming by remember { mutableStateOf<AppEntry?>(null) }
+    // Checked each time the home screen comes back, e.g. after a system update.
+    var isHome by remember { mutableStateOf(true) }
+    LifecycleResumeEffect(Unit) {
+        isHome = isDefaultHome(context)
+        onPauseOrDispose { }
+    }
     // For morning and evening layouts; checked every few minutes.
     val hour by produceState(LocalTime.now().hour) {
         while (true) {
@@ -443,6 +450,9 @@ private fun HomeContent(
         }
         // Every section sits on the same translucent panel as the top bar.
         // Open space above the dock keeps the aerial the main thing on screen.
+        if (config.homeWarning && !isHome) item(key = "not-home") {
+            HomeNotice(onHide = { update { it.copy(homeWarning = false) } }, modifier = Modifier.padding(top = DOCK_GAP))
+        }
         config.sectionsAt(hour).forEachIndexed { index, section -> when (section) {
         HomeSection.Dock -> item(key = "dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
