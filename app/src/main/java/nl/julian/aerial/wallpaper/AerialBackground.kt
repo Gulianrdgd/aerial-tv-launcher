@@ -1,5 +1,6 @@
 package nl.julian.aerial.wallpaper
 
+import nl.julian.aerial.data.VideoQuality
 import android.util.Log
 import android.view.SurfaceView
 import androidx.annotation.OptIn
@@ -65,6 +66,7 @@ fun AerialBackground(
     /** Favourite clip URIs; with [onlyFavourites] the only ones that play, otherwise played twice as often. */
     favourites: Set<String> = emptySet(),
     onlyFavourites: Boolean = false,
+    quality: VideoQuality = VideoQuality.HD,
     /** Called with a new theme seed colour whenever the picture's palette shifts. */
     onSeed: (Int) -> Unit = {},
     /** Called when a clip starts, e.g. to caption it. */
@@ -72,6 +74,7 @@ fun AerialBackground(
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
+    val stream = remember(quality) { AerialMedia.resolve(context, quality) }
 
     val queue = remember(kind, time, skipped, favourites, onlyFavourites) {
         val all = Aerials.load(context).filter { it.uri !in skipped }
@@ -86,7 +89,7 @@ fun AerialBackground(
     LaunchedEffect(queue) {
         // Begin with a clip that's already on disk: instant, and works offline.
         withContext(Dispatchers.IO) {
-            queue.preferFirst { AerialMedia.isFullyCached(context, it.uri) }
+            queue.preferFirst { AerialMedia.isFullyCached(context, it.stream(stream)) }
         }
         // Keep the clip on screen if it still belongs (e.g. it was just made a favourite).
         if (current == null || !queue.contains(current!!)) current = queue.next()
@@ -167,15 +170,15 @@ fun AerialBackground(
         onDispose { p.removeListener(listener) }
     }
 
-    LaunchedEffect(player, current) {
+    LaunchedEffect(player, current, stream) {
         val p = player ?: return@LaunchedEffect
         val clip = current ?: return@LaunchedEffect
         // Fade the old clip down to the backdrop before swapping.
         if (reveal.value > 0f) reveal.animateTo(0f, tween(600, easing = FluidEasing))
         val genBefore = firstFrameGen
-        Log.i("Aerial", "play ${clip.title}: ${clip.uri}")
+        Log.i("Aerial", "play ${clip.title}: ${clip.stream(stream)}")
         onClip(clip)
-        p.setMediaItem(MediaItem.fromUri(clip.uri))
+        p.setMediaItem(MediaItem.fromUri(clip.stream(stream)))
         p.prepare()
         delay(STALL_MS)
         val resumed = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)

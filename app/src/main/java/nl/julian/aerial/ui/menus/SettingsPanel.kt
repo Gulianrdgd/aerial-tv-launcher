@@ -72,6 +72,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } },
         )
         MenuRow(
+            Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label,
+            onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } },
+        )
+        MenuRow(
             Symbols.Screensaver, "Screensaver shows", value = config.ambientInfo.label,
             onClick = { update { it.copy(ambientInfo = it.ambientInfo.next()) } },
         )

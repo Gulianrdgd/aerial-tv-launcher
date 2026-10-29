@@ -3,12 +3,28 @@ package nl.julian.aerial.wallpaper
 import android.content.Context
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import nl.julian.aerial.data.VideoQuality
 
 /**
  * [kind] is the scenery: city, nature, water (underwater), space, or "" (neither, e.g. a fireplace).
  * [time] is "day", "night", or "" for clips that suit any time (underwater, fireplaces).
+ * [uri] (1080p) also identifies the clip; [uri4k] and [uriHdr] are Apple's 4K HEVC versions, where there are any.
  */
-data class Aerial(val title: String, val uri: String, val kind: String = "", val time: String = "")
+data class Aerial(
+    val title: String,
+    val uri: String,
+    val kind: String = "",
+    val time: String = "",
+    val uri4k: String = "",
+    val uriHdr: String = "",
+) {
+    /** The file to play at [quality]; clips without a 4K version play in 1080p. */
+    fun stream(quality: VideoQuality): String = when (quality) {
+        VideoQuality.Hdr -> uriHdr.ifEmpty { uri4k }.ifEmpty { uri }
+        VideoQuality.UHD -> uri4k.ifEmpty { uri }
+        else -> uri
+    }
+}
 
 /**
  * The bundled aerial manifest: 289 1080p H.264 clips (Apple, Amazon Fire TV,
@@ -16,7 +32,7 @@ data class Aerial(val title: String, val uri: String, val kind: String = "", val
  */
 object Aerials {
     @Serializable
-    private data class Entry(val t: String = "", val u: String, val k: String = "", val d: String = "")
+    private data class Entry(val t: String = "", val u: String, val k: String = "", val d: String = "", val s4: String = "", val h4: String = "")
 
     @Volatile
     private var cache: List<Aerial>? = null
@@ -26,7 +42,7 @@ object Aerials {
         Json { ignoreUnknownKeys = true }.decodeFromString<List<Entry>>(json)
             // Amazon's "… Motion" pieces are abstract motion art, not aerial footage.
             .filterNot { it.t.endsWith(" Motion") }
-            .map { Aerial(it.t, it.u, it.k, it.d) }
+            .map { Aerial(it.t, it.u, it.k, it.d, it.s4, it.h4) }
     }.getOrDefault(emptyList()).also { cache = it }
 }
 

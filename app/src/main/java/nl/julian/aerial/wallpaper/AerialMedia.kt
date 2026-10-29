@@ -1,6 +1,9 @@
 package nl.julian.aerial.wallpaper
 
 import android.content.Context
+import android.hardware.display.DisplayManager
+import android.media.MediaCodecList
+import android.view.Display
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
@@ -9,6 +12,7 @@ import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import nl.julian.aerial.data.VideoQuality
 import okhttp3.OkHttpClient
 import java.io.File
 import java.net.Socket
@@ -34,6 +38,29 @@ private const val CACHE_BYTES = 300L * 1024 * 1024
  */
 @OptIn(UnstableApi::class)
 object AerialMedia {
+    /**
+     * [VideoQuality.Auto] → 4K HDR on a 4K HDR10 screen, 4K on a 4K screen,
+     * else 1080p; 4K also needs a decoder for 2160p HEVC.
+     */
+    fun resolve(context: Context, quality: VideoQuality): VideoQuality {
+        if (quality != VideoQuality.Auto) return quality
+        val display = context.getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY)
+            ?: return VideoQuality.HD
+        val uhdScreen = display.supportedModes.any { it.physicalWidth >= 3840 }
+        val hevc = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+            !info.isEncoder && info.supportedTypes.any { it.equals("video/hevc", true) } &&
+                runCatching { info.getCapabilitiesForType("video/hevc").videoCapabilities?.isSizeSupported(3840, 2160) == true }
+                    .getOrDefault(false)
+        }
+        @Suppress("DEPRECATION")
+        val hdr = display.hdrCapabilities?.supportedHdrTypes?.contains(Display.HdrCapabilities.HDR_TYPE_HDR10) == true
+        return when {
+            !uhdScreen || !hevc -> VideoQuality.HD
+            hdr -> VideoQuality.Hdr
+            else -> VideoQuality.UHD
+        }
+    }
+
 
     @Volatile
     private var cache: SimpleCache? = null

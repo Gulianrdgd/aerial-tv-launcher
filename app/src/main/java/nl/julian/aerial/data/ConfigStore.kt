@@ -23,6 +23,9 @@ enum class Scenery(val label: String, val kind: String?) {
 /** When day and night clips play, matching the `d` tag in aerials.json. */
 enum class AerialTime(val label: String) { Any("Any time"), Sun("Follow the sun"), Day("Day only"), Night("Night only") }
 
+/** Which version of Apple's clips plays. [Auto] picks the best one the TV can show. */
+enum class VideoQuality(val label: String) { HD("1080p"), UHD("4K"), Hdr("4K HDR"), Auto("Best this TV can show") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -51,6 +54,7 @@ data class LauncherConfig(
     val favourites: Set<String> = emptySet(),
     val skipped: Set<String> = emptySet(),
     val favouriteMode: FavouriteMode = FavouriteMode.Normal,
+    val videoQuality: VideoQuality = VideoQuality.HD,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,

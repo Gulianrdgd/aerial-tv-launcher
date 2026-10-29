@@ -140,6 +140,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
             skipped = cfg.skipped,
             favourites = if (cfg.favouriteMode == FavouriteMode.Normal) emptySet() else cfg.favourites,
             onlyFavourites = cfg.favouriteMode == FavouriteMode.Only,
+            quality = cfg.videoQuality,
             onSeed = { seed = it },
             onClip = { clip = it },
         )
