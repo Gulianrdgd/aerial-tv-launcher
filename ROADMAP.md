@@ -38,6 +38,28 @@ Every feature on this list is a setting. Each one can be switched on or off, and
 - [ ] **Update notice.** For sideloaded builds, show a notice in Settings when a new release is out on GitHub. F-Droid builds leave it out.
 - [ ] **Larger text.** A setting for bigger text and stronger contrast, for people who sit far from the TV. Choices: text size steps, contrast on or off.
 
+## Looks
+
+- [ ] **Frosted glass.** Blur the small video snapshot already taken for the colours and draw it behind the panels, so they look like real frosted glass. Choices: tinted (today), frosted, how much blur.
+- [ ] **Opening animation.** When an app opens, its tile grows to fill the screen first. Choices: on or off, speed.
+- [ ] **Tile depth on focus.** Focused tiles tilt slightly toward the direction of movement and catch a soft highlight. Choices: off, subtle, strong.
+- [ ] **Glow in the app's colour.** A tile's focus glow takes its colour from the app's banner. Choices: app colour, aerial colour, white.
+- [ ] **Panels slide in.** On wake, the panels come in one after another. Choices: slide, fade (today), none.
+- [ ] **Clock faces.** Besides the colour pills: a large thin clock, an analog face and a word clock. Choices: face per place (top bar, screensaver).
+- [ ] **Seasonal touches.** Snow in December, a frame on New Year's Eve. Choices: each one separately.
+- [ ] **Focus sounds.** Quiet sounds when moving focus or opening an app. Choices: off, soft, volume.
+
+## Customization
+
+- [ ] **Theme settings.** Colour source (from the aerial, one fixed colour, black and white), panel opacity, corner roundness, tile size and font weight.
+- [ ] **Layout editor.** Reorder or hide the home screen sections, and choose which tiles go in the top bar and in what order.
+- [ ] **App names and banners.** Rename an app, pick another banner or icon, or use an icon pack.
+- [ ] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
+- [ ] **Quick settings of your own.** Choose which shortcuts appear in the quick settings row and in what order.
+- [ ] **Remote shortcuts.** Choose what a long press on Home or another button does: open an app, switch inputs, start the screensaver.
+- [ ] **Time-of-day layouts.** Different layouts by time, such as a large weather tile in the morning and Continue Watching first in the evening. Choices: times and the layout for each.
+- [ ] **Share a theme.** Export the look as a file or QR code and import someone else's.
+
 ## More ambitious
 
 - [ ] **Home Assistant card.** Show the doorbell camera when someone rings, or a few light and scene buttons. Choices: server address, which entities, when the card appears.
