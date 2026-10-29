@@ -98,7 +98,7 @@ private fun DreamScreen() {
             onClip = { clip = it },
         )
         Seasonal(cfg)
-        AerialTheme(if (cfg.themeSource == ThemeSource.Fixed) cfg.themeColor else seed, cfg.textSize / 100f, cfg.highContrast, cfg.themeSource == ThemeSource.Mono) {
+        AerialTheme(if (cfg.themeSource == ThemeSource.Fixed) cfg.themeColor else seed, cfg.textSize / 100f, cfg.highContrast, cfg.themeSource == ThemeSource.Mono, cfg.fontWeight) {
             Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces, shiftText = cfg.shiftText, face = cfg.ambientClockFace)
         }
         NightDim(cfg, weather?.isDay)

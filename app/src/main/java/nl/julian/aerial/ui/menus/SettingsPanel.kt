@@ -346,6 +346,14 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             )
         }
         MenuRow(
+            Symbols.Tune, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
+            onClick = { update { it.copy(roundness = when (it.roundness) { 100 -> 140; 140 -> 40; else -> 100 }) } },
+        )
+        MenuRow(
+            Symbols.Tune, "Text weight", value = when (config.fontWeight) { -100 -> "Lighter"; 100 -> "Bolder"; else -> "Normal" },
+            onClick = { update { it.copy(fontWeight = when (it.fontWeight) { 0 -> 100; 100 -> -100; else -> 0 }) } },
+        )
+        MenuRow(
             Symbols.Tune, "Panel opacity", value = "${config.panelOpacity}%",
             onClick = {
                 update {

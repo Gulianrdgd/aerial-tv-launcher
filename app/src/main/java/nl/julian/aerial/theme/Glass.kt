@@ -36,12 +36,15 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 
 /** Corner radius of the translucent panels (the top bar and every section). */
-val PANEL_RADIUS = 32.dp
+val PANEL_RADIUS: Dp @Composable get() = 32.dp * LocalRoundness.current
+
+/** Multiplies every corner radius (Settings > Corners). */
+val LocalRoundness = staticCompositionLocalOf { 1f }
 /** Inner padding of a section panel. */
 val PANEL_PADDING = 14.dp
 
 /** Corner radius for tiles inside a section panel: concentric with the panel's own corner. */
-val SECTION_TILE_RADIUS = PANEL_RADIUS - PANEL_PADDING
+val SECTION_TILE_RADIUS: Dp @Composable get() = (PANEL_RADIUS - PANEL_PADDING).coerceAtLeast(4.dp)
 
 /**
  * The panels' fill: the theme's darkest container, mostly opaque. A lighter

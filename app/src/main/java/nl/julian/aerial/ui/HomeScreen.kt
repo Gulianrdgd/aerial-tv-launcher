@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.theme.LocalRoundness
 import nl.julian.aerial.data.TopTile
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import java.time.LocalTime
@@ -183,18 +184,18 @@ fun HomeScreen(
         )
         } ?: AmbientBackdrop()
         config?.let { Seasonal(it) }
-        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono) {
+        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono, config?.fontWeight ?: 0) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
                 Scrim()
                 val a = apps
                 val c = config
-                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal, LocalPanelAlpha provides c.panelOpacity / 100f) {
+                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal, LocalPanelAlpha provides c.panelOpacity / 100f, LocalRoundness provides c.roundness / 100f) {
                     HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver, onPictureOff)
                 }
             }
         }
-        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono) {
+        AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono, config?.fontWeight ?: 0) {
             Ambient(
                 clip = clip,
                 weather = weather,

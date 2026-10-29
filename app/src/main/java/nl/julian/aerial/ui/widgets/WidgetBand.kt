@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
+import androidx.compose.ui.unit.Dp
 import nl.julian.aerial.data.TopTile
 import nl.julian.aerial.data.wifiBarsFlow
 import androidx.compose.ui.text.style.TextAlign
@@ -70,9 +71,9 @@ import java.util.Locale
 
 /** Height of the top bar: compact, so the aerial stays the main thing on screen. */
 private val BAR_HEIGHT = 140.dp
-private val BAR_RADIUS = PANEL_RADIUS
+private val BAR_RADIUS: Dp @Composable get() = PANEL_RADIUS
 private val BAR_INSET = 12.dp
-internal val INNER = BAR_RADIUS - BAR_INSET
+internal val INNER: Dp @Composable get() = BAR_RADIUS - BAR_INSET
 /** Every tile in the bar shares this inner padding. */
 internal val TILE_PADDING = 16.dp
 

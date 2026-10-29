@@ -183,6 +183,10 @@ data class LauncherConfig(
     val themeColor: Int = THEME_COLORS[0].first,
     /** Panel opacity, in percent. */
     val panelOpacity: Int = 62,
+    /** Corner radius, in percent of the default. */
+    val roundness: Int = 100,
+    /** Added to every font weight: -100 lighter, 0, or 100 bolder. */
+    val fontWeight: Int = 0,
     val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
     val tileDepth: TileDepth = TileDepth.Off,
     val reveal: Reveal = Reveal.Rise,

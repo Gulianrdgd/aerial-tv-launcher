@@ -104,6 +104,8 @@ fun AerialTheme(
     highContrast: Boolean = false,
     /** Black and white: Material's monochrome scheme instead of a coloured one. */
     mono: Boolean = false,
+    /** Added to every font weight: -100 lighter, 100 bolder. */
+    weightDelta: Int = 0,
     content: @Composable () -> Unit,
 ) {
     val (target, surfaces) = remember(seed, mono) { schemeFromSeed(seed ?: DEFAULT_SEED, mono) }
@@ -124,7 +126,8 @@ fun AerialTheme(
         surfaces.lowest.drift(), surfaces.low.drift(), surfaces.default.drift(),
         surfaces.high.drift(), surfaces.highest.drift(),
     )
-    MaterialTheme(colorScheme = scheme, typography = AerialTypography, shapes = AerialShapes) {
+    val typography = remember(weightDelta) { AerialTypography.withWeight(weightDelta) }
+    MaterialTheme(colorScheme = scheme, typography = typography, shapes = AerialShapes) {
         val density = LocalDensity.current
         CompositionLocalProvider(
             LocalSurfaces provides drifted,

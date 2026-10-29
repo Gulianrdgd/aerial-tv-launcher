@@ -10,6 +10,8 @@ data class Look(
     val themeSource: ThemeSource = ThemeSource.Aerial,
     val themeColor: Int = THEME_COLORS[0].first,
     val panelOpacity: Int = 62,
+    val roundness: Int = 100,
+    val fontWeight: Int = 0,
     val glass: Glass = Glass.Tinted,
     val reveal: Reveal = Reveal.Rise,
     val tileDepth: TileDepth = TileDepth.Off,
@@ -26,12 +28,13 @@ data class Look(
 )
 
 fun LauncherConfig.look() = Look(
-    themeSource, themeColor, panelOpacity, glass, reveal, tileDepth, focusColor, launchAnimation,
+    themeSource, themeColor, panelOpacity, roundness, fontWeight, glass, reveal, tileDepth, focusColor, launchAnimation,
     clockFace, ambientClockFace, tintedTiles, textSize, highContrast, focusSounds, snow, newYearFrame,
 )
 
 fun LauncherConfig.withLook(l: Look) = copy(
-    themeSource = l.themeSource, themeColor = l.themeColor, panelOpacity = l.panelOpacity, glass = l.glass,
+    themeSource = l.themeSource, themeColor = l.themeColor, panelOpacity = l.panelOpacity,
+    roundness = l.roundness, fontWeight = l.fontWeight, glass = l.glass,
     reveal = l.reveal, tileDepth = l.tileDepth, focusColor = l.focusColor, launchAnimation = l.launchAnimation,
     clockFace = l.clockFace, ambientClockFace = l.ambientClockFace, tintedTiles = l.tintedTiles,
     textSize = l.textSize, highContrast = l.highContrast, focusSounds = l.focusSounds, snow = l.snow,

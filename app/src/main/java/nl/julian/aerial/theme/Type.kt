@@ -77,3 +77,16 @@ val EyebrowStyle = TextStyle(
     fontFamily = GoogleSansFlex, fontWeight = FontWeight(600),
     fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.12.em,
 )
+
+/** [AerialTypography] with every weight moved by [delta] (Settings > Text weight), kept within 100..900. */
+fun Typography.withWeight(delta: Int): Typography {
+    if (delta == 0) return this
+    fun TextStyle.shift() = copy(fontWeight = FontWeight(((fontWeight ?: FontWeight.Normal).weight + delta).coerceIn(100, 900)))
+    return copy(
+        displayLarge = displayLarge.shift(), displayMedium = displayMedium.shift(), displaySmall = displaySmall.shift(),
+        headlineLarge = headlineLarge.shift(), headlineMedium = headlineMedium.shift(), headlineSmall = headlineSmall.shift(),
+        titleLarge = titleLarge.shift(), titleMedium = titleMedium.shift(), titleSmall = titleSmall.shift(),
+        bodyLarge = bodyLarge.shift(), bodyMedium = bodyMedium.shift(), bodySmall = bodySmall.shift(),
+        labelLarge = labelLarge.shift(), labelMedium = labelMedium.shift(), labelSmall = labelSmall.shift(),
+    )
+}
