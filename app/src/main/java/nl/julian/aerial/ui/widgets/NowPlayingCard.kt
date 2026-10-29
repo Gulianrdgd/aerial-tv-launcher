@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
+import nl.julian.aerial.theme.panel
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -53,11 +54,22 @@ import kotlin.math.sin
 
 /** Media card on one line: album art, title and wavy progress, then transport buttons. */
 @Composable
-fun NowPlayingCard(media: NowPlaying, radius: Dp, modifier: Modifier = Modifier) {
+fun NowPlayingCard(
+    media: NowPlaying,
+    radius: Dp,
+    modifier: Modifier = Modifier,
+    /** On the same translucent panel as the dock (editorial bar), instead of a tile inside the classic bar. */
+    onPanel: Boolean = false,
+) {
     val cs = MaterialTheme.colorScheme
     val inset = 10.dp
     Row(
-        modifier.background(tileColor(), RoundedCornerShape(radius)).topHighlight(RoundedCornerShape(radius)).padding(inset),
+        modifier
+            .then(
+                if (onPanel) Modifier.panel(RoundedCornerShape(radius))
+                else Modifier.background(tileColor(), RoundedCornerShape(radius)).topHighlight(RoundedCornerShape(radius))
+            )
+            .padding(inset),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(84.dp).clip(RoundedCornerShape(radius - inset)).background(cs.secondaryContainer)) {

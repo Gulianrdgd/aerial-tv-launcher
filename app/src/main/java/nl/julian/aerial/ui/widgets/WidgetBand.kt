@@ -127,7 +127,7 @@ fun WidgetBand(
             clockFormat, clockFace, if (showMusic) media else null, clip.takeIf { showAerial }, weather.takeIf { showWeather },
             onWeather, status, modifier,
         ) {
-            ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons)
+            ControlRail(notificationCount, onSearch, onOpenInputs, onOpenNotifications, onOpenSettings, railFocus, stacked = compactButtons, onPanel = true)
         }
         return
     }
@@ -311,6 +311,8 @@ private fun ControlRail(
     focus: RailFocus,
     /** Space saver: a narrow column of icons instead of a labelled row. */
     stacked: Boolean,
+    /** On the same translucent panel as the dock (editorial bar), instead of a tile inside the classic bar. */
+    onPanel: Boolean = false,
 ) {
     val tile = RoundedCornerShape(INNER)
     // Inner corners stay small; outer ones match the tile (inset by the 4dp padding).
@@ -322,8 +324,7 @@ private fun ControlRail(
     else RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer)
     val container = Modifier
         .fillMaxHeight()
-        .background(tileColor(), tile)
-        .topHighlight(tile)
+        .then(if (onPanel) Modifier.panel(tile) else Modifier.background(tileColor(), tile).topHighlight(tile))
         .padding(4.dp)
     val segments: @Composable (Modifier) -> Unit = { size ->
         if (onSearch != null) {
@@ -508,7 +509,7 @@ private fun EditorialBar(
             }
         }
         playing?.let {
-            NowPlayingCard(it, INNER, Modifier.width(360.dp).height(84.dp))
+            NowPlayingCard(it, INNER, Modifier.width(360.dp).height(84.dp), onPanel = true)
             Spacer(Modifier.width(14.dp))
         }
         Box(Modifier.height(84.dp)) { buttons() }
