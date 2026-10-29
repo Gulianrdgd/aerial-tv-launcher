@@ -154,7 +154,7 @@ fun HomeScreen(
             onClip = { clip = it },
         )
         } ?: AmbientBackdrop()
-        AerialTheme(seed) {
+        AerialTheme(seed, (config?.textSize ?: 100) / 100f, config?.highContrast == true) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
                 Scrim()
@@ -165,7 +165,7 @@ fun HomeScreen(
                 }
             }
         }
-        AerialTheme(seed) {
+        AerialTheme(seed, (config?.textSize ?: 100) / 100f, config?.highContrast == true) {
             Ambient(
                 clip = clip,
                 weather = weather,

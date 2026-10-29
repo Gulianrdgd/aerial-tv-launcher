@@ -1,5 +1,7 @@
 package nl.julian.aerial.theme
 
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -92,7 +94,14 @@ private fun Color.drift(): Color = animateColorAsState(this, ColorShift, label =
  * drift slowly from one scheme to the next.
  */
 @Composable
-fun AerialTheme(seed: Int?, content: @Composable () -> Unit) {
+fun AerialTheme(
+    seed: Int?,
+    /** Multiplies every font size (Settings > Text size). */
+    textScale: Float = 1f,
+    /** Secondary text at full brightness, for reading from far away. */
+    highContrast: Boolean = false,
+    content: @Composable () -> Unit,
+) {
     val (target, surfaces) = remember(seed) { schemeFromSeed(seed ?: DEFAULT_SEED) }
     val scheme = target.copy(
         primary = target.primary.drift(), onPrimary = target.onPrimary.drift(),
@@ -102,7 +111,8 @@ fun AerialTheme(seed: Int?, content: @Composable () -> Unit) {
         tertiary = target.tertiary.drift(), onTertiary = target.onTertiary.drift(),
         tertiaryContainer = target.tertiaryContainer.drift(), onTertiaryContainer = target.onTertiaryContainer.drift(),
         surface = target.surface.drift(), onSurface = target.onSurface.drift(),
-        surfaceVariant = target.surfaceVariant.drift(), onSurfaceVariant = target.onSurfaceVariant.drift(),
+        surfaceVariant = target.surfaceVariant.drift(),
+        onSurfaceVariant = (if (highContrast) target.onSurface else target.onSurfaceVariant).drift(),
         inverseSurface = target.inverseSurface.drift(), inverseOnSurface = target.inverseOnSurface.drift(),
         border = target.border.drift(), borderVariant = target.borderVariant.drift(),
     )
@@ -111,6 +121,11 @@ fun AerialTheme(seed: Int?, content: @Composable () -> Unit) {
         surfaces.high.drift(), surfaces.highest.drift(),
     )
     MaterialTheme(colorScheme = scheme, typography = AerialTypography, shapes = AerialShapes) {
-        CompositionLocalProvider(LocalSurfaces provides drifted, content = content)
+        val density = LocalDensity.current
+        CompositionLocalProvider(
+            LocalSurfaces provides drifted,
+            LocalDensity provides Density(density.density, density.fontScale * textScale),
+            content = content,
+        )
     }
 }

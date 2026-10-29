@@ -95,7 +95,7 @@ private fun DreamScreen() {
             onSeed = { seed = it },
             onClip = { clip = it },
         )
-        AerialTheme(seed) {
+        AerialTheme(seed, cfg.textSize / 100f, cfg.highContrast) {
             Ambient(clip, weather, media, cfg.clockFormat, visible = true, info = cfg.ambientInfo, showPlaces = cfg.showPlaces, shiftText = cfg.shiftText)
         }
         NightDim(cfg, weather?.isDay)

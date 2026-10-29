@@ -86,6 +86,9 @@ data class LauncherConfig(
     val sleepAt: Long = 0,
     /** Settings asks GitHub for a newer release (sideloaded builds only). */
     val updateCheck: Boolean = true,
+    /** Font size multiplier, in percent. */
+    val textSize: Int = 100,
+    val highContrast: Boolean = false,
     /** How much night mode darkens the screen, in percent. */
     val nightDim: Int = 40,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,

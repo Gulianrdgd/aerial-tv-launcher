@@ -52,6 +52,7 @@ import nl.julian.aerial.ui.widgets.startSafely
 private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
 private val PHOTO_STEPS = listOf(10, 15, 30, 60)
 private val DIM_STEPS = listOf(20, 40, 60)
+private val TEXT_STEPS = listOf(100, 110, 120)
 
 /** Launcher settings, in the right-hand side panel. */
 @Composable
@@ -215,6 +216,19 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
 
         Section("Home screen")
+        MenuRow(
+            Symbols.Tune, "Text size", value = "${config.textSize}%",
+            onClick = {
+                update {
+                    val i = TEXT_STEPS.indexOf(it.textSize)
+                    it.copy(textSize = TEXT_STEPS[(i + 1) % TEXT_STEPS.size])
+                }
+            },
+        )
+        MenuRow(
+            Symbols.Tune, "Contrast", value = if (config.highContrast) "High · all text at full brightness" else "Normal",
+            onClick = { update { it.copy(highContrast = !it.highContrast) } },
+        )
         MenuRow(
             Symbols.Tune, "Order of All apps", value = config.appOrder.label,
             onClick = { update { it.copy(appOrder = it.appOrder.next()) } },

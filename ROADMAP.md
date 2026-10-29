@@ -17,7 +17,7 @@ Two rules hold for all of it:
 - [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.
 - [ ] **Plex and Jellyfin row.** Show recent and unwatched items from your own media server. Choices: server, libraries, row position.
 - [ ] **Background add-ons.** Other sources for the background, such as Unsplash, a folder of photos or a webcam stream. Choices: source, how often it changes.
-- [ ] **Text and tile size.** Separate sliders for text size and tile size.
+- [ ] **Tile size.** Fewer, larger tiles per row (text size is done, under Larger text).
 - [ ] **Hidden from recent apps.** Keep Aerial out of the recent apps screen. Choices: on or off.
 
 ## Everyday use
@@ -53,7 +53,7 @@ Two rules hold for all of it:
 
 - [x] **Backup and restore.** Save all settings to aerial-settings.json in Downloads, and restore from it (or from a picked file on TVs with a file picker). Android 9 and older can't save there yet.
 - [x] **Update notice.** For sideloaded builds, show a notice in Settings when a new release is out on GitHub. F-Droid builds leave it out.
-- [ ] **Larger text.** A setting for bigger text and stronger contrast, for people who sit far from the TV. Choices: text size steps, contrast on or off.
+- [x] **Larger text.** Text size (100, 110 or 120%) and high contrast, which puts all text at full brightness.
 
 ## Looks
 
