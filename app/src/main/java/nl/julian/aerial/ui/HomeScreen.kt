@@ -214,6 +214,7 @@ fun HomeScreen(
             )
         }
         config?.let { NightDim(it, weather?.isDay) }
+        config?.homeAssistant?.let { DoorbellWatcher(it) }
         if (pictureOff) Box(Modifier.fillMaxSize().background(Color.Black))
     }
 }
@@ -502,6 +503,9 @@ private fun HomeContent(
             item(key = "jellyfin") {
                 JellyfinRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick))
             }
+        }
+        HomeSection.Home -> config.homeAssistant?.let { ha ->
+            item(key = "home-assistant") { HomeAssistantRow(ha, Modifier.reveal(index + 1, revealTick)) }
         }
         HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }

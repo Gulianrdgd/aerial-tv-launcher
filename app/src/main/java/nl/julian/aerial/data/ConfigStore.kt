@@ -66,7 +66,7 @@ val THEME_COLORS = listOf(
 
 /** The home screen's sections below the top bar, in the order the user chose. */
 enum class HomeSection(val label: String) {
-    Dock("Dock"), WatchNext("Continue watching"), Jellyfin("Jellyfin"), Recent("Recent"), Apps("All apps"), Quick("Quick settings"),
+    Dock("Dock"), WatchNext("Continue watching"), Jellyfin("Jellyfin"), Home("Home Assistant"), Recent("Recent"), Apps("All apps"), Quick("Quick settings"),
 }
 
 /** The quick settings tiles. */
@@ -183,6 +183,8 @@ data class LauncherConfig(
     /** Signed-in Jellyfin server for the Jellyfin row; null = not connected. */
     val jellyfin: JellyfinLogin? = null,
     /** Kids mode: only [kidsApps], only during [kidsHours]; the PIN unlocks the top bar buttons. */
+    /** Home Assistant: buttons in a row, and the doorbell camera; null = not connected. */
+    val homeAssistant: HaConfig? = null,
     val kidsMode: Boolean = false,
     val kidsPin: String = "",
     val kidsApps: List<String> = emptyList(),
@@ -295,8 +297,8 @@ class ConfigStore(context: Context) {
         }
     }
 
-    /** All settings as JSON, for a backup; without the Jellyfin token, as Downloads is readable by other apps. */
-    suspend fun export(): String = json.encodeToString(LauncherConfig.serializer(), config.first().copy(jellyfin = null))
+    /** All settings as JSON, for a backup; without the Jellyfin and Home Assistant tokens, as Downloads is readable by other apps. */
+    suspend fun export(): String = json.encodeToString(LauncherConfig.serializer(), config.first().copy(jellyfin = null, homeAssistant = null))
 
     /** Replaces all settings with a backup; false if [text] isn't one. */
     suspend fun import(text: String): Boolean {

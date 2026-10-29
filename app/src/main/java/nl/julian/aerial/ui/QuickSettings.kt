@@ -133,7 +133,7 @@ fun QuickSettings(
 
 /** Quick-settings pill: icon in its own circle, then title and state. */
 @Composable
-private fun QuickTile(
+internal fun QuickTile(
     @DrawableRes icon: Int,
     title: String,
     state: String,

@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.HomeAssistant
+import nl.julian.aerial.data.HaConfig
 import androidx.compose.runtime.mutableIntStateOf
 import nl.julian.aerial.data.JellyfinRepository
 import nl.julian.aerial.data.IconPacks
@@ -77,6 +79,11 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var shortcutsOpen by remember { mutableStateOf(false) }
     var startupOpen by remember { mutableStateOf(false) }
     var kidsAppsOpen by remember { mutableStateOf(false) }
+    var haOpen by remember { mutableStateOf(false) }
+    /** Home Assistant sign-in: 0 = closed, 1 server, 2 token. */
+    var haStep by remember { mutableIntStateOf(0) }
+    var haServer by remember { mutableStateOf("") }
+    var haNote by remember { mutableStateOf<String?>(null) }
     /** Choosing a PIN; [pinThenOn] also turns kids mode on afterwards. */
     var pinDialog by remember { mutableStateOf(false) }
     var pinThenOn by remember { mutableStateOf(false) }
@@ -118,6 +125,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
     // Simple first: everyday settings here, everything else under More options.
     if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
+    else if (haOpen) HomeAssistantPanel(config, { change -> update(change) }, onDismiss = { haOpen = false })
     else if (kidsAppsOpen) KidsAppsPanel(config, { change -> update(change) }, onDismiss = { kidsAppsOpen = false })
     else if (startupOpen) StartupPanel(config, { change -> update(change) }, onDismiss = { startupOpen = false })
     else if (shortcutsOpen) ShortcutsPanel(
@@ -538,6 +546,12 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
         )
         MenuRow(
+            Symbols.Home, "Home Assistant",
+            value = config.homeAssistant?.let { "Connected to ${it.server.substringAfter("://")} · buttons, doorbell" }
+                ?: "Not connected · select to sign in",
+            onClick = { if (config.homeAssistant != null) haOpen = true else { haNote = null; haStep = 1 } },
+        )
+        MenuRow(
             Symbols.MediaPlayer, "Jellyfin",
             value = config.jellyfin?.let { "Connected to ${it.server.substringAfter("://")} · select to sign out" }
                 ?: "Not connected · select to sign in and show a Jellyfin row",
@@ -577,6 +591,26 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         },
         onDismiss = { pinDialog = false },
     )
+    when (haStep) {
+        1 -> RenameDialog(
+            "Home Assistant address", current = haServer.ifEmpty { "http://homeassistant.local:8123" }, resetLabel = null,
+            note = haNote, onSave = { haServer = it.trim().trimEnd('/'); haStep = if (it.length > 7) 2 else 0 }, onDismiss = { haStep = 0 },
+        )
+        2 -> RenameDialog(
+            "Long-lived access token", current = "", resetLabel = null, password = true,
+            note = "Make one in Home Assistant under your profile, Security. Typing it with the Google TV app on your phone is easiest.",
+            onSave = { token ->
+                haStep = 0
+                scope.launch {
+                    val ha = HaConfig(haServer, token.trim())
+                    HomeAssistant.states(ha)
+                        .onSuccess { update { it.copy(homeAssistant = ha) }; haOpen = true }
+                        .onFailure { haNote = "Couldn't connect: ${it.message}"; haStep = 1 }
+                }
+            },
+            onDismiss = { haStep = 0 },
+        )
+    }
     when (jfStep) {
         1 -> RenameDialog(
             "Jellyfin server", current = jfServer.ifEmpty { "http://" }, resetLabel = null, note = jfNote ?: "For example http://192.168.1.10:8096",
