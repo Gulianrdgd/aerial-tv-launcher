@@ -155,6 +155,12 @@ fun SettingsScreen(
      */
     var movingInLeft by remember { mutableStateOf(false) }
 
+    /**
+     * Into the right pane. Counted rather than done on the spot: right after
+     * Up or Down the category's rows may not be drawn yet, and focus would
+     * land on the previous category's rows.
+     */
+    var enterRight by remember { mutableIntStateOf(0) }
     fun toLeft() = runCatching { left[selected].requestFocus() }
     fun up() {
         when {
@@ -194,7 +200,7 @@ fun SettingsScreen(
                     categories.forEachIndexed { i, c ->
                         MenuRow(
                             c.icon, c.name,
-                            onClick = { runCatching { rows.firstOrNull()?.requestFocus() } },
+                            onClick = { enterRight++ },
                             focusRequester = left[i],
                             modifier = Modifier
                                 .onFocusChanged {
@@ -205,7 +211,7 @@ fun SettingsScreen(
                                 }
                                 .onPreviewKeyEvent { e ->
                                     if (e.key == Key.DirectionRight && e.type == KeyEventType.KeyDown) {
-                                        runCatching { rows.firstOrNull()?.requestFocus() }
+                                        enterRight++
                                         true
                                     } else false
                                 },
@@ -276,6 +282,11 @@ fun SettingsScreen(
             host.title = null
             host.back = null
         }
+    }
+    LaunchedEffect(enterRight) {
+        if (enterRight == 0) return@LaunchedEffect
+        withFrameNanos { }
+        runCatching { rows.firstOrNull()?.requestFocus() }
     }
     LaunchedEffect(Unit) {
         withFrameNanos { }
