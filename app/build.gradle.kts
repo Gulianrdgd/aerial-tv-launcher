@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -87,4 +88,5 @@ dependencies {
     implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
+    baselineProfile(project(":baselineprofile"))
 }
