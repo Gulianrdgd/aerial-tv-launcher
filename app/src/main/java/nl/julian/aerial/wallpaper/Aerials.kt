@@ -17,7 +17,12 @@ data class Aerial(
     val time: String = "",
     val uri4k: String = "",
     val uriHdr: String = "",
+    /** Apple's captions for where the camera is: seconds into the clip to caption, in order. */
+    val places: List<Pair<Int, String>> = emptyList(),
 ) {
+    /** The caption for [seconds] into the clip, if the clip has any. */
+    fun placeAt(seconds: Int): String? = places.lastOrNull { it.first <= seconds }?.second
+
     /** The file to play at [quality]; clips without a 4K version play in 1080p. */
     fun stream(quality: VideoQuality): String = when (quality) {
         VideoQuality.Hdr -> uriHdr.ifEmpty { uri4k }.ifEmpty { uri }
@@ -32,7 +37,10 @@ data class Aerial(
  */
 object Aerials {
     @Serializable
-    private data class Entry(val t: String = "", val u: String, val k: String = "", val d: String = "", val s4: String = "", val h4: String = "")
+    private data class Poi(val s: Int, val c: String)
+
+    @Serializable
+    private data class Entry(val t: String = "", val u: String, val k: String = "", val d: String = "", val s4: String = "", val h4: String = "", val p: List<Poi> = emptyList())
 
     @Volatile
     private var cache: List<Aerial>? = null
@@ -42,7 +50,7 @@ object Aerials {
         Json { ignoreUnknownKeys = true }.decodeFromString<List<Entry>>(json)
             // Amazon's "… Motion" pieces are abstract motion art, not aerial footage.
             .filterNot { it.t.endsWith(" Motion") }
-            .map { Aerial(it.t, it.u, it.k, it.d, it.s4, it.h4) }
+            .map { Aerial(it.t, it.u, it.k, it.d, it.s4, it.h4, it.p.map { p -> p.s to p.c }) }
     }.getOrDefault(emptyList()).also { cache = it }
 }
 

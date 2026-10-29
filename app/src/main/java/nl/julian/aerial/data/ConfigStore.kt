@@ -55,6 +55,8 @@ data class LauncherConfig(
     val skipped: Set<String> = emptySet(),
     val favouriteMode: FavouriteMode = FavouriteMode.Normal,
     val videoQuality: VideoQuality = VideoQuality.HD,
+    /** Screensaver: Apple's caption of where the camera is, in place of the scenery. */
+    val showPlaces: Boolean = false,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,

@@ -72,6 +72,11 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } },
         )
         MenuRow(
+            Symbols.Location, "Where is this?",
+            value = if (config.showPlaces) "Screensaver names the place on screen" else "Off · shows the scenery",
+            onClick = { update { it.copy(showPlaces = !it.showPlaces) } },
+        )
+        MenuRow(
             Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label,
             onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } },
         )

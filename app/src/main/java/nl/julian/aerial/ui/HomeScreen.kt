@@ -164,6 +164,7 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
                 clockFormat = config?.clockFormat ?: ClockFormat.System,
                 visible = idle,
                 info = config?.ambientInfo ?: AmbientInfo.All,
+                showPlaces = config?.showPlaces == true,
             )
         }
     }

@@ -79,6 +79,8 @@ fun Ambient(
     clockFormat: ClockFormat,
     visible: Boolean,
     info: AmbientInfo = AmbientInfo.All,
+    /** Show where the camera is (for clips that have captions) instead of the scenery. */
+    showPlaces: Boolean = false,
 ) {
     val alpha by animateFloatAsState(
         if (visible) 1f else 0f,
@@ -106,7 +108,7 @@ fun Ambient(
                 clip?.takeIf { all }?.let {
                     Text(it.title, style = style(22, 500), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        sceneryLabel(it.kind),
+                        (if (showPlaces) placeNow(it) else null) ?: sceneryLabel(it.kind),
                         style = style(15, 400, 0.02).copy(color = Faint), maxLines = 1,
                     )
                     Spacer(Modifier.height(6.dp))
@@ -125,6 +127,20 @@ fun Ambient(
                 }
         }
     }
+}
+
+/** The clip's current place caption, following the time since it started. */
+@Composable
+private fun placeNow(clip: Aerial): String? {
+    if (clip.places.isEmpty()) return null
+    val caption by produceState(clip.placeAt(0), clip) {
+        val start = System.currentTimeMillis()
+        while (true) {
+            delay(1_000)
+            value = clip.placeAt(((System.currentTimeMillis() - start) / 1000).toInt())
+        }
+    }
+    return caption
 }
 
 @Composable

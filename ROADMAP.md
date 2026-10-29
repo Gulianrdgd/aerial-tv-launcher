@@ -36,7 +36,7 @@ Two rules hold for all of it:
 ## The aerials
 
 - [x] **4K and HDR clips.** Play Apple's 4K HDR versions on TVs that support them. Choices: 1080p, 4K, 4K HDR, or automatic.
-- [ ] **"Where is this?"** A button during the screensaver shows where the clip was filmed on a small map, with a sentence about the place. Choices: on press only, or shown with every clip.
+- [x] **"Where is this?"** The screensaver names the place on screen, using Apple's own captions, which change as the clip moves (114 clips). Apple publishes no coordinates, so there's no map. Choices: on or off.
 - [ ] **Your own photos and videos.** Play from a USB stick or a network folder as well as, or instead of, the aerials. Choices: source folder, mix with aerials or replace them, time per photo.
 - [ ] **Burn-in protection.** Move the screensaver's clock and title slightly every few minutes. Choices: off, on, or automatic on OLED panels.
 
