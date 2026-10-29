@@ -1,5 +1,6 @@
 package nl.julian.aerial.data
 
+import nl.julian.aerial.theme.Reveal
 import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.datastore.preferences.core.edit
@@ -111,6 +112,7 @@ data class LauncherConfig(
     val glass: Glass = Glass.Tinted,
     val launchAnimation: LaunchAnimation = LaunchAnimation.Off,
     val tileDepth: TileDepth = TileDepth.Off,
+    val reveal: Reveal = Reveal.Rise,
     val focusColor: FocusColor = FocusColor.White,
     /** Top bar: show the weather tile. */
     val barShowsWeather: Boolean = true,

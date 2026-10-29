@@ -61,7 +61,7 @@ Two rules hold for all of it:
 - [x] **Opening animation.** When an app opens, its tile grows to fill the screen first. Choices: on or off, speed.
 - [x] **Tile depth on focus.** Focused tiles tilt slightly toward the direction of movement and catch a soft highlight. Choices: off, subtle, strong.
 - [x] **Glow in the app's colour.** A tile's focus glow takes its colour from the app's banner. Choices: app colour, aerial colour, white.
-- [ ] **Panels slide in.** On wake, the panels come in one after another. Choices: slide, fade (today), none.
+- [x] **Panels slide in.** On wake, the panels come in one after another. Choices: rise and fade (today), slide in from the side, appear at once.
 - [ ] **Clock faces.** Besides the colour pills: a large thin clock, an analog face and a word clock. Choices: face per place (top bar, screensaver).
 - [ ] **Seasonal touches.** Snow in December, a frame on New Year's Eve. Choices: each one separately.
 - [ ] **Focus sounds.** Quiet sounds when moving focus or opening an app. Choices: off, soft, volume.

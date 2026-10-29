@@ -217,6 +217,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
         Section("Home screen")
         MenuRow(
+            Symbols.Tune, "Panels appear", value = config.reveal.label,
+            onClick = { update { it.copy(reveal = it.reveal.next()) } },
+        )
+        MenuRow(
             Symbols.Tune, "Tile depth", value = config.tileDepth.label,
             onClick = { update { it.copy(tileDepth = it.tileDepth.next()) } },
         )

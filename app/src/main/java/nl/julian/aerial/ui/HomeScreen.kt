@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.theme.LocalReveal
 import kotlinx.coroutines.delay
 import nl.julian.aerial.data.LaunchAnimation
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -170,7 +171,7 @@ fun HomeScreen(
                 Scrim()
                 val a = apps
                 val c = config
-                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }) {
+                if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal) {
                     HomeContent(a, c, store, homeTick, revealTick, clipMenuTick, inputsTick, clip, media, weather, onStartScreensaver, onPictureOff)
                 }
             }
