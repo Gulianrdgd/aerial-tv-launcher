@@ -1,5 +1,6 @@
 package nl.julian.aerial.data
 
+import android.os.Build
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.delay
@@ -72,3 +73,26 @@ fun lowStorageFlow(context: Context): Flow<Boolean> = flow {
         delay(600_000)
     }
 }.distinctUntilChanged().flowOn(Dispatchers.IO)
+
+/** Wi-Fi signal as 1 to 4 bars, or null when not on Wi-Fi or the TV doesn't report it (needs Android 10). */
+fun wifiBarsFlow(context: Context): Flow<Int?> = callbackFlow {
+    val cm = context.getSystemService(ConnectivityManager::class.java)
+    fun bars(caps: NetworkCapabilities?): Int? {
+        if (Build.VERSION.SDK_INT < 29 || caps == null || !caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return null
+        val rssi = caps.signalStrength
+        if (rssi == NetworkCapabilities.SIGNAL_STRENGTH_UNSPECIFIED) return null
+        return when {
+            rssi >= -55 -> 4
+            rssi >= -67 -> 3
+            rssi >= -78 -> 2
+            else -> 1
+        }
+    }
+    val callback = object : ConnectivityManager.NetworkCallback() {
+        override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) { trySend(bars(caps)) }
+        override fun onLost(network: Network) { trySend(null) }
+    }
+    trySend(bars(cm.getNetworkCapabilities(cm.activeNetwork)))
+    cm.registerDefaultNetworkCallback(callback)
+    awaitClose { cm.unregisterNetworkCallback(callback) }
+}.distinctUntilChanged()

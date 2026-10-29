@@ -48,7 +48,7 @@ Two rules hold for all of it:
 - [x] **Night mode.** Dim the panels and the video in the evening. Choices: after sunset or 22:00 to 07:00, how much to dim (20, 40 or 60%).
 - [x] **Recently used.** Order All apps by how often they're opened, or add a Recent row. Choices: your order or most used first; Recent row on or off.
 - [x] **Sleep timer and picture off.** Quick settings to put the TV to standby after 30, 60 or 90 minutes (through the Remote buttons accessibility service, the only way an app can), and to black out the picture while sound keeps playing.
-- [x] **Status icons.** Small icons next to the date for the network (Wi-Fi, Ethernet or offline), Bluetooth, and a warning when storage is almost full. Choices: each icon separately. Wi-Fi signal strength is still to do.
+- [x] **Status icons.** Small icons next to the date for the network (Wi-Fi, Ethernet or offline), Bluetooth, and a warning when storage is almost full. Wi-Fi shows its signal in bars (Android 10 and newer). Choices: each icon separately.
 
 ## Settings and upkeep
 

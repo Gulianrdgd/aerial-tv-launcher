@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.widgets
 
+import nl.julian.aerial.data.wifiBarsFlow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import nl.julian.aerial.data.ClockFace
@@ -200,13 +201,18 @@ private fun StatusRow(show: StatusIcons) {
     val net by remember { networkFlow(app) }.collectAsStateWithLifecycle(NetKind.Other)
     val bt by remember { bluetoothOnFlow(app) }.collectAsStateWithLifecycle(null)
     val low by remember { lowStorageFlow(app) }.collectAsStateWithLifecycle(false)
+    val bars by remember { wifiBarsFlow(app) }.collectAsStateWithLifecycle(null)
     val tint = MaterialTheme.colorScheme.onSurfaceVariant
     val icon: @Composable (Int, String, Color) -> Unit = { res, label, color ->
         Icon(painterResource(res), contentDescription = label, tint = color, modifier = Modifier.size(16.dp))
     }
     if (show.network) when (net) {
         NetKind.Ethernet -> icon(Symbols.Ethernet, "Ethernet", tint)
-        NetKind.WiFi, NetKind.Other -> icon(Symbols.Wifi, "Wi-Fi", tint)
+        NetKind.WiFi -> icon(
+            when (bars) { 1 -> Symbols.Wifi1; 2 -> Symbols.Wifi2; 3 -> Symbols.Wifi3; else -> Symbols.Wifi },
+            bars?.let { "Wi-Fi, $it of 4 bars" } ?: "Wi-Fi", tint,
+        )
+        NetKind.Other -> icon(Symbols.Wifi, "Network", tint)
         NetKind.None -> icon(Symbols.Offline, "Offline", MaterialTheme.colorScheme.error)
     }
     if (show.bluetooth && bt == true) icon(Symbols.Bluetooth, "Bluetooth on", tint)

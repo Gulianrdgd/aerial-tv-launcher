@@ -12,6 +12,9 @@ object Symbols {
     val Ethernet = R.drawable.ms_lan
     val Wifi = R.drawable.ms_wifi
     val Offline = R.drawable.ms_wifi_off
+    val Wifi1 = R.drawable.ms_network_wifi_1_bar
+    val Wifi2 = R.drawable.ms_network_wifi_2_bar
+    val Wifi3 = R.drawable.ms_network_wifi_3_bar
     val Bluetooth = R.drawable.ms_bluetooth
     val BluetoothOff = R.drawable.ms_bluetooth_disabled
     val Move = R.drawable.ms_open_with
