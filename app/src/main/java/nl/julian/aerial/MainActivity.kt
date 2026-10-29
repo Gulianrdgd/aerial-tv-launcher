@@ -1,5 +1,6 @@
 package nl.julian.aerial
 
+import android.app.ActivityManager
 import nl.julian.aerial.data.AppRepository
 import kotlinx.coroutines.flow.first
 import android.content.IntentFilter
@@ -68,6 +69,9 @@ class MainActivity : ComponentActivity() {
             ConfigStore.get(this@MainActivity).config.collect {
                 idleAfterMs = it.idleMinutes * 60_000L
                 soundVolume = it.focusSounds.volume
+                getSystemService(ActivityManager::class.java)?.appTasks?.forEach { task ->
+                    runCatching { task.setExcludeFromRecents(it.hideFromRecents) }
+                }
             }
         }
         lifecycleScope.launch {

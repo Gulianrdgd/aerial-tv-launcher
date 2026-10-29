@@ -153,6 +153,8 @@ data class LauncherConfig(
     val updateCheck: Boolean = true,
     /** Warn on the home screen when Aerial is no longer the default Home app. */
     val homeWarning: Boolean = true,
+    /** Keep Aerial out of the recent apps screen. */
+    val hideFromRecents: Boolean = false,
     /** Font size multiplier, in percent. */
     val textSize: Int = 100,
     val highContrast: Boolean = false,

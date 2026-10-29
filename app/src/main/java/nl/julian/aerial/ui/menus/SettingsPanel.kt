@@ -460,6 +460,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
         val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
         MenuRow(
+            Symbols.Hide, "Hide from recent apps", value = if (config.hideFromRecents) "On" else "Off",
+            onClick = { update { it.copy(hideFromRecents = !it.hideFromRecents) } },
+        )
+        MenuRow(
             Symbols.Home, "Warn when Aerial isn't Home", value = if (config.homeWarning) "On" else "Off",
             onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
         )
