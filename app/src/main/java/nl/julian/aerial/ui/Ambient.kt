@@ -41,6 +41,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
+import nl.julian.aerial.data.AmbientInfo
 import nl.julian.aerial.data.ClockFormat
 import nl.julian.aerial.data.NowPlaying
 import nl.julian.aerial.data.Weather
@@ -77,30 +78,32 @@ fun Ambient(
     media: NowPlaying?,
     clockFormat: ClockFormat,
     visible: Boolean,
+    info: AmbientInfo = AmbientInfo.All,
 ) {
     val alpha by animateFloatAsState(
         if (visible) 1f else 0f,
         tween(durationMillis = if (visible) 1400 else 300, delayMillis = if (visible) 900 else 0, easing = FluidEasing),
         label = "ambient",
     )
-    if (alpha == 0f) return
+    if (alpha == 0f || info == AmbientInfo.None) return
+    val all = info == AmbientInfo.All
 
     Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) {
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
-                    0f to Color.Black.copy(alpha = if (media != null) 0.3f else 0f),
+                    0f to Color.Black.copy(alpha = if (media != null && all) 0.3f else 0f),
                     0.2f to Color.Transparent,
                     0.7f to Color.Transparent,
                     1f to Color.Black.copy(alpha = 0.4f),
                 )
             )
         )
-        media?.let {
+        media?.takeIf { all }?.let {
             Box(Modifier.align(Alignment.TopEnd).padding(horizontal = 48.dp, vertical = 28.dp)) { AmbientMedia(it) }
         }
         Column(Modifier.align(Alignment.BottomStart).padding(horizontal = 56.dp, vertical = 28.dp)) {
-                clip?.let {
+                clip?.takeIf { all }?.let {
                     Text(it.title, style = style(22, 500), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
                         sceneryLabel(it.kind),
@@ -110,7 +113,7 @@ fun Ambient(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AmbientClock(clockFormat)
-                    weather?.let {
+                    weather?.takeIf { all }?.let {
                         Spacer(Modifier.width(20.dp))
                         Icon(
                             painterResource(skyIcon(it)), contentDescription = it.sky.name,
