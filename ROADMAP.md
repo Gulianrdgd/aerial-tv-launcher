@@ -4,6 +4,22 @@ Ideas for future versions, roughly in order of priority. Nothing here is promise
 
 Every feature on this list is a setting. Each one can be switched on or off, and the defaults keep the home screen as it is today. Where a feature has choices, they're listed with it.
 
+Two rules hold for all of it:
+
+- **Free, with nothing locked.** No paid tier, no licence check and no dependency on the Play Store, so features never disappear after a sideload or an update.
+- **Simple first.** The main settings stay short. Everything else goes under "More options", with a few ready-made looks to start from.
+
+## From users of other launchers
+
+- [ ] **Notice when Aerial isn't Home any more.** Firmware updates and reboots often hand Home back to the stock launcher. Aerial detects it and shows how to fix it, with the adb command for TVs that need it.
+- [ ] **Explain an empty Continue Watching row.** Say that apps have to support the row, and list which installed apps do. Choices: which apps may appear in the row.
+- [ ] **Start with an app or input.** Open a chosen app or HDMI input when the TV turns on. Choices: home, an app, an input.
+- [ ] **Time limits.** Limit inputs and apps to certain hours, as part of the kids profile. Choices: per app or input, hours, PIN to override.
+- [ ] **Plex and Jellyfin row.** Show recent and unwatched items from your own media server. Choices: server, libraries, row position.
+- [ ] **Background add-ons.** Other sources for the background, such as Unsplash, a folder of photos or a webcam stream. Choices: source, how often it changes.
+- [ ] **Text and tile size.** Separate sliders for text size and tile size.
+- [ ] **Hidden from recent apps.** Keep Aerial out of the recent apps screen. Choices: on or off.
+
 ## Everyday use
 
 - [ ] **Day and night aerials.** Tag each clip as day or night, the same way clips are tagged by scenery, and play day clips during the day and night clips after sunset. Choices: follow the sun, day only, night only, any time.
