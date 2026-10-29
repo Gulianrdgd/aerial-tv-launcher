@@ -191,6 +191,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { layout = true },
         )
         MenuRow(
+            Symbols.Tune, "Tile size", value = when (config.tilesPerRow) { 4 -> "Large, 4 per row"; 5 -> "Medium, 5 per row"; else -> "Normal, 6 per row" },
+            onClick = { update { it.copy(tilesPerRow = if (it.tilesPerRow <= 4) 6 else it.tilesPerRow - 1) } },
+        )
+        MenuRow(
             Symbols.Tune, "Tile style",
             value = if (config.tintedTiles) "Tinted to the aerial" else "App banners",
             onClick = { update { it.copy(tintedTiles = !it.tintedTiles) } },

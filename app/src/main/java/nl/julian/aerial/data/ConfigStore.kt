@@ -169,6 +169,8 @@ data class LauncherConfig(
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
     val tintedTiles: Boolean = false,
+    /** Tiles per row in the dock and the app rows: fewer means bigger tiles. */
+    val tilesPerRow: Int = COLUMNS,
     val glass: Glass = Glass.Tinted,
     val themeSource: ThemeSource = ThemeSource.Aerial,
     /** With [ThemeSource.Fixed]: one of [THEME_COLORS]. */

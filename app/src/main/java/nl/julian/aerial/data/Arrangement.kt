@@ -22,9 +22,9 @@ data class HomeApps(val dock: List<AppEntry>, val grid: List<AppEntry>)
 fun arrange(apps: List<AppEntry>, config: LauncherConfig): HomeApps {
     val visible = apps.filter { it.pkg !in config.hidden }
     val byPkg = visible.associateBy { it.pkg }
-    val dock = config.dock?.mapNotNull { byPkg[it] }?.take(COLUMNS) ?: run {
+    val dock = config.dock?.mapNotNull { byPkg[it] }?.take(config.tilesPerRow) ?: run {
         val preferred = DEFAULT_DOCK.mapNotNull { byPkg[it] }
-        (preferred + visible.filter { it !in preferred }).take(COLUMNS)
+        (preferred + visible.filter { it !in preferred }).take(config.tilesPerRow)
     }
     val rank = config.order.withIndex().associate { (i, pkg) -> pkg to i }
     // Manually ordered apps first, in their order; the rest stay alphabetical (scan order).
@@ -46,5 +46,5 @@ fun moved(list: List<String>, pkg: String, delta: Int): List<String> {
 }
 
 /** Pins [pkg] to the end of the dock; a full dock drops its last app back to the grid. */
-fun pinned(dock: List<String>, pkg: String): List<String> =
-    if (pkg in dock) dock else (if (dock.size >= COLUMNS) dock.dropLast(1) else dock) + pkg
+fun pinned(dock: List<String>, pkg: String, max: Int = COLUMNS): List<String> =
+    if (pkg in dock) dock else (if (dock.size >= max) dock.dropLast(1) else dock) + pkg

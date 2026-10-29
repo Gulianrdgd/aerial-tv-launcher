@@ -299,7 +299,8 @@ private fun HomeContent(
         named.filter { it.pkg !in inFolders } + config.folders.map { it.entry(app) } + inputs.filter { config.dock.orEmpty().contains(it.dockKey) }.map { it.dockEntry(app) }
     }
     val home = remember(withInputs, config) { arrange(withInputs, config) }
-    val gridRows = remember(home) { home.grid.chunked(COLUMNS) }
+    val perRow = config.tilesPerRow
+    val gridRows = remember(home, perRow) { home.grid.chunked(perRow) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
     /** Where each tile is on screen, for the opening animation. Not state: nothing redraws when it changes. */
     val tileBounds = remember { mutableMapOf<String, Rect>() }
@@ -334,7 +335,7 @@ private fun HomeContent(
         when (action) {
             AppAction.Open -> launch(app)
             AppAction.Move -> moving = pkg
-            AppAction.Pin -> update { cfg -> cfg.copy(dock = pinned(arrange(withInputs, cfg).dock.map { it.pkg }, pkg)) }
+            AppAction.Pin -> update { cfg -> cfg.copy(dock = pinned(arrange(withInputs, cfg).dock.map { it.pkg }, pkg, cfg.tilesPerRow)) }
             AppAction.Unpin -> {
                 refocusDock = true
                 update { cfg -> cfg.copy(dock = arrange(withInputs, cfg).dock.map { it.pkg } - pkg) }
@@ -403,7 +404,7 @@ private fun HomeContent(
             modifier = modifier
                 .onGloballyPositioned { tileBounds[app.pkg] = it.boundsInRoot() }
                 .focusRequester(requester(app.pkg))
-                .then(if (isMoving) Modifier.moveKeys(inDock, onMove = { move(app.pkg, it) }, onDone = { moving = null }) else Modifier),
+                .then(if (isMoving) Modifier.moveKeys(inDock, perRow, onMove = { move(app.pkg, it) }, onDone = { moving = null }) else Modifier),
         )
     }
 
@@ -456,7 +457,7 @@ private fun HomeContent(
         config.sectionsAt(hour).forEachIndexed { index, section -> when (section) {
         HomeSection.Dock -> item(key = "dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
-                TileRow(home.dock, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
+                TileRow(home.dock, perRow, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
             }
         }
         HomeSection.WatchNext -> item(key = "watch-next") {
@@ -469,10 +470,10 @@ private fun HomeContent(
         HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }
             val recent = config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }
-                .mapNotNull { byPkg[it] }.take(COLUMNS)
+                .mapNotNull { byPkg[it] }.take(perRow)
             if (recent.isNotEmpty()) item(key = "recent") {
                 SectionPanel(Modifier.reveal(index + 1, revealTick), title = "Recent") {
-                    TileRow(recent) { app, m ->
+                    TileRow(recent, perRow) { app, m ->
                         AppTile(
                             app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
                             onLongPress = { menuFor = app }, moving = false,
@@ -487,7 +488,7 @@ private fun HomeContent(
             item(key = "apps") {
                 SectionPanel(Modifier.reveal(index + 1, revealTick), title = "All apps") {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        gridRows.forEach { row -> TileRow(row, restoreFocus = false) { app, m -> tile(app, m, false) } }
+                        gridRows.forEach { row -> TileRow(row, perRow, restoreFocus = false) { app, m -> tile(app, m, false) } }
                     }
                 }
             }
@@ -622,7 +623,7 @@ private fun HomeContent(
         onTogglePin = { input ->
             update { cfg ->
                 val dock = arrange(withInputs, cfg).dock.map { it.pkg }
-                cfg.copy(dock = if (input.dockKey in dock) dock - input.dockKey else pinned(dock, input.dockKey))
+                cfg.copy(dock = if (input.dockKey in dock) dock - input.dockKey else pinned(dock, input.dockKey, cfg.tilesPerRow))
             }
         },
         onDismiss = { inputsOpen = false },
@@ -660,13 +661,13 @@ private fun rememberMinimalScroll(margin: Dp): BringIntoViewSpec {
  * While a tile is being moved the D-pad moves it instead of focus: left/right
  * by one, up/down by a row (grid only). OK or Back drops it.
  */
-private fun Modifier.moveKeys(inDock: Boolean, onMove: (Int) -> Unit, onDone: () -> Unit) =
+private fun Modifier.moveKeys(inDock: Boolean, columns: Int, onMove: (Int) -> Unit, onDone: () -> Unit) =
     onPreviewKeyEvent { e ->
         val delta = when (e.key) {
             Key.DirectionLeft -> -1
             Key.DirectionRight -> 1
-            Key.DirectionUp -> if (inDock) 0 else -COLUMNS
-            Key.DirectionDown -> if (inDock) 0 else COLUMNS
+            Key.DirectionUp -> if (inDock) 0 else -columns
+            Key.DirectionDown -> if (inDock) 0 else columns
             Key.DirectionCenter, Key.Enter, Key.NumPadEnter, Key.Back -> {
                 if (e.type == KeyEventType.KeyDown) onDone()
                 return@onPreviewKeyEvent true
@@ -680,6 +681,7 @@ private fun Modifier.moveKeys(inDock: Boolean, onMove: (Int) -> Unit, onDone: ()
 @Composable
 private fun TileRow(
     apps: List<AppEntry>,
+    columns: Int,
     modifier: Modifier = Modifier,
     firstFocus: FocusRequester? = null,
     /** Right on the last tile jumps back to the first (needs [firstFocus]). */
@@ -711,7 +713,7 @@ private fun TileRow(
                 tile(app, m.weight(1f))
             }
         }
-        repeat(COLUMNS - apps.size) { EmptyTileSlot(Modifier.weight(1f)) }
+        repeat(columns - apps.size) { EmptyTileSlot(Modifier.weight(1f)) }
     }
 }
 
