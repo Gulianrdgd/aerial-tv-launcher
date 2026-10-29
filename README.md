@@ -54,38 +54,62 @@ Weather comes from Open-Meteo, which needs no account. Aerial guesses your city 
 
 ## Install
 
-Aerial needs a TV with Android TV or Google TV, version 8.0 or newer. It isn't in an app store yet, so you install the APK yourself. Pick whichever of these suits you.
+Aerial installs as a normal APK, but two things need a one-time adb command from a computer: notification access, for Now Playing and the notifications panel, and on some TVs switching off the stock launcher so the Home button opens Aerial. That makes adb the best way to install it. If you have no computer, see [Without a computer](#without-a-computer).
 
-**With the Downloader app, no computer needed**
+### With adb (recommended)
 
-1. Install Downloader (free, from AFTVnews) from the Play Store on your TV.
-2. Open it and enter `github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk`. The link always gives the newest version.
-3. When the TV asks, let Downloader install apps from unknown sources, then choose Install.
+1. On the TV, open Settings, then System (or Device Preferences), then About, and select the build number seven times. Developer options now appear in Settings. Turn on USB debugging there. On Android 11 and newer some TVs call it Wireless debugging and want you to pair first with `adb pair <ip>:<port>`.
+2. With your computer on the same network as the TV, connect and accept the prompt on the TV:
 
-**With a USB stick**
+   ```sh
+   adb connect <your TV's IP address>
+   ```
 
-Download [aerial.apk](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk) on a computer and copy it to the stick. Plug it into the TV and open the file with a file manager app (X-plore or File Commander, for example). Allow the file manager to install apps when asked.
+3. Download and install Aerial:
 
-**With adb**
+   ```sh
+   curl -L -o aerial.apk https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk
+   adb install -r aerial.apk
+   ```
 
-```sh
-adb connect <your TV's IP address>
-adb install -r aerial.apk
-```
+4. Let Aerial show what's playing and your notifications (see [Permissions](#permissions)):
 
-Updating works the same way: install the new APK over the old one and your settings stay.
+   ```sh
+   adb shell cmd notification allow_listener nl.julian.aerial/nl.julian.aerial.media.LauncherListenerService
+   ```
+
+To update, run the two commands in step 3 again. Your settings stay.
 
 ### Make it your home screen
 
 The first time you open Aerial, a short setup walks you through this. On most TVs it opens the TV's own setting, where you choose Aerial as the Home app.
 
-Some TVs, Philips among them, keep opening the stock launcher when you press Home. In that case, switch the stock launcher off for your user over adb:
+Some TVs, Philips among them, keep opening the stock launcher when you press Home. Switch it off for your user over adb, after Aerial is installed so the TV always has a home screen:
 
 ```sh
 adb shell pm disable-user --user 0 com.google.android.tvlauncher
 ```
 
 `adb shell pm enable com.google.android.tvlauncher` brings it back.
+
+### Without a computer
+
+You can install Aerial on the TV itself. Now Playing and notifications stay off until you run the adb command from step 4 some day, and on some TVs the Home button keeps opening the stock launcher.
+
+- **Downloader app:** install Downloader (free, from AFTVnews) from the Play Store on your TV, open it and enter `github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk`. When the TV asks, let Downloader install apps from unknown sources, then choose Install.
+- **USB stick:** download [aerial.apk](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk) on a computer and copy it to the stick. Plug it into the TV and open the file with a file manager app such as X-plore or File Commander. Allow the file manager to install apps when asked.
+
+### Clean up your TV (optional)
+
+Many TVs ship with ad services, telemetry and preinstalled apps you may not want. [CleanYourTV](https://github.com/Gathin23/cleanyourtv) (MIT licence) disables them over adb from a computer with `pm disable-user`, so nothing is uninstalled and its restore script can undo the changes. Its `examples/` folder holds debloat lists that people tested on specific TV models.
+
+Before you use it, or any similar tool:
+
+- It also installs its own home screen and makes it the default, so choose Aerial again afterwards under Default home app.
+- Install Aerial before disabling the stock launcher, so the TV always has a home screen.
+- Disabling a package the TV depends on can cause problems. Apply lists in small batches and keep the restore script at hand.
+- A firmware update can bring removed packages back and reset the Home app.
+- CleanYourTV lists Samsung, LG, Roku, Vizio and Hisense VIDAA TVs as unsupported, because they don't offer adb access.
 
 ## Permissions
 
