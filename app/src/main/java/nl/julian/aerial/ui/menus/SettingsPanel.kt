@@ -34,14 +34,17 @@ import kotlinx.coroutines.launch
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.data.LauncherConfig
 import nl.julian.aerial.data.NowPlayingRepository
+import nl.julian.aerial.data.OwnMedia
 import nl.julian.aerial.data.RemoteButtons
 import nl.julian.aerial.data.WatchNextRepository
 import nl.julian.aerial.remote.RemoteButtonsService
+import nl.julian.aerial.wallpaper.LocalMedia
 import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
 private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
+private val PHOTO_STEPS = listOf(10, 15, 30, 60)
 
 /** Launcher settings, in the right-hand side panel. */
 @Composable
@@ -55,6 +58,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
     val askWatchNext = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         watchNextAccess = it
+    }
+    var mediaAccess by remember { mutableStateOf(LocalMedia.hasAccess(context)) }
+    val askMedia = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        mediaAccess = it.values.all { granted -> granted }
     }
     val nowPlayingAccess = remember { NowPlayingRepository.hasAccess(context) }
 
@@ -71,6 +78,32 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             Symbols.Moon, "Day and night", value = config.aerialTime.label,
             onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } },
         )
+        MenuRow(
+            Symbols.Disc, "Your photos and videos",
+            value = when {
+                config.ownMedia == OwnMedia.Off -> "Off · from a USB stick or SD card"
+                !mediaAccess -> "${config.ownMedia.label} · select to allow access"
+                else -> config.ownMedia.label
+            },
+            onClick = {
+                if (config.ownMedia != OwnMedia.Off && !mediaAccess) askMedia.launch(LocalMedia.permissions)
+                else {
+                    update { it.copy(ownMedia = it.ownMedia.next()) }
+                    if (!mediaAccess) askMedia.launch(LocalMedia.permissions)
+                }
+            },
+        )
+        if (config.ownMedia != OwnMedia.Off) {
+            MenuRow(
+                Symbols.Timer, "Each photo", value = "${config.photoSeconds} seconds",
+                onClick = {
+                    update {
+                        val i = PHOTO_STEPS.indexOf(it.photoSeconds)
+                        it.copy(photoSeconds = PHOTO_STEPS[(i + 1) % PHOTO_STEPS.size])
+                    }
+                },
+            )
+        }
         MenuRow(
             Symbols.Location, "Where is this?",
             value = if (config.showPlaces) "Screensaver names the place on screen" else "Off · shows the scenery",

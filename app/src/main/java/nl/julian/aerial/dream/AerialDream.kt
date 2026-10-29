@@ -22,10 +22,8 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.flow.emptyFlow
 import nl.julian.aerial.data.ConfigStore
-import nl.julian.aerial.data.FavouriteMode
 import nl.julian.aerial.data.NowPlayingRepository
 import nl.julian.aerial.data.WeatherRepository
-import nl.julian.aerial.data.aerialTimeTag
 import nl.julian.aerial.theme.AerialTheme
 import nl.julian.aerial.ui.Ambient
 import nl.julian.aerial.wallpaper.Aerial
@@ -91,12 +89,8 @@ private fun DreamScreen() {
     val cfg = config ?: return
     Box(Modifier.fillMaxSize()) {
         AerialBackground(
-            kind = cfg.scenery.kind,
-            time = cfg.aerialTimeTag(weather?.isDay),
-            skipped = cfg.skipped,
-            favourites = if (cfg.favouriteMode == FavouriteMode.Normal) emptySet() else cfg.favourites,
-            onlyFavourites = cfg.favouriteMode == FavouriteMode.Only,
-            quality = cfg.videoQuality,
+            config = cfg,
+            isDay = weather?.isDay,
             onSeed = { seed = it },
             onClip = { clip = it },
         )

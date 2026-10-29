@@ -26,6 +26,9 @@ enum class AerialTime(val label: String) { Any("Any time"), Sun("Follow the sun"
 /** Which version of Apple's clips plays. [Auto] picks the best one the TV can show. */
 enum class VideoQuality(val label: String) { HD("1080p"), UHD("4K"), Hdr("4K HDR"), Auto("Best this TV can show") }
 
+/** Photos and videos from a USB stick or SD card, besides or instead of the aerials. */
+enum class OwnMedia(val label: String) { Off("Off"), Mix("Mixed with the aerials"), Only("Instead of the aerials") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -59,6 +62,9 @@ data class LauncherConfig(
     val showPlaces: Boolean = false,
     /** Screensaver: move the text a little every few minutes, so it can't burn into an OLED panel. */
     val shiftText: Boolean = false,
+    val ownMedia: OwnMedia = OwnMedia.Off,
+    /** How long each of your own photos stays on screen. */
+    val photoSeconds: Int = 15,
     val remoteButtons: RemoteButtons = RemoteButtons.Off,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,

@@ -55,8 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.julian.aerial.data.AmbientInfo
 import nl.julian.aerial.data.AppEntry
-import nl.julian.aerial.data.FavouriteMode
-import nl.julian.aerial.data.aerialTimeTag
 import nl.julian.aerial.data.AppRepository
 import nl.julian.aerial.data.COLUMNS
 import nl.julian.aerial.data.ClockFormat
@@ -135,12 +133,8 @@ fun HomeScreen(homeTick: Int, idle: Boolean, clipMenuTick: Int, inputsTick: Int,
         // Wait for the saved settings, or the first clip ignores the chosen scenery.
         config?.let { cfg ->
         AerialBackground(
-            kind = cfg.scenery.kind,
-            time = cfg.aerialTimeTag(weather?.isDay),
-            skipped = cfg.skipped,
-            favourites = if (cfg.favouriteMode == FavouriteMode.Normal) emptySet() else cfg.favourites,
-            onlyFavourites = cfg.favouriteMode == FavouriteMode.Only,
-            quality = cfg.videoQuality,
+            config = cfg,
+            isDay = weather?.isDay,
             onSeed = { seed = it },
             onClip = { clip = it },
         )

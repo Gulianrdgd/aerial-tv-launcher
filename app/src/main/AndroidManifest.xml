@@ -22,6 +22,12 @@
     <uses-permission android:name="com.android.providers.tv.permission.READ_WRITE_WATCH_NEXT_PROGRAMS" />
     <!-- Shows the system uninstall dialog -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <!-- Optional: your own photos and videos from a USB stick (Settings > Aerials) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
         android:allowBackup="true"

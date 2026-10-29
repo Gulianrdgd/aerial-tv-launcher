@@ -19,6 +19,10 @@ data class Aerial(
     val uriHdr: String = "",
     /** Apple's captions for where the camera is: seconds into the clip to caption, in order. */
     val places: List<Pair<Int, String>> = emptyList(),
+    /** One of your own photos (a still image), not a video. */
+    val photo: Boolean = false,
+    /** From the TV's own storage (a content:// URI): played directly, not cached. */
+    val local: Boolean = false,
 ) {
     /** The caption for [seconds] into the clip, if the clip has any. */
     fun placeAt(seconds: Int): String? = places.lastOrNull { it.first <= seconds }?.second
