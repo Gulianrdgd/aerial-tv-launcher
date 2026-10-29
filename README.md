@@ -10,6 +10,8 @@
 
 Aerial is a custom launcher (home screen replacement) for Android TV and Google TV. Slow aerial video plays behind everything, the way it does on an Apple TV, and the panels on top follow Material You: their colours are picked from whatever clip is on screen. It has no ads and no sponsored rows.
 
+Aerial is free forever. I use it on my own TV, and I'm not going to pay myself for it.
+
 [Download the latest APK](https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest) and sideload it with adb (see [Install](#install)).
 
 ![Aerial Android TV launcher home screen with an aerial video background](docs/screenshots/home.png)
