@@ -107,7 +107,7 @@ fun CityDialog(current: String, onSave: (String) -> Unit, onDismiss: () -> Unit)
 }
 
 @Composable
-private fun DialogButton(label: String, primary: Boolean, onClick: () -> Unit) {
+internal fun DialogButton(label: String, primary: Boolean, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,

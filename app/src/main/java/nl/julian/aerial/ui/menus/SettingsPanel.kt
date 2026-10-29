@@ -57,6 +57,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     val nowPlayingAccess = remember { NowPlayingRepository.hasAccess(context) }
 
     var cityDialog by remember { mutableStateOf(false) }
+    var accessDialog by remember { mutableStateOf(false) }
 
     SidePanel("Settings", onDismiss, initialFocus = first) {
         Section("Aerials")
@@ -153,8 +154,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
         MenuRow(
             Symbols.Music, "Now Playing & notifications",
-            value = if (nowPlayingAccess) "On" else "Off · grant with adb (see README)",
-            onClick = {},
+            value = if (nowPlayingAccess) "On" else "Off · select to see how to turn it on",
+            onClick = { if (!nowPlayingAccess) accessDialog = true },
         )
 
         Section("System")
@@ -169,6 +170,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
     }
 
+    if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
     if (cityDialog) {
         CityDialog(
             current = config.weatherCity,

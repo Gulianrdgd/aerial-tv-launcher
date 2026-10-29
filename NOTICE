@@ -16,3 +16,6 @@ trademark of Google LLC; the font is included unmodified.
 Icons: Material Symbols Rounded (app/src/main/res/drawable/ms_*.xml),
 Copyright Google LLC, Apache License 2.0
 (https://github.com/google/material-design-icons).
+
+QR codes: ZXing core (com.google.zxing:core), Apache License 2.0
+(https://github.com/zxing/zxing).
