@@ -6,8 +6,6 @@ import androidx.compose.ui.draw.blur
 import android.os.Build
 import androidx.compose.foundation.layout.Spacer
 import nl.julian.aerial.ui.FocusStyle
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Shadow
 import nl.julian.aerial.data.TopBarStyle
 import androidx.compose.ui.unit.Dp
 import nl.julian.aerial.data.TopTile
@@ -436,9 +434,6 @@ internal fun android.content.Context.startSafely(intent: Intent) {
     runCatching { startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
 
-/** Text straight on the aerial: white, with a soft shadow so it reads on bright clips too. */
-private val OnAerial = Shadow(Color.Black.copy(alpha = 0.5f), Offset(0f, 2f), blurRadius = 16f)
-
 /**
  * The default top bar: no panel. A large, bold clock sits on the aerial
  * with the date, weather and (optionally) the clip's name on one line under
@@ -472,10 +467,7 @@ private fun EditorialBar(
         Column(Modifier.weight(1f)) {
             when (clockFace) {
                 ClockFace.Analog -> AnalogClock(now, 84.dp, white, MaterialTheme.colorScheme.primary, soft)
-                ClockFace.Words -> Text(
-                    timeInWords(now), color = white,
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300), shadow = OnAerial),
-                )
+                ClockFace.Words -> GlowText(timeInWords(now), MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300)))
                 else -> GlowText(
                     SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
                     // The classic bar's bold, rounded clock digits, at full size.
@@ -483,16 +475,16 @@ private fun EditorialBar(
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val line = MaterialTheme.typography.titleMedium.copy(shadow = OnAerial)
-                Text(SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(now), style = line, color = soft, maxLines = 1)
+                val line = MaterialTheme.typography.titleMedium
+                GlowText(SimpleDateFormat("EEEE d MMMM", Locale.getDefault()).format(now), line, soft)
                 StatusRow(status)
                 weather?.let { w ->
-                    Text("·", style = line, color = soft)
+                    GlowText("·", line, soft)
                     val content: @Composable () -> Unit = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Icon(painterResource(skyIcon(w)), w.sky.name, tint = skyTint(w), modifier = Modifier.size(22.dp))
-                            Text("${w.temperature}°", style = line, color = white)
-                            Text(w.rainOutlook, style = line, color = if (w.rainExpected) Color(0xFF9CCBFF) else soft, maxLines = 1)
+                            GlowText("${w.temperature}°", line, white)
+                            GlowText(w.rainOutlook, line, if (w.rainExpected) Color(0xFF9CCBFF) else soft)
                         }
                     }
                     // Selectable for the forecast, as the weather tile is in the classic bar.
@@ -503,8 +495,8 @@ private fun EditorialBar(
                     else content()
                 }
                 clip?.let {
-                    Text("·", style = line, color = soft)
-                    Text(it.title, style = line, color = soft, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    GlowText("·", line, soft)
+                    GlowText(it.title, line, soft)
                 }
             }
         }
@@ -517,20 +509,22 @@ private fun EditorialBar(
 }
 
 /**
- * Large white text with a soft dark glow behind it. A text shadow at this
- * size is drawn from a coarse copy of each glyph and looks blocky, so the
+ * White text on the aerial with a soft dark glow behind it. Android's text
+ * shadow is drawn from a coarse copy of each glyph and looks blocky, so the
  * glow is a second, dark copy blurred on the GPU (Android 12 and newer;
  * older TVs get the text without it).
  */
 @Composable
-private fun GlowText(text: String, style: TextStyle) {
+private fun GlowText(text: String, style: TextStyle, color: Color = Color.White) {
+    // The glow scales with the text: wide for the clock, tight for the date line.
+    val radius = if (style.fontSize.value > 40f) 14.dp else 6.dp
     Box {
         if (Build.VERSION.SDK_INT >= 31) {
             Text(
-                text, style = style, color = Color.Black.copy(alpha = 0.55f), maxLines = 1,
-                modifier = Modifier.offset(y = 2.dp).blur(14.dp, BlurredEdgeTreatment.Unbounded),
+                text, style = style, color = Color.Black.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.offset(y = 1.dp).blur(radius, BlurredEdgeTreatment.Unbounded),
             )
         }
-        Text(text, style = style, color = Color.White, maxLines = 1)
+        Text(text, style = style, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
