@@ -42,6 +42,8 @@ class MainActivity : ComponentActivity() {
     /** Bumped when the remote's Input button is sent here (see RemoteButtonsService). */
     private val inputsTick = mutableIntStateOf(0)
     private val pictureOff = mutableStateOf(false)
+    /** The screensaver shortcut opened us: start in the screensaver instead of ending it. */
+    private var screensaverOnResume = false
     @Volatile
     private var soundVolume = 0f
 
@@ -78,7 +80,9 @@ class MainActivity : ComponentActivity() {
         }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                idle.value = false
+                // Coming back ends the screensaver, unless coming back was asking for it.
+                idle.value = screensaverOnResume
+                screensaverOnResume = false
                 lastInput = SystemClock.uptimeMillis()
                 while (true) {
                     if (idleAfterMs <= 0) {
@@ -180,6 +184,8 @@ class MainActivity : ComponentActivity() {
             return
         }
         if (intent.getBooleanExtra(EXTRA_SCREENSAVER, false)) {
+            // Applied once we're resumed: resuming would otherwise end it straight away.
+            screensaverOnResume = true
             idle.value = true
             return
         }

@@ -46,6 +46,8 @@ Clips stream when they're shown and nothing is downloaded ahead. The last one or
 
 Settings open from the gear in the top bar. The categories are on the left and their settings on the right, with the path at the top, so you always know where you are. A choice lists all its options at once, and on/off settings have a switch.
 
+![Aerial's setup on first start, at the Aerials step](docs/screenshots/setup.png)
+
 On first start a short setup asks about the Home button, the aerials, the clock and weather, and access. You can run it again from Settings › System. Everything Aerial added since 0.2 is off until you turn it on; [ROADMAP.md](ROADMAP.md) lists what's there and what's planned.
 
 Weather comes from Open-Meteo, which needs no account. Aerial guesses your city from the TV's timezone, and you can type a different one.
