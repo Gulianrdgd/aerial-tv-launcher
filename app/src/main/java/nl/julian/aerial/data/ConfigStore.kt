@@ -64,6 +64,9 @@ val THEME_COLORS = listOf(
     0xFFB0305C.toInt() to "Pink", 0xFF6B4FA8.toInt() to "Purple", 0xFF8A7A2E.toInt() to "Gold",
 )
 
+/** The home screen's sections below the top bar, in the order the user chose. */
+enum class HomeSection(val label: String) { Dock("Dock"), WatchNext("Continue watching"), Recent("Recent"), Apps("All apps"), Quick("Quick settings") }
+
 /** How favourite clips are played. */
 enum class FavouriteMode(val label: String) { Normal("Like any other clip"), More("More often"), Only("Only favourites") }
 
@@ -105,8 +108,10 @@ data class LauncherConfig(
     val photoSeconds: Int = 15,
     val nightMode: NightMode = NightMode.Off,
     val appOrder: AppOrder = AppOrder.Manual,
-    /** A row with the last apps opened, above All apps. */
-    val recentRow: Boolean = false,
+    /** Section order; sections missing here (added in a later version) follow in their default order. */
+    val sectionOrder: List<HomeSection> = HomeSection.entries,
+    /** The dock can't be hidden: Home brings focus back to it. */
+    val hiddenSections: Set<HomeSection> = setOf(HomeSection.Recent),
     /** Times each app was opened from Aerial, and the last few opened (newest first). */
     val launches: Map<String, Int> = emptyMap(),
     val recent: List<String> = emptyList(),
@@ -184,6 +189,10 @@ fun LauncherConfig.isNight(isDay: Boolean?): Boolean {
         NightMode.Late -> hour >= 22 || hour < 7
     }
 }
+
+/** The sections to show, in order. */
+val LauncherConfig.sections: List<HomeSection>
+    get() = (sectionOrder + HomeSection.entries).distinct().filter { it == HomeSection.Dock || it !in hiddenSections }
 
 private val Context.dataStore by preferencesDataStore("launcher")
 

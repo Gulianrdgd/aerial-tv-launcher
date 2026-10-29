@@ -70,7 +70,8 @@ Two rules hold for all of it:
 
 - [x] **Theme settings.** Colours from the aerial, one colour (six to pick from) or black and white; panel opacity.
 - [ ] **More theme settings.** Corner roundness and font weight.
-- [ ] **Layout editor.** Reorder or hide the home screen sections, and choose which tiles go in the top bar and in what order.
+- [x] **Layout editor.** Show, hide and reorder the home screen sections (Settings > Home layout).
+- [ ] **Top bar order.** Choose which tiles go in the top bar and in what order.
 - [ ] **App names and banners.** Rename an app, pick another banner or icon, or use an icon pack.
 - [ ] **Folders.** Group apps into a folder tile, such as "Streaming" or "Kids". Choices: name, colour, which apps.
 - [ ] **Quick settings of your own.** Choose which shortcuts appear in the quick settings row and in what order.

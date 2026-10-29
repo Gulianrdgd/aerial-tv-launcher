@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.sections
+import nl.julian.aerial.data.HomeSection
 import nl.julian.aerial.theme.LocalPanelAlpha
 import nl.julian.aerial.data.ThemeSource
 import nl.julian.aerial.data.ClockFace
@@ -391,22 +393,21 @@ private fun HomeContent(
         }
         // Every section sits on the same translucent panel as the top bar.
         // Open space above the dock keeps the aerial the main thing on screen.
-        item(key = "dock") {
-            SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = DOCK_GAP).reveal(1, revealTick)) {
+        config.sections.forEachIndexed { index, section -> when (section) {
+        HomeSection.Dock -> item(key = "dock") {
+            SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
                 TileRow(home.dock, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
             }
         }
-        item(key = "watch-next") {
-            WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(2, revealTick))
+        HomeSection.WatchNext -> item(key = "watch-next") {
+            WatchNextRow(radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(index + 1, revealTick))
         }
-        val recent = if (config.recentRow) {
+        HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }
-            config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }
+            val recent = config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }
                 .mapNotNull { byPkg[it] }.take(COLUMNS)
-        } else emptyList()
-        if (recent.isNotEmpty()) {
-            item(key = "recent") {
-                SectionPanel(Modifier.reveal(3, revealTick), title = "Recent") {
+            if (recent.isNotEmpty()) item(key = "recent") {
+                SectionPanel(Modifier.reveal(index + 1, revealTick), title = "Recent") {
                     TileRow(recent) { app, m ->
                         AppTile(
                             app, radius = SECTION_TILE_RADIUS, onLaunch = { launch(app) }, tinted = config.tintedTiles,
@@ -418,16 +419,16 @@ private fun HomeContent(
                 }
             }
         }
-        if (gridRows.isNotEmpty()) {
+        HomeSection.Apps -> if (gridRows.isNotEmpty()) {
             item(key = "apps") {
-                SectionPanel(Modifier.reveal(3, revealTick), title = "All apps") {
+                SectionPanel(Modifier.reveal(index + 1, revealTick), title = "All apps") {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         gridRows.forEach { row -> TileRow(row, restoreFocus = false) { app, m -> tile(app, m, false) } }
                     }
                 }
             }
         }
-        item(key = "quick") {
+        HomeSection.Quick -> item(key = "quick") {
             QuickSettings(
                 scenery = config.scenery,
                 onCycleScenery = {
@@ -448,9 +449,10 @@ private fun HomeContent(
                     }
                 },
                 onPictureOff = onPictureOff,
-                modifier = Modifier.reveal(4, revealTick),
+                modifier = Modifier.reveal(index + 1, revealTick),
             )
         }
+        } }
     }
 
     }

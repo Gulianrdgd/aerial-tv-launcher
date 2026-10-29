@@ -66,6 +66,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     val first = remember { FocusRequester() }
     val firstMore = remember { FocusRequester() }
     var more by remember { mutableStateOf(false) }
+    var layout by remember { mutableStateOf(false) }
     fun update(change: (LauncherConfig) -> LauncherConfig) = scope.launch { store.update(change) }
 
     var watchNextAccess by remember { mutableStateOf(WatchNextRepository.hasAccess(context)) }
@@ -88,7 +89,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     }
 
     // Simple first: everyday settings here, everything else under More options.
-    if (!more) SidePanel("Settings", onDismiss, initialFocus = first) {
+    if (layout) LayoutPanel(config, { change -> update(change) }, onDismiss = { layout = false })
+    else if (!more) SidePanel("Settings", onDismiss, initialFocus = first) {
         Section("Aerials")
         MenuRow(
             Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
@@ -165,6 +167,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
 
         Section("Home screen")
+        MenuRow(
+            Symbols.Tune, "Home layout", value = "Show, hide and reorder sections",
+            onClick = { layout = true },
+        )
         MenuRow(
             Symbols.Tune, "Tile style",
             value = if (config.tintedTiles) "Tinted to the aerial" else "App banners",
@@ -359,10 +365,6 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(
             Symbols.Tune, "Order of All apps", value = config.appOrder.label,
             onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
-        )
-        MenuRow(
-            Symbols.Clock, "Recent row", value = if (config.recentRow) "Shown above All apps" else "Hidden",
-            onClick = { update { it.copy(recentRow = !it.recentRow) } },
         )
 
         Section("Night mode")
