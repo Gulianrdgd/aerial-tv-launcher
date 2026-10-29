@@ -95,7 +95,7 @@ adb shell am broadcast -n nl.julian.aerial/.debug.FakeMediaReceiver -a <action>
 
 ## Translations
 
-Aerial is in English and Dutch. Each language is one JSON file of English texts and their translations, so adding yours needs no code: see [CONTRIBUTING.md](CONTRIBUTING.md).
+Aerial is in English, Dutch, French, German and Spanish. Each language is one JSON file of English texts and their translations, so adding yours needs no code: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
