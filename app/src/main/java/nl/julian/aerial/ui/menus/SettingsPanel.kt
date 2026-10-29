@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui.menus
 
+import nl.julian.aerial.data.kidsUsedToday
 import nl.julian.aerial.data.PlexRepository
 import nl.julian.aerial.data.HomeAssistant
 import nl.julian.aerial.data.HaConfig
@@ -493,6 +494,16 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(
             Symbols.Timer, "Allowed hours", value = config.kidsHours.label,
             onClick = { update { it.copy(kidsHours = it.kidsHours.next()) } },
+        )
+        MenuRow(
+            Symbols.Timer, "Time per day",
+            value = if (config.kidsDailyMinutes == 0) "No limit" else "${config.kidsDailyMinutes} minutes · ${config.kidsUsedToday()} used today",
+            onClick = {
+                update {
+                    val steps = listOf(0, 30, 60, 90, 120)
+                    it.copy(kidsDailyMinutes = steps[(steps.indexOf(it.kidsDailyMinutes) + 1) % steps.size])
+                }
+            },
         )
         MenuRow(
             Symbols.Tune, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",

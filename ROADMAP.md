@@ -86,7 +86,7 @@ Two rules hold for all of it:
 
 - [x] **Home Assistant.** Sign in with a long-lived token (More options > System). Lights, switches, scenes and scripts as buttons in a Home row; a doorbell sensor shows its camera for 30 seconds when it rings.
 - [x] **Kids profile.** Kids mode (More options): only the chosen apps, at chosen hours (any time, 07:00 to 19:00 or 07:00 to 20:00); the top bar buttons and the remote's Input button need the PIN.
-- [ ] **Time limits for inputs.** Limit HDMI inputs by hours too, and a daily total for apps.
+- [x] **Daily time limit.** Kids mode: 30 to 120 minutes of apps a day, counted from opening an app until the home screen is back. Inputs already need the PIN in kids mode.
 
 ## Quality and distribution
 

@@ -1,5 +1,6 @@
 package nl.julian.aerial.data
 
+import java.time.LocalDate
 import nl.julian.aerial.theme.Reveal
 import android.content.Context
 import androidx.compose.runtime.Immutable
@@ -191,6 +192,10 @@ data class LauncherConfig(
     val kidsPin: String = "",
     val kidsApps: List<String> = emptyList(),
     val kidsHours: KidsHours = KidsHours.Any,
+    /** Kids mode: minutes of apps per day, 0 = no limit; and how much of it [kidsUsedOn] has used. */
+    val kidsDailyMinutes: Int = 0,
+    val kidsUsedOn: String = "",
+    val kidsUsedMinutes: Int = 0,
     /** Minutes without input before the screensaver; 0 = never. */
     val idleMinutes: Int = 2,
     /** App tiles in the theme colour with the app's icon, instead of each app's own banner. */
@@ -278,6 +283,12 @@ fun LauncherConfig.sectionsAt(hour: Int): List<HomeSection> {
 
 /** In kids mode, whether apps may be opened at [hour]. */
 fun LauncherConfig.kidsAllowedAt(hour: Int) = !kidsMode || hour in kidsHours.from until kidsHours.until
+
+/** In kids mode, minutes of apps used today. */
+fun LauncherConfig.kidsUsedToday() = if (kidsUsedOn == LocalDate.now().toString()) kidsUsedMinutes else 0
+
+/** In kids mode, whether today's app time is used up. */
+fun LauncherConfig.kidsOutOfTime() = kidsMode && kidsDailyMinutes > 0 && kidsUsedToday() >= kidsDailyMinutes
 
 private val Context.dataStore by preferencesDataStore("launcher")
 

@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.data.kidsUsedToday
+import nl.julian.aerial.data.kidsOutOfTime
+import java.time.LocalDate
 import nl.julian.aerial.ui.menus.TimesUp
 import nl.julian.aerial.data.kidsAllowedAt
 import nl.julian.aerial.data.HomeApps
@@ -291,8 +294,17 @@ private fun HomeContent(
     var renaming by remember { mutableStateOf<AppEntry?>(null) }
     // Checked each time the home screen comes back, e.g. after a system update.
     var isHome by remember { mutableStateOf(true) }
+    var awaySince by remember { mutableStateOf(0L) }
     LifecycleResumeEffect(Unit) {
         isHome = isDefaultHome(context)
+        // Kids mode: the time away in an app counts toward today's total.
+        if (awaySince > 0) {
+            val minutes = ((System.currentTimeMillis() - awaySince) / 60_000).toInt()
+            awaySince = 0
+            if (minutes > 0) scope.launch {
+                store.update { it.copy(kidsUsedOn = LocalDate.now().toString(), kidsUsedMinutes = it.kidsUsedToday() + minutes) }
+            }
+        }
         onPauseOrDispose { }
     }
     // For morning and evening layouts; checked every few minutes.
@@ -332,10 +344,11 @@ private fun HomeContent(
     val tileBounds = remember { mutableMapOf<String, Rect>() }
     var opening by remember { mutableStateOf<Pair<AppEntry, Rect>?>(null) }
     val launch: (AppEntry) -> Unit = launch@{ app ->
-        if (!config.kidsAllowedAt(LocalTime.now().hour)) {
+        if (!config.kidsAllowedAt(LocalTime.now().hour) || config.kidsOutOfTime()) {
             timesUp = true
             return@launch
         }
+        if (config.kidsMode) awaySince = System.currentTimeMillis()
         if (app.pkg.startsWith(FOLDER_PREFIX)) {
             openFolder = app.pkg.removePrefix(FOLDER_PREFIX)
             return@launch
@@ -633,7 +646,11 @@ private fun HomeContent(
             onDismiss = { pinFor = null },
         )
     }
-    if (timesUp) TimesUp(config.kidsHours.from, onDismiss = { timesUp = false })
+    if (timesUp) TimesUp(
+        if (config.kidsOutOfTime()) "Today's ${config.kidsDailyMinutes} minutes are used up. See you tomorrow."
+        else "Apps can be opened again from %02d:00.".format(config.kidsHours.from),
+        onDismiss = { timesUp = false },
+    )
     renaming?.let { app ->
         val original = apps.firstOrNull { it.pkg == app.pkg }?.label ?: app.label
         RenameDialog(

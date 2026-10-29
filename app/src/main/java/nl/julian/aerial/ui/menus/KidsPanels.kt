@@ -19,7 +19,7 @@ import nl.julian.aerial.theme.Symbols
 
 /** Shown when a kid opens an app outside the allowed hours. */
 @Composable
-fun TimesUp(from: Int, onDismiss: () -> Unit) {
+fun TimesUp(message: String, onDismiss: () -> Unit) {
     Overlay(onDismiss) {
         Column(
             Modifier
@@ -30,7 +30,7 @@ fun TimesUp(from: Int, onDismiss: () -> Unit) {
         ) {
             Text("Time's up", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
             Text(
-                "Apps can be opened again from %02d:00.".format(from),
+                message,
                 style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             DialogButton("OK", primary = true, onClick = onDismiss)
