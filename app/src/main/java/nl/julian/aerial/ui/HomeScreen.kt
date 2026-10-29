@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import nl.julian.aerial.ui.menus.SetupWizard
 import nl.julian.aerial.data.kidsUsedToday
 import nl.julian.aerial.data.kidsOutOfTime
 import java.time.LocalDate
@@ -663,6 +664,8 @@ private fun HomeContent(
         )
     }
     if (settingsOpen) SettingsPanel(config, onDismiss = { settingsOpen = false })
+    // Kids mode keeps the setup out of reach; it's for whoever set the TV up.
+    if (!config.setupDone && !config.kidsMode) SetupWizard(config, { change -> update(change) }, onDone = { update { it.copy(setupDone = true) } })
     if (weatherOpen) weather?.let { WeatherPanel(it, config.weatherDetails, onDismiss = { weatherOpen = false }) }
     if (clipOpen && clip != null) ClipPanel(
         clip,

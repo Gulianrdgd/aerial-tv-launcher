@@ -107,14 +107,14 @@ fun CityDialog(current: String, onSave: (String) -> Unit, onDismiss: () -> Unit)
 }
 
 @Composable
-internal fun DialogButton(label: String, primary: Boolean, onClick: () -> Unit) {
+internal fun DialogButton(label: String, primary: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     FocusSurface(
         onClick = onClick,
         shape = CircleShape,
         container = if (primary) cs.primary else LocalSurfaces.current.highest,
         contentColor = if (primary) cs.onPrimary else cs.onSurface,
-        modifier = Modifier.height(48.dp),
+        modifier = modifier.height(48.dp),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.align(Alignment.Center).padding(horizontal = 24.dp))
     }

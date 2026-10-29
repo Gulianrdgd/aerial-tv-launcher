@@ -1,5 +1,8 @@
 package nl.julian.aerial.ui.menus
 
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.focusGroup
+import androidx.compose.runtime.key
 import nl.julian.aerial.data.kidsUsedToday
 import nl.julian.aerial.data.PlexRepository
 import nl.julian.aerial.data.HomeAssistant
@@ -62,6 +65,8 @@ import nl.julian.aerial.theme.LocalSurfaces
 import nl.julian.aerial.theme.Symbols
 import nl.julian.aerial.ui.widgets.startSafely
 
+private const val MORE = "more"
+
 private val IDLE_STEPS = listOf(1, 2, 5, 10, 0)
 private val PHOTO_STEPS = listOf(10, 15, 30, 60)
 private val DIM_STEPS = listOf(20, 40, 60)
@@ -76,7 +81,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     val store = remember { ConfigStore.get(context) }
     val first = remember { FocusRequester() }
     val firstMore = remember { FocusRequester() }
-    var more by remember { mutableStateOf(false) }
+    /** null = the main page, [MORE] = the list of categories, otherwise a category's name. */
+    var page by remember { mutableStateOf<String?>(null) }
     var layout by remember { mutableStateOf(false) }
     var shortcutsOpen by remember { mutableStateOf(false) }
     var startupOpen by remember { mutableStateOf(false) }
@@ -135,7 +141,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
     else if (shortcutsOpen) ShortcutsPanel(
         config, RemoteButtonsService.isEnabled(context), { change -> update(change) }, onDismiss = { shortcutsOpen = false },
     )
-    else if (!more) SidePanel("Settings", onDismiss, initialFocus = first) {
+    else if (page == null) SidePanel("Settings", onDismiss, initialFocus = first) {
         Section("Aerials")
         MenuRow(
             Symbols.Landscape, "Scenery", value = config.scenery.label, focusRequester = first,
@@ -273,341 +279,369 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
         MenuRow(
             Symbols.Tune, "More options", value = "Looks, night mode, backup, remote buttons and more",
-            onClick = { more = true },
+            onClick = { page = MORE },
         )
     // Back on this page returns to the main page instead of closing Settings.
-    } else SidePanel("More options", onDismiss = { more = false }, initialFocus = firstMore) {
-        Section("Aerials")
-        MenuRow(
-            Symbols.Disc, "Video and photo links",
-            value = (if (config.links.isEmpty()) "None" else "${config.links.size} links") +
-                " · a video, live stream, photo, or a web folder ending in /",
-            onClick = { linkDialog = true },
-        )
-        MenuRow(
-            Symbols.Location, "Where is this?", focusRequester = firstMore,
-            value = if (config.showPlaces) "Screensaver names the place on screen" else "Off · shows the scenery",
-            onClick = { update { it.copy(showPlaces = !it.showPlaces) } },
-        )
-        MenuRow(
-            Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label,
-            onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } },
-        )
-        MenuRow(
-            Symbols.Screensaver, "Screensaver shows", value = config.ambientInfo.label,
-            onClick = { update { it.copy(ambientInfo = it.ambientInfo.next()) } },
-        )
-        MenuRow(
-            Symbols.Favorite, "Favourites",
-            value = "${config.favouriteMode.label} · ${config.favourites.size} saved. Hold OK on the screensaver to add one",
-            onClick = { update { it.copy(favouriteMode = it.favouriteMode.next()) } },
-        )
-        if (config.skipped.isNotEmpty()) {
-            MenuRow(
-                Symbols.Block, "Skipped clips", value = "${config.skipped.size} skipped. Select to bring them all back",
-                onClick = { update { it.copy(skipped = emptySet()) } },
-            )
+    } else if (page == MORE) SidePanel("More options", onDismiss = { page = null }, initialFocus = firstMore) {
+        MenuRow(Symbols.Landscape, "Aerials", value = "Links, quality, favourites, captions", onClick = { page = "Aerials" }, focusRequester = firstMore)
+        MenuRow(Symbols.Clock, "Clock & weather", value = "Clock faces, date and time", onClick = { page = "Clock & weather" })
+        MenuRow(Symbols.Cloud, "Top bar", value = "Forecast, search, status icons", onClick = { page = "Top bar" })
+        MenuRow(Symbols.Tune, "Looks", value = "Colours, panels, animations, sounds", onClick = { page = "Looks" })
+        MenuRow(Symbols.Show, "Reading", value = "Text size and contrast", onClick = { page = "Reading" })
+        MenuRow(Symbols.Play, "Apps", value = "Order of All apps", onClick = { page = "Apps" })
+        MenuRow(Symbols.Timer, "Kids mode", value = "Chosen apps, hours and a PIN", onClick = { page = "Kids mode" })
+        MenuRow(Symbols.Moon, "Night mode", value = "Dim the screen in the evening", onClick = { page = "Night mode" })
+        MenuRow(Symbols.Home, "Connected services", value = "Home Assistant, Plex, Jellyfin", onClick = { page = "Connected services" })
+        MenuRow(Symbols.Input, "Remote", value = "Remote buttons and shortcuts", onClick = { page = "Remote" })
+        MenuRow(Symbols.Settings, "System", value = "Updates, backup, setup", onClick = { page = "System" })
+    } else key(page) {
+        // One short page per category; Back returns to More options.
+        val firstRow = remember { FocusRequester() }
+        SidePanel(page.orEmpty(), onDismiss = { page = MORE }, initialFocus = firstRow) {
+            Column(Modifier.focusRequester(firstRow).focusGroup(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                when (page) {
+                    "Aerials" -> {
+                    MenuRow(
+                        Symbols.Disc, "Video and photo links",
+                        value = (if (config.links.isEmpty()) "None" else "${config.links.size} links") +
+                            " · a video, live stream, photo, or a web folder ending in /",
+                        onClick = { linkDialog = true },
+                    )
+                    MenuRow(
+                        Symbols.Location, "Where is this?",
+                        value = if (config.showPlaces) "Screensaver names the place on screen" else "Off · shows the scenery",
+                        onClick = { update { it.copy(showPlaces = !it.showPlaces) } },
+                    )
+                    MenuRow(
+                        Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label,
+                        onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Screensaver, "Screensaver shows", value = config.ambientInfo.label,
+                        onClick = { update { it.copy(ambientInfo = it.ambientInfo.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Favorite, "Favourites",
+                        value = "${config.favouriteMode.label} · ${config.favourites.size} saved. Hold OK on the screensaver to add one",
+                        onClick = { update { it.copy(favouriteMode = it.favouriteMode.next()) } },
+                    )
+                    if (config.skipped.isNotEmpty()) {
+                        MenuRow(
+                            Symbols.Block, "Skipped clips", value = "${config.skipped.size} skipped. Select to bring them all back",
+                            onClick = { update { it.copy(skipped = emptySet()) } },
+                        )
+                    }
+                    MenuRow(
+                        Symbols.Tune, "Burn-in protection",
+                        value = if (config.shiftText) "Screensaver text moves a little every few minutes" else "Off · for OLED TVs",
+                        onClick = { update { it.copy(shiftText = !it.shiftText) } },
+                    )
+                    }
+                    "Clock & weather" -> {
+                    MenuRow(
+                        Symbols.Clock, "Clock face", value = config.clockFace.label,
+                        onClick = { update { it.copy(clockFace = it.clockFace.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Screensaver, "Screensaver clock", value = config.ambientClockFace.label,
+                        onClick = { update { it.copy(ambientClockFace = it.ambientClockFace.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Calendar, "Date, time & timezone", value = "Android TV settings",
+                        onClick = { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
+                    )
+                    }
+                    "Top bar" -> {
+                    MenuRow(
+                        Symbols.Calendar, "Forecast", value = config.weatherDetails.label + if (config.weatherDetails != WeatherDetails.Off) " · select the weather tile" else "",
+                        onClick = { update { it.copy(weatherDetails = it.weatherDetails.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Screensaver, "Aerial name", value = if (config.barShowsAerial) "Shown" else "Hidden",
+                        onClick = { update { it.copy(barShowsAerial = !it.barShowsAerial) } },
+                    )
+                    MenuRow(
+                        Symbols.Search, "Search button", value = if (config.barShowsSearch) "Shown, opens the Assistant" else "Hidden",
+                        onClick = { update { it.copy(barShowsSearch = !it.barShowsSearch) } },
+                    )
+                    MenuRow(
+                        Symbols.Wifi, "Network icon", value = if (config.statusNetwork) "Next to the date" else "Hidden",
+                        onClick = { update { it.copy(statusNetwork = !it.statusNetwork) } },
+                    )
+                    MenuRow(
+                        Symbols.Bluetooth, "Bluetooth icon", value = if (config.statusBluetooth) "Next to the date while on" else "Hidden",
+                        onClick = { update { it.copy(statusBluetooth = !it.statusBluetooth) } },
+                    )
+                    MenuRow(
+                        Symbols.Storage, "Storage warning", value = if (config.statusStorage) "Shown when storage is almost full" else "Hidden",
+                        onClick = { update { it.copy(statusStorage = !it.statusStorage) } },
+                    )
+                    }
+                    "Looks" -> {
+                    MenuRow(
+                        Symbols.Tune, "Colours", value = config.themeSource.label,
+                        onClick = { update { it.copy(themeSource = it.themeSource.next()) } },
+                    )
+                    if (config.themeSource == ThemeSource.Fixed) {
+                        MenuRow(
+                            Symbols.Tune, "Colour", value = THEME_COLORS.firstOrNull { it.first == config.themeColor }?.second ?: "Custom",
+                            onClick = {
+                                update {
+                                    val i = THEME_COLORS.indexOfFirst { c -> c.first == it.themeColor }
+                                    it.copy(themeColor = THEME_COLORS[(i + 1) % THEME_COLORS.size].first)
+                                }
+                            },
+                        )
+                    }
+                    val packs = remember { IconPacks.installed(context) }
+                    MenuRow(
+                        Symbols.Tune, "Icon pack",
+                        value = when {
+                            packs.isEmpty() -> "None installed · for tinted and icon tiles"
+                            else -> packs.firstOrNull { it.first == config.iconPack }?.second ?: "App icons"
+                        },
+                        onClick = {
+                            if (packs.isNotEmpty()) update {
+                                val choices = listOf<String?>(null) + packs.map { p -> p.first }
+                                it.copy(iconPack = choices[(choices.indexOf(it.iconPack) + 1) % choices.size])
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
+                        onClick = { update { it.copy(roundness = when (it.roundness) { 100 -> 140; 140 -> 40; else -> 100 }) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Text weight", value = when (config.fontWeight) { -100 -> "Lighter"; 100 -> "Bolder"; else -> "Normal" },
+                        onClick = { update { it.copy(fontWeight = when (it.fontWeight) { 0 -> 100; 100 -> -100; else -> 0 }) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Panel opacity", value = "${config.panelOpacity}%",
+                        onClick = {
+                            update {
+                                val i = OPACITY_STEPS.indexOf(it.panelOpacity)
+                                it.copy(panelOpacity = OPACITY_STEPS[(i + 1) % OPACITY_STEPS.size])
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Panels", value = config.glass.label,
+                        onClick = { update { it.copy(glass = it.glass.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Panels appear", value = config.reveal.label,
+                        onClick = { update { it.copy(reveal = it.reveal.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Tile depth", value = config.tileDepth.label,
+                        onClick = { update { it.copy(tileDepth = it.tileDepth.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Focus ring", value = config.focusColor.label,
+                        onClick = { update { it.copy(focusColor = it.focusColor.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Opening animation", value = config.launchAnimation.label,
+                        onClick = { update { it.copy(launchAnimation = it.launchAnimation.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Speaker, "Focus sounds", value = config.focusSounds.label,
+                        onClick = { update { it.copy(focusSounds = it.focusSounds.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Snow, "Snow in December", value = if (config.snow) "On" else "Off",
+                        onClick = { update { it.copy(snow = !it.snow) } },
+                    )
+                    MenuRow(
+                        Symbols.Sun, "New Year's frame", value = if (config.newYearFrame) "On, 31 Dec and 1 Jan" else "Off",
+                        onClick = { update { it.copy(newYearFrame = !it.newYearFrame) } },
+                    )
+                    MenuRow(
+                        Symbols.Storage, "Share this look", value = lookNote ?: "Saves ${Backup.THEME_FILE} in Downloads",
+                        onClick = {
+                            scope.launch {
+                                lookNote = Backup.write(context, Backup.THEME_FILE, config.look().encode())?.let { "Saved to $it" } ?: "Couldn't save the look"
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Storage, "Use a shared look", value = "From ${Backup.THEME_FILE} in Downloads",
+                        onClick = {
+                            scope.launch {
+                                val saved = Backup.read(context, Backup.THEME_FILE)
+                                if (saved != null) useLook(saved)
+                                else if (runCatching { pickLook.launch(arrayOf("application/json", "*/*")) }.isFailure) {
+                                    lookNote = "No look found in Downloads"
+                                }
+                            }
+                        },
+                    )
+                    }
+                    "Reading" -> {
+                    MenuRow(
+                        Symbols.Tune, "Text size", value = "${config.textSize}%",
+                        onClick = {
+                            update {
+                                val i = TEXT_STEPS.indexOf(it.textSize)
+                                it.copy(textSize = TEXT_STEPS[(i + 1) % TEXT_STEPS.size])
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Contrast", value = if (config.highContrast) "High · all text at full brightness" else "Normal",
+                        onClick = { update { it.copy(highContrast = !it.highContrast) } },
+                    )
+                    }
+                    "Apps" -> {
+                    MenuRow(
+                        Symbols.Tune, "Order of All apps", value = config.appOrder.label,
+                        onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
+                    )
+                    }
+                    "Kids mode" -> {
+                    MenuRow(
+                        Symbols.Tune, "Kids mode",
+                        value = if (config.kidsMode) "On · only the kids' apps, top bar buttons need the PIN"
+                        else "Off · only chosen apps, at chosen hours, PIN for the rest",
+                        onClick = {
+                            if (config.kidsMode) update { it.copy(kidsMode = false) }
+                            else if (config.kidsPin.isEmpty()) { pinThenOn = true; pinDialog = true }
+                            else update { it.copy(kidsMode = true) }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Show, "Kids' apps", value = "${config.kidsApps.size} allowed",
+                        onClick = { kidsAppsOpen = true },
+                    )
+                    MenuRow(
+                        Symbols.Timer, "Allowed hours", value = config.kidsHours.label,
+                        onClick = { update { it.copy(kidsHours = it.kidsHours.next()) } },
+                    )
+                    MenuRow(
+                        Symbols.Timer, "Time per day",
+                        value = if (config.kidsDailyMinutes == 0) "No limit" else "${config.kidsDailyMinutes} minutes · ${config.kidsUsedToday()} used today",
+                        onClick = {
+                            update {
+                                val steps = listOf(0, 30, 60, 90, 120)
+                                it.copy(kidsDailyMinutes = steps[(steps.indexOf(it.kidsDailyMinutes) + 1) % steps.size])
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",
+                        onClick = { pinThenOn = false; pinDialog = true },
+                    )
+                    }
+                    "Night mode" -> {
+                    MenuRow(
+                        Symbols.Moon, "Dim the screen", value = config.nightMode.label,
+                        onClick = { update { it.copy(nightMode = it.nightMode.next()) } },
+                    )
+                    if (config.nightMode != NightMode.Off) {
+                        MenuRow(
+                            Symbols.Tune, "How much", value = "${config.nightDim}% darker",
+                            onClick = {
+                                update {
+                                    val i = DIM_STEPS.indexOf(it.nightDim)
+                                    it.copy(nightDim = DIM_STEPS[(i + 1) % DIM_STEPS.size])
+                                }
+                            },
+                        )
+                    }
+                    }
+                    "Connected services" -> {
+                    MenuRow(
+                        Symbols.Home, "Home Assistant",
+                        value = config.homeAssistant?.let { "Connected to ${it.server.substringAfter("://")} · buttons, doorbell" }
+                            ?: "Not connected · select to sign in",
+                        onClick = { if (config.homeAssistant != null) haOpen = true else { haNote = null; haStep = 1 } },
+                    )
+                    MenuRow(
+                        Symbols.MediaPlayer, "Plex",
+                        value = plexCode ?: config.plex?.let { "Connected to ${it.server.substringAfter("://").substringBefore('/')} · select to sign out" }
+                            ?: "Not connected · select to sign in with a code",
+                        onClick = {
+                            if (config.plex != null) update { it.copy(plex = null) }
+                            else scope.launch {
+                                PlexRepository.newPin(context).onSuccess { pin ->
+                                    plexCode = "Go to plex.tv/link and enter ${pin.code}"
+                                    PlexRepository.awaitLogin(context, pin)
+                                        .onSuccess { login -> plexCode = null; update { it.copy(plex = login) } }
+                                        .onFailure { plexCode = "Couldn't sign in: ${it.message}" }
+                                }.onFailure { plexCode = "Couldn't reach Plex: ${it.message}" }
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.MediaPlayer, "Jellyfin",
+                        value = config.jellyfin?.let { "Connected to ${it.server.substringAfter("://")} · select to sign out" }
+                            ?: "Not connected · select to sign in and show a Jellyfin row",
+                        onClick = {
+                            if (config.jellyfin != null) update { it.copy(jellyfin = null) }
+                            else { jfNote = null; jfStep = 1 }
+                        },
+                    )
+                    }
+                    "Remote" -> {
+                    val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
+                    MenuRow(
+                        Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
+                        onClick = { shortcutsOpen = true },
+                    )
+                    MenuRow(
+                        Symbols.Tune, "Remote buttons",
+                        value = when {
+                            config.remoteButtons == RemoteButtons.Off -> "Off · for TVs where Input or Home stop working"
+                            remoteOn -> "${config.remoteButtons.label} open Aerial"
+                            else -> "${config.remoteButtons.label} · turn on Aerial in Accessibility settings"
+                        },
+                        onClick = {
+                            update { it.copy(remoteButtons = it.remoteButtons.next()) }
+                            if (!remoteOn && config.remoteButtons == RemoteButtons.Off) {
+                                context.startSafely(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                            }
+                        },
+                    )
+                    }
+                    "System" -> {
+                    MenuRow(
+                        Symbols.Home, "Run setup again", value = "The questions from the first start",
+                        onClick = { update { it.copy(setupDone = false) }; onDismiss() },
+                    )
+                    MenuRow(
+                        Symbols.Info, "Check for updates", value = if (config.updateCheck) "On · asks GitHub when Settings opens" else "Off",
+                        onClick = { update { it.copy(updateCheck = !it.updateCheck) } },
+                    )
+                    MenuRow(
+                        Symbols.Storage, "Back up settings", value = backupNote ?: "Saves ${Backup.FILE} in Downloads",
+                        onClick = {
+                            scope.launch { backupNote = Backup.save(context)?.let { "Saved to $it" } ?: "Couldn't save the backup" }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Storage, "Restore settings", value = "From ${Backup.FILE} in Downloads",
+                        onClick = {
+                            scope.launch {
+                                if (Backup.restoreSaved(context)) backupNote = "Settings restored"
+                                // Not ours (another TV, or a reset): let the user pick it, where the TV has a file picker.
+                                else if (runCatching { pickBackup.launch(arrayOf("application/json", "*/*")) }.isFailure) {
+                                    backupNote = "No backup found in Downloads"
+                                }
+                            }
+                        },
+                    )
+                    MenuRow(
+                        Symbols.Hide, "Hide from recent apps", value = if (config.hideFromRecents) "On" else "Off",
+                        onClick = { update { it.copy(hideFromRecents = !it.hideFromRecents) } },
+                    )
+                    MenuRow(
+                        Symbols.Home, "Warn when Aerial isn't Home", value = if (config.homeWarning) "On" else "Off",
+                        onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
+                    )
+                    }
+                }
+            }
         }
-        MenuRow(
-            Symbols.Tune, "Burn-in protection",
-            value = if (config.shiftText) "Screensaver text moves a little every few minutes" else "Off · for OLED TVs",
-            onClick = { update { it.copy(shiftText = !it.shiftText) } },
-        )
-
-        Section("Clock & weather")
-        MenuRow(
-            Symbols.Clock, "Clock face", value = config.clockFace.label,
-            onClick = { update { it.copy(clockFace = it.clockFace.next()) } },
-        )
-        MenuRow(
-            Symbols.Screensaver, "Screensaver clock", value = config.ambientClockFace.label,
-            onClick = { update { it.copy(ambientClockFace = it.ambientClockFace.next()) } },
-        )
-        MenuRow(
-            Symbols.Calendar, "Date, time & timezone", value = "Android TV settings",
-            onClick = { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
-        )
-
-        Section("Top bar")
-        MenuRow(
-            Symbols.Calendar, "Forecast", value = config.weatherDetails.label + if (config.weatherDetails != WeatherDetails.Off) " · select the weather tile" else "",
-            onClick = { update { it.copy(weatherDetails = it.weatherDetails.next()) } },
-        )
-        MenuRow(
-            Symbols.Screensaver, "Aerial name", value = if (config.barShowsAerial) "Shown" else "Hidden",
-            onClick = { update { it.copy(barShowsAerial = !it.barShowsAerial) } },
-        )
-        MenuRow(
-            Symbols.Search, "Search button", value = if (config.barShowsSearch) "Shown, opens the Assistant" else "Hidden",
-            onClick = { update { it.copy(barShowsSearch = !it.barShowsSearch) } },
-        )
-        MenuRow(
-            Symbols.Wifi, "Network icon", value = if (config.statusNetwork) "Next to the date" else "Hidden",
-            onClick = { update { it.copy(statusNetwork = !it.statusNetwork) } },
-        )
-        MenuRow(
-            Symbols.Bluetooth, "Bluetooth icon", value = if (config.statusBluetooth) "Next to the date while on" else "Hidden",
-            onClick = { update { it.copy(statusBluetooth = !it.statusBluetooth) } },
-        )
-        MenuRow(
-            Symbols.Storage, "Storage warning", value = if (config.statusStorage) "Shown when storage is almost full" else "Hidden",
-            onClick = { update { it.copy(statusStorage = !it.statusStorage) } },
-        )
-
-        Section("Looks")
-        MenuRow(
-            Symbols.Tune, "Colours", value = config.themeSource.label,
-            onClick = { update { it.copy(themeSource = it.themeSource.next()) } },
-        )
-        if (config.themeSource == ThemeSource.Fixed) {
-            MenuRow(
-                Symbols.Tune, "Colour", value = THEME_COLORS.firstOrNull { it.first == config.themeColor }?.second ?: "Custom",
-                onClick = {
-                    update {
-                        val i = THEME_COLORS.indexOfFirst { c -> c.first == it.themeColor }
-                        it.copy(themeColor = THEME_COLORS[(i + 1) % THEME_COLORS.size].first)
-                    }
-                },
-            )
-        }
-        val packs = remember { IconPacks.installed(context) }
-        MenuRow(
-            Symbols.Tune, "Icon pack",
-            value = when {
-                packs.isEmpty() -> "None installed · for tinted and icon tiles"
-                else -> packs.firstOrNull { it.first == config.iconPack }?.second ?: "App icons"
-            },
-            onClick = {
-                if (packs.isNotEmpty()) update {
-                    val choices = listOf<String?>(null) + packs.map { p -> p.first }
-                    it.copy(iconPack = choices[(choices.indexOf(it.iconPack) + 1) % choices.size])
-                }
-            },
-        )
-        MenuRow(
-            Symbols.Tune, "Corners", value = when (config.roundness) { 40 -> "Square"; 140 -> "Extra round"; else -> "Round" },
-            onClick = { update { it.copy(roundness = when (it.roundness) { 100 -> 140; 140 -> 40; else -> 100 }) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Text weight", value = when (config.fontWeight) { -100 -> "Lighter"; 100 -> "Bolder"; else -> "Normal" },
-            onClick = { update { it.copy(fontWeight = when (it.fontWeight) { 0 -> 100; 100 -> -100; else -> 0 }) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Panel opacity", value = "${config.panelOpacity}%",
-            onClick = {
-                update {
-                    val i = OPACITY_STEPS.indexOf(it.panelOpacity)
-                    it.copy(panelOpacity = OPACITY_STEPS[(i + 1) % OPACITY_STEPS.size])
-                }
-            },
-        )
-        MenuRow(
-            Symbols.Tune, "Panels", value = config.glass.label,
-            onClick = { update { it.copy(glass = it.glass.next()) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Panels appear", value = config.reveal.label,
-            onClick = { update { it.copy(reveal = it.reveal.next()) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Tile depth", value = config.tileDepth.label,
-            onClick = { update { it.copy(tileDepth = it.tileDepth.next()) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Focus ring", value = config.focusColor.label,
-            onClick = { update { it.copy(focusColor = it.focusColor.next()) } },
-        )
-        MenuRow(
-            Symbols.Tune, "Opening animation", value = config.launchAnimation.label,
-            onClick = { update { it.copy(launchAnimation = it.launchAnimation.next()) } },
-        )
-        MenuRow(
-            Symbols.Speaker, "Focus sounds", value = config.focusSounds.label,
-            onClick = { update { it.copy(focusSounds = it.focusSounds.next()) } },
-        )
-        MenuRow(
-            Symbols.Snow, "Snow in December", value = if (config.snow) "On" else "Off",
-            onClick = { update { it.copy(snow = !it.snow) } },
-        )
-        MenuRow(
-            Symbols.Sun, "New Year's frame", value = if (config.newYearFrame) "On, 31 Dec and 1 Jan" else "Off",
-            onClick = { update { it.copy(newYearFrame = !it.newYearFrame) } },
-        )
-
-        MenuRow(
-            Symbols.Storage, "Share this look", value = lookNote ?: "Saves ${Backup.THEME_FILE} in Downloads",
-            onClick = {
-                scope.launch {
-                    lookNote = Backup.write(context, Backup.THEME_FILE, config.look().encode())?.let { "Saved to $it" } ?: "Couldn't save the look"
-                }
-            },
-        )
-        MenuRow(
-            Symbols.Storage, "Use a shared look", value = "From ${Backup.THEME_FILE} in Downloads",
-            onClick = {
-                scope.launch {
-                    val saved = Backup.read(context, Backup.THEME_FILE)
-                    if (saved != null) useLook(saved)
-                    else if (runCatching { pickLook.launch(arrayOf("application/json", "*/*")) }.isFailure) {
-                        lookNote = "No look found in Downloads"
-                    }
-                }
-            },
-        )
-
-        Section("Reading")
-        MenuRow(
-            Symbols.Tune, "Text size", value = "${config.textSize}%",
-            onClick = {
-                update {
-                    val i = TEXT_STEPS.indexOf(it.textSize)
-                    it.copy(textSize = TEXT_STEPS[(i + 1) % TEXT_STEPS.size])
-                }
-            },
-        )
-        MenuRow(
-            Symbols.Tune, "Contrast", value = if (config.highContrast) "High · all text at full brightness" else "Normal",
-            onClick = { update { it.copy(highContrast = !it.highContrast) } },
-        )
-
-        Section("Apps")
-        MenuRow(
-            Symbols.Tune, "Order of All apps", value = config.appOrder.label,
-            onClick = { update { it.copy(appOrder = it.appOrder.next()) } },
-        )
-
-        Section("Kids mode")
-        MenuRow(
-            Symbols.Tune, "Kids mode",
-            value = if (config.kidsMode) "On · only the kids' apps, top bar buttons need the PIN"
-            else "Off · only chosen apps, at chosen hours, PIN for the rest",
-            onClick = {
-                if (config.kidsMode) update { it.copy(kidsMode = false) }
-                else if (config.kidsPin.isEmpty()) { pinThenOn = true; pinDialog = true }
-                else update { it.copy(kidsMode = true) }
-            },
-        )
-        MenuRow(
-            Symbols.Show, "Kids' apps", value = "${config.kidsApps.size} allowed",
-            onClick = { kidsAppsOpen = true },
-        )
-        MenuRow(
-            Symbols.Timer, "Allowed hours", value = config.kidsHours.label,
-            onClick = { update { it.copy(kidsHours = it.kidsHours.next()) } },
-        )
-        MenuRow(
-            Symbols.Timer, "Time per day",
-            value = if (config.kidsDailyMinutes == 0) "No limit" else "${config.kidsDailyMinutes} minutes · ${config.kidsUsedToday()} used today",
-            onClick = {
-                update {
-                    val steps = listOf(0, 30, 60, 90, 120)
-                    it.copy(kidsDailyMinutes = steps[(steps.indexOf(it.kidsDailyMinutes) + 1) % steps.size])
-                }
-            },
-        )
-        MenuRow(
-            Symbols.Tune, "PIN", value = if (config.kidsPin.isEmpty()) "Not set" else "Set · select to change",
-            onClick = { pinThenOn = false; pinDialog = true },
-        )
-
-        Section("Night mode")
-        MenuRow(
-            Symbols.Moon, "Dim the screen", value = config.nightMode.label,
-            onClick = { update { it.copy(nightMode = it.nightMode.next()) } },
-        )
-        if (config.nightMode != NightMode.Off) {
-            MenuRow(
-                Symbols.Tune, "How much", value = "${config.nightDim}% darker",
-                onClick = {
-                    update {
-                        val i = DIM_STEPS.indexOf(it.nightDim)
-                        it.copy(nightDim = DIM_STEPS[(i + 1) % DIM_STEPS.size])
-                    }
-                },
-            )
-        }
-
-        Section("System")
-        MenuRow(
-            Symbols.Info, "Check for updates", value = if (config.updateCheck) "On · asks GitHub when Settings opens" else "Off",
-            onClick = { update { it.copy(updateCheck = !it.updateCheck) } },
-        )
-        MenuRow(
-            Symbols.Storage, "Back up settings", value = backupNote ?: "Saves ${Backup.FILE} in Downloads",
-            onClick = {
-                scope.launch { backupNote = Backup.save(context)?.let { "Saved to $it" } ?: "Couldn't save the backup" }
-            },
-        )
-        MenuRow(
-            Symbols.Storage, "Restore settings", value = "From ${Backup.FILE} in Downloads",
-            onClick = {
-                scope.launch {
-                    if (Backup.restoreSaved(context)) backupNote = "Settings restored"
-                    // Not ours (another TV, or a reset): let the user pick it, where the TV has a file picker.
-                    else if (runCatching { pickBackup.launch(arrayOf("application/json", "*/*")) }.isFailure) {
-                        backupNote = "No backup found in Downloads"
-                    }
-                }
-            },
-        )
-        val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
-        MenuRow(
-            Symbols.Hide, "Hide from recent apps", value = if (config.hideFromRecents) "On" else "Off",
-            onClick = { update { it.copy(hideFromRecents = !it.hideFromRecents) } },
-        )
-        MenuRow(
-            Symbols.Home, "Warn when Aerial isn't Home", value = if (config.homeWarning) "On" else "Off",
-            onClick = { update { it.copy(homeWarning = !it.homeWarning) } },
-        )
-        MenuRow(
-            Symbols.Home, "Home Assistant",
-            value = config.homeAssistant?.let { "Connected to ${it.server.substringAfter("://")} · buttons, doorbell" }
-                ?: "Not connected · select to sign in",
-            onClick = { if (config.homeAssistant != null) haOpen = true else { haNote = null; haStep = 1 } },
-        )
-        MenuRow(
-            Symbols.MediaPlayer, "Plex",
-            value = plexCode ?: config.plex?.let { "Connected to ${it.server.substringAfter("://").substringBefore('/')} · select to sign out" }
-                ?: "Not connected · select to sign in with a code",
-            onClick = {
-                if (config.plex != null) update { it.copy(plex = null) }
-                else scope.launch {
-                    PlexRepository.newPin(context).onSuccess { pin ->
-                        plexCode = "Go to plex.tv/link and enter ${pin.code}"
-                        PlexRepository.awaitLogin(context, pin)
-                            .onSuccess { login -> plexCode = null; update { it.copy(plex = login) } }
-                            .onFailure { plexCode = "Couldn't sign in: ${it.message}" }
-                    }.onFailure { plexCode = "Couldn't reach Plex: ${it.message}" }
-                }
-            },
-        )
-        MenuRow(
-            Symbols.MediaPlayer, "Jellyfin",
-            value = config.jellyfin?.let { "Connected to ${it.server.substringAfter("://")} · select to sign out" }
-                ?: "Not connected · select to sign in and show a Jellyfin row",
-            onClick = {
-                if (config.jellyfin != null) update { it.copy(jellyfin = null) }
-                else { jfNote = null; jfStep = 1 }
-            },
-        )
-        MenuRow(
-            Symbols.Tune, "Remote shortcuts", value = "Hold Home or a colour button to open an app",
-            onClick = { shortcutsOpen = true },
-        )
-        MenuRow(
-            Symbols.Tune, "Remote buttons",
-            value = when {
-                config.remoteButtons == RemoteButtons.Off -> "Off · for TVs where Input or Home stop working"
-                remoteOn -> "${config.remoteButtons.label} open Aerial"
-                else -> "${config.remoteButtons.label} · turn on Aerial in Accessibility settings"
-            },
-            onClick = {
-                update { it.copy(remoteButtons = it.remoteButtons.next()) }
-                if (!remoteOn && config.remoteButtons == RemoteButtons.Off) {
-                    context.startSafely(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                }
-            },
-        )
     }
 
     if (accessDialog) AccessDialog(onDismiss = { accessDialog = false })
@@ -701,4 +735,4 @@ private fun Section(title: String) {
 }
 
 /** The next value of an enum, wrapping around (for settings rows that cycle on select). */
-private inline fun <reified T : Enum<T>> T.next(): T = enumValues<T>().let { it[(ordinal + 1) % it.size] }
+internal inline fun <reified T : Enum<T>> T.next(): T = enumValues<T>().let { it[(ordinal + 1) % it.size] }

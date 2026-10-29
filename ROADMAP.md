@@ -9,6 +9,11 @@ Two rules hold for all of it:
 - **Free, with nothing locked.** No paid tier, no licence check and no dependency on the Play Store, so features never disappear after a sideload or an update.
 - **Simple first.** The main settings stay short. Everything else goes under "More options", with a few ready-made looks to start from.
 
+## Setup and settings
+
+- [x] **Setup wizard.** On first start: Home app, aerials, clock and weather, home screen, access. Settings > More options > System > Run setup again.
+- [x] **Settings in pages.** More options is a list of categories (Aerials, Looks, Kids mode, Connected services, Remote…), each a short page.
+
 ## From users of other launchers
 
 - [x] **Notice when Aerial isn't Home any more.** Firmware updates and reboots often hand Home back to the stock launcher. Aerial detects it and shows how to fix it, with the adb command for TVs that need it.
