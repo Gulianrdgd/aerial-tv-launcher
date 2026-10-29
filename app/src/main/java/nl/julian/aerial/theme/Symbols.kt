@@ -27,6 +27,7 @@ object Symbols {
     val Search = R.drawable.ms_search
     val Sleep = R.drawable.ms_bedtime_off
     val PictureOff = R.drawable.ms_tv_off
+    val Storage = R.drawable.ms_hard_drive
     val Block = R.drawable.ms_block
     val Timer = R.drawable.ms_timer
     val Music = R.drawable.ms_music_note

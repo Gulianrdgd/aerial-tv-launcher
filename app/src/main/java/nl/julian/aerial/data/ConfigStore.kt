@@ -99,6 +99,11 @@ data class LauncherConfig(
     val barShowsMusic: Boolean = false,
     /** Top bar: a search button that opens the Assistant. */
     val barShowsSearch: Boolean = false,
+    /** Top bar: small status icons next to the date. */
+    val statusNetwork: Boolean = false,
+    val statusBluetooth: Boolean = false,
+    /** Only shows when the TV is running low on storage. */
+    val statusStorage: Boolean = false,
     /** Top bar: inputs, alerts and settings as a narrow column of icons. */
     val compactButtons: Boolean = false,
     val clockFormat: ClockFormat = ClockFormat.System,

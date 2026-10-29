@@ -89,6 +89,7 @@ import nl.julian.aerial.ui.menus.dockKey
 import nl.julian.aerial.ui.menus.NotificationsPanel
 import nl.julian.aerial.ui.menus.SettingsPanel
 import nl.julian.aerial.ui.widgets.RailFocus
+import nl.julian.aerial.ui.widgets.StatusIcons
 import nl.julian.aerial.ui.widgets.startSearch
 import nl.julian.aerial.ui.widgets.WidgetBand
 import nl.julian.aerial.ui.widgets.startSafely
@@ -357,6 +358,7 @@ private fun HomeContent(
                 onOpenSettings = { returnFocus = railFocus.settings; settingsOpen = true },
                 modifier = Modifier.reveal(0, revealTick).then(scrollTopOnFocus),
                 onSearch = if (config.barShowsSearch) { { context.startSearch() } } else null,
+                status = StatusIcons(config.statusNetwork, config.statusBluetooth, config.statusStorage),
                 onWeather = if (config.weatherDetails != WeatherDetails.Off) { { weatherOpen = true } } else null,
                 railFocus = railFocus,
             )

@@ -188,6 +188,18 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
             onClick = { update { it.copy(barShowsSearch = !it.barShowsSearch) } },
         )
         MenuRow(
+            Symbols.Wifi, "Network icon", value = if (config.statusNetwork) "Next to the date" else "Hidden",
+            onClick = { update { it.copy(statusNetwork = !it.statusNetwork) } },
+        )
+        MenuRow(
+            Symbols.Bluetooth, "Bluetooth icon", value = if (config.statusBluetooth) "Next to the date while on" else "Hidden",
+            onClick = { update { it.copy(statusBluetooth = !it.statusBluetooth) } },
+        )
+        MenuRow(
+            Symbols.Storage, "Storage warning", value = if (config.statusStorage) "Shown when storage is almost full" else "Hidden",
+            onClick = { update { it.copy(statusStorage = !it.statusStorage) } },
+        )
+        MenuRow(
             Symbols.Tune, "Buttons", value = if (config.compactButtons) "Icons only, stacked" else "Icons with labels",
             onClick = { update { it.copy(compactButtons = !it.compactButtons) } },
         )

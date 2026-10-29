@@ -1,5 +1,10 @@
 package nl.julian.aerial.data
 
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import android.os.StatFs
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
@@ -58,3 +63,12 @@ fun bluetoothOnFlow(context: Context): Flow<Boolean?> = callbackFlow {
     )
     awaitClose { context.unregisterReceiver(receiver) }
 }.distinctUntilChanged()
+
+/** True when less than 10% of the TV's app storage is free; checked every 10 minutes. */
+fun lowStorageFlow(context: Context): Flow<Boolean> = flow {
+    while (true) {
+        val stat = StatFs(context.filesDir.absolutePath)
+        emit(stat.availableBytes < stat.totalBytes / 10)
+        delay(600_000)
+    }
+}.distinctUntilChanged().flowOn(Dispatchers.IO)

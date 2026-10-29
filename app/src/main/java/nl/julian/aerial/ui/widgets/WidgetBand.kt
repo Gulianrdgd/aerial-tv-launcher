@@ -1,5 +1,12 @@
 package nl.julian.aerial.ui.widgets
 
+import nl.julian.aerial.data.networkFlow
+import nl.julian.aerial.data.lowStorageFlow
+import nl.julian.aerial.data.bluetoothOnFlow
+import nl.julian.aerial.data.NetKind
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.Immutable
 import android.content.Intent
 import android.text.format.DateFormat
 import androidx.annotation.DrawableRes
@@ -92,6 +99,7 @@ fun WidgetBand(
     onSearch: (() -> Unit)? = null,
     /** Makes the weather tile selectable, opening the forecast. */
     onWeather: (() -> Unit)? = null,
+    status: StatusIcons = StatusIcons(),
     /** Focus targets for the toolbar buttons, so focus can return there when their panel closes. */
     railFocus: RailFocus = RailFocus(),
 ) {
@@ -111,7 +119,7 @@ fun WidgetBand(
         // clock and weather split the free space equally.
         val compact = playing != null
         val weatherWidth by animateDpAsState(if (compact) 132.dp else 196.dp, tween(500, easing = FluidEasing), label = "weatherW")
-        ClockTile(clockFormat, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)))
+        ClockTile(clockFormat, Modifier.fillMaxHeight().then(if (middle) Modifier.width(176.dp) else Modifier.weight(1f)), status)
         when {
             playing != null -> NowPlayingCard(playing, INNER, Modifier.weight(1f).fillMaxHeight())
             showAerial -> NowShowingTile(clip, Modifier.weight(1f).fillMaxHeight())
@@ -130,7 +138,7 @@ fun WidgetBand(
  * colours), with the date underneath.
  */
 @Composable
-private fun ClockTile(format: ClockFormat, modifier: Modifier) {
+private fun ClockTile(format: ClockFormat, modifier: Modifier, status: StatusIcons = StatusIcons()) {
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     // Ticks exactly on the minute boundary, not every second.
@@ -156,11 +164,38 @@ private fun ClockTile(format: ClockFormat, modifier: Modifier) {
             DigitPill(hours, cs.primaryContainer, cs.onPrimaryContainer)
             DigitPill(minutes, cs.tertiaryContainer, cs.onTertiaryContainer)
         }
-        Text(
-            SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(now),
-            style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(now),
+                style = MaterialTheme.typography.labelLarge, color = cs.onSurfaceVariant, maxLines = 1,
+            )
+            StatusRow(status)
+        }
     }
+}
+
+/** Which status icons the top bar shows. */
+@Immutable
+data class StatusIcons(val network: Boolean = false, val bluetooth: Boolean = false, val storage: Boolean = false)
+
+@Composable
+private fun StatusRow(show: StatusIcons) {
+    if (!show.network && !show.bluetooth && !show.storage) return
+    val app = LocalContext.current.applicationContext
+    val net by remember { networkFlow(app) }.collectAsStateWithLifecycle(NetKind.Other)
+    val bt by remember { bluetoothOnFlow(app) }.collectAsStateWithLifecycle(null)
+    val low by remember { lowStorageFlow(app) }.collectAsStateWithLifecycle(false)
+    val tint = MaterialTheme.colorScheme.onSurfaceVariant
+    val icon: @Composable (Int, String, Color) -> Unit = { res, label, color ->
+        Icon(painterResource(res), contentDescription = label, tint = color, modifier = Modifier.size(16.dp))
+    }
+    if (show.network) when (net) {
+        NetKind.Ethernet -> icon(Symbols.Ethernet, "Ethernet", tint)
+        NetKind.WiFi, NetKind.Other -> icon(Symbols.Wifi, "Wi-Fi", tint)
+        NetKind.None -> icon(Symbols.Offline, "Offline", MaterialTheme.colorScheme.error)
+    }
+    if (show.bluetooth && bt == true) icon(Symbols.Bluetooth, "Bluetooth on", tint)
+    if (show.storage && low) icon(Symbols.Storage, "Storage almost full", MaterialTheme.colorScheme.error)
 }
 
 @Composable
