@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import androidx.compose.foundation.layout.Spacer
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.produceState
 import android.content.Intent
@@ -64,10 +65,10 @@ fun QuickSettings(
     val bt by bluetoothOnFlow(app).collectAsStateWithLifecycle(null)
 
     SectionPanel(modifier, title = "Quick settings") {
-        Row(
-            Modifier.fillMaxWidth().focusRestorer().focusGroup(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        // Two rows of four, so every label fits.
+        val row = Modifier.fillMaxWidth().focusGroup()
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(row, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             val (netIcon, netTitle) = when (net) {
                 NetKind.Ethernet -> Symbols.Ethernet to "Ethernet"
                 NetKind.WiFi -> Symbols.Wifi to "Wi-Fi"
@@ -95,6 +96,8 @@ fun QuickSettings(
                 onClick = onCycleScenery,
                 modifier = Modifier.weight(1f),
             )
+        }
+        Row(row, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             QuickTile(
                 Symbols.Screensaver, "Screensaver", "Start now", active = false,
                 onClick = onStartScreensaver,
@@ -113,10 +116,12 @@ fun QuickSettings(
                 modifier = Modifier.weight(1f),
             )
             QuickTile(
-                Symbols.PictureOff, "Picture off", "Sound keeps playing", active = false,
+                Symbols.PictureOff, "Picture off", "Sound stays on", active = false,
                 onClick = onPictureOff,
                 modifier = Modifier.weight(1f),
             )
+            Spacer(Modifier.weight(1f))
+        }
         }
     }
 }
