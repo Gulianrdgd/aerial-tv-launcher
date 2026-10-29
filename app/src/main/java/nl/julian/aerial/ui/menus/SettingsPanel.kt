@@ -286,7 +286,8 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         )
     // Back on this page returns to the main page instead of closing Settings.
     } else if (page == MORE) SidePanel("More options", onDismiss = { page = null }, initialFocus = firstMore) {
-        MenuRow(Symbols.Landscape, "Aerials", value = "Links, quality, favourites, captions", onClick = { page = "Aerials" }, focusRequester = firstMore)
+        MenuRow(Symbols.Settings, "System", value = "Updates, backup, setup", onClick = { page = "System" }, focusRequester = firstMore)
+        MenuRow(Symbols.Landscape, "Aerials", value = "Links, quality, favourites, captions", onClick = { page = "Aerials" })
         MenuRow(Symbols.Clock, "Clock & weather", value = "Clock faces, date and time", onClick = { page = "Clock & weather" })
         MenuRow(Symbols.Cloud, "Top bar", value = "Forecast, search, status icons", onClick = { page = "Top bar" })
         MenuRow(Symbols.Sparkle, "Looks", value = "Colours, panels, animations, sounds", onClick = { page = "Looks" })
@@ -296,7 +297,6 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         MenuRow(Symbols.Moon, "Night mode", value = "Dim the screen in the evening", onClick = { page = "Night mode" })
         MenuRow(Symbols.Home, "Connected services", value = "Home Assistant, Plex, Jellyfin", onClick = { page = "Connected services" })
         MenuRow(Symbols.Remote, "Remote", value = "Remote buttons and shortcuts", onClick = { page = "Remote" })
-        MenuRow(Symbols.Settings, "System", value = "Updates, backup, setup", onClick = { page = "System" })
     } else key(page) {
         // One short page per category; Back returns to More options.
         val firstRow = remember { FocusRequester() }
