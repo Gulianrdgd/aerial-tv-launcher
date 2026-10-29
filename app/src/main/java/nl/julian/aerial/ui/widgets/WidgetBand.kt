@@ -1,5 +1,9 @@
 package nl.julian.aerial.ui.widgets
 
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
+import android.os.Build
 import androidx.compose.foundation.layout.Spacer
 import nl.julian.aerial.ui.FocusStyle
 import androidx.compose.ui.geometry.Offset
@@ -471,11 +475,10 @@ private fun EditorialBar(
                     timeInWords(now), color = white,
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300), shadow = OnAerial),
                 )
-                else -> Text(
+                else -> GlowText(
                     SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
-                    color = white, maxLines = 1,
                     // The classic bar's bold, rounded clock digits, at full size.
-                    style = ClockStyle.copy(fontSize = 80.sp, lineHeight = 84.sp, shadow = OnAerial),
+                    ClockStyle.copy(fontSize = 80.sp, lineHeight = 84.sp),
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -509,5 +512,24 @@ private fun EditorialBar(
             Spacer(Modifier.width(14.dp))
         }
         Box(Modifier.height(84.dp)) { buttons() }
+    }
+}
+
+/**
+ * Large white text with a soft dark glow behind it. A text shadow at this
+ * size is drawn from a coarse copy of each glyph and looks blocky, so the
+ * glow is a second, dark copy blurred on the GPU (Android 12 and newer;
+ * older TVs get the text without it).
+ */
+@Composable
+private fun GlowText(text: String, style: TextStyle) {
+    Box {
+        if (Build.VERSION.SDK_INT >= 31) {
+            Text(
+                text, style = style, color = Color.Black.copy(alpha = 0.55f), maxLines = 1,
+                modifier = Modifier.offset(y = 2.dp).blur(14.dp, BlurredEdgeTreatment.Unbounded),
+            )
+        }
+        Text(text, style = style, color = Color.White, maxLines = 1)
     }
 }
