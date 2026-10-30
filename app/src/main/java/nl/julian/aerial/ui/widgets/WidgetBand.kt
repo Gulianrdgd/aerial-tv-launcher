@@ -469,7 +469,7 @@ private fun EditorialBar(
         Column(Modifier.weight(1f)) {
             when (clockFace) {
                 ClockFace.Analog -> AnalogClock(now, 84.dp, white, MaterialTheme.colorScheme.primary, soft)
-                ClockFace.Words -> GlowText(timeInWords(now), MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight(300)))
+                ClockFace.Words -> GlowText(timeInWords(now), MaterialTheme.typography.displaySmall.copy(fontFamily = GoogleSansFlex, fontWeight = FontWeight(700)))
                 else -> GlowText(
                     SimpleDateFormat(if (clockFormat.is24Hour(context)) "HH:mm" else "h:mm", Locale.getDefault()).format(now),
                     // Standard is bold; "Large and thin" is the same clock in a light weight.

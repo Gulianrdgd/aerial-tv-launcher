@@ -178,7 +178,7 @@ private fun AmbientClock(format: ClockFormat, face: ClockFace) {
         ClockFace.Standard -> Text(time, style = style(26, 500).copy(fontFeatureSettings = "tnum"))
         ClockFace.Thin -> Text(time, style = style(64, 200).copy(fontFeatureSettings = "tnum"))
         ClockFace.Analog -> AnalogClock(now, 56.dp, Color.White, Color.White, Faint)
-        ClockFace.Words -> Text(timeInWords(now), style = style(26, 400))
+        ClockFace.Words -> Text(timeInWords(now), style = style(26, 700))
     }
 }
 
