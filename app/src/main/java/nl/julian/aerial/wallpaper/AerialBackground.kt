@@ -2,7 +2,13 @@ package nl.julian.aerial.wallpaper
 
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.ImageBitmap
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.PowerManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import android.view.SurfaceView
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.Animatable
@@ -161,22 +167,34 @@ fun AerialBackground(
                 playWhenReady = true
             }
 
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> if (player == null) player = build()
-                Lifecycle.Event.ON_STOP -> {
-                    player?.release()
-                    player = null
-                }
-                else -> Unit
+        // Held while started and the screen is on. Some TVs (Philips) keep the
+        // launcher started in standby: the player then failed clip after clip
+        // without a network, and woke up with a lost decoder and a black picture.
+        val power = context.getSystemService(PowerManager::class.java)
+        fun update() {
+            val want = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED) && power?.isInteractive != false
+            if (want && player == null) player = build()
+            if (!want) {
+                player?.release()
+                player = null
             }
         }
-        if (player == null && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            player = build()
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START || event == Lifecycle.Event.ON_STOP) update()
         }
+        val screen = object : BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) = update()
+        }
+        update()
         lifecycleOwner.lifecycle.addObserver(observer)
+        ContextCompat.registerReceiver(
+            context, screen,
+            IntentFilter().apply { addAction(Intent.ACTION_SCREEN_ON); addAction(Intent.ACTION_SCREEN_OFF) },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            context.unregisterReceiver(screen)
             player?.release()
             player = null
         }
