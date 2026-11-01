@@ -12,6 +12,7 @@ import nl.julian.aerial.ui.FocusMove
 import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.Choreographer
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -47,6 +48,8 @@ class MainActivity : ComponentActivity() {
     private var screensaverOnResume = false
     @Volatile
     private var soundVolume = 0f
+    /** A D-pad move hasn't been drawn yet (see dispatchKeyEvent). */
+    private var moveDrawPending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +106,16 @@ class MainActivity : ComponentActivity() {
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
+        if (event.action == KeyEvent.ACTION_DOWN && event.keyCode in DPAD_KEYS) {
+            // A held key repeats faster than a slow TV can draw: those repeats
+            // queue up and then all land at once, and focus skips ahead. So a
+            // repeat waits until the last move is on screen; presses never do.
+            if (event.repeatCount > 0 && moveDrawPending) return true
+            if (!moveDrawPending) {
+                moveDrawPending = true
+                Choreographer.getInstance().postFrameCallback { moveDrawPending = false }
+            }
+        }
         if (soundVolume > 0f && !idle.value && !pictureOff.value && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
             val effect = when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> AudioManager.FX_FOCUS_NAVIGATION_LEFT
@@ -198,6 +211,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val EXTRA_OPEN_INPUTS = "nl.julian.aerial.OPEN_INPUTS"
         const val EXTRA_SCREENSAVER = "nl.julian.aerial.SCREENSAVER"
+        private val DPAD_KEYS = setOf(
+            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
+        )
 
         /** Opens the app or input chosen under "When the TV turns on", if any. */
         suspend fun runStartup(context: Context) {
