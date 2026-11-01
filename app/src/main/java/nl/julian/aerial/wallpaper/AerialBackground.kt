@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -145,6 +146,11 @@ fun AerialBackground(
             )
             .build().apply {
                 volume = 0f
+                // Muted anyway: don't decode or play out the audio at all, which
+                // saves the TV's CPU and keeps an idle audio stream from looking like playback.
+                trackSelectionParameters = trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                    .build()
                 repeatMode = Player.REPEAT_MODE_OFF
                 videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
                 playWhenReady = true
@@ -283,6 +289,9 @@ fun AerialBackground(
                 modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = zoom.value; scaleY = zoom.value },
             )
         }
-        AmbientBackdrop(Modifier.graphicsLayer { alpha = 1f - reveal.value })
+        // Gone entirely once the clip is fully up, not just transparent: a
+        // full-screen layer costs fill rate on every frame, seen or not.
+        val covered by remember { derivedStateOf { reveal.value >= 1f } }
+        if (!covered) AmbientBackdrop(Modifier.graphicsLayer { alpha = 1f - reveal.value })
     }
 }

@@ -3,8 +3,19 @@ package nl.julian.aerial.ui.widgets
 import nl.julian.aerial.theme.GoogleSansFlex
 import nl.julian.aerial.theme.DisplayClockStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.draw.BlurredEdgeTreatment
-import androidx.compose.ui.draw.blur
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.unit.IntSize
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import android.os.Build
 import androidx.compose.foundation.layout.Spacer
 import nl.julian.aerial.ui.FocusStyle
@@ -515,7 +526,9 @@ private fun EditorialBar(
  * White text on the aerial with a soft dark glow behind it. Android's text
  * shadow is drawn from a coarse copy of each glyph and looks blocky, so the
  * glow is a second, dark copy blurred on the GPU (Android 12 and newer;
- * older TVs get the text without it).
+ * older TVs get the text without it). The blur runs once per text change
+ * (once a minute for the clock) and is kept as a bitmap: a live blur would
+ * run again whenever this part of the screen redraws, every frame of a scroll.
  */
 @Composable
 private fun GlowText(text: String, style: TextStyle, color: Color = Color.White) {
@@ -523,11 +536,35 @@ private fun GlowText(text: String, style: TextStyle, color: Color = Color.White)
     val radius = if (style.fontSize.value > 40f) 14.dp else 6.dp
     Box {
         if (Build.VERSION.SDK_INT >= 31) {
+            val layer = rememberGraphicsLayer()
+            val scope = rememberCoroutineScope()
+            val baked = remember(text, style) { BakedGlow() }
             Text(
                 text, style = style, color = Color.Black.copy(alpha = 0.6f), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.offset(y = 1.dp).blur(radius, BlurredEdgeTreatment.Unbounded),
+                modifier = Modifier.offset(y = 1.dp).drawWithContent {
+                    // Room around the text for the blur to spread into.
+                    val pad = radius.toPx() * 2
+                    baked.image.value?.takeIf { baked.size == size }?.let {
+                        drawImage(it, Offset(-pad, -pad))
+                        return@drawWithContent
+                    }
+                    if (baked.size == size) return@drawWithContent // already baking
+                    baked.size = size
+                    val r = radius.toPx()
+                    layer.renderEffect = BlurEffect(r, r, TileMode.Decal)
+                    layer.record(IntSize((size.width + 2 * pad).roundToInt(), (size.height + 2 * pad).roundToInt())) {
+                        translate(pad, pad) { this@drawWithContent.drawContent() }
+                    }
+                    scope.launch { baked.image.value = runCatching { layer.toImageBitmap() }.getOrNull() }
+                },
             )
         }
         Text(text, style = style, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
+}
+
+/** [GlowText]'s blurred copy, baked for one text at one [size]. */
+private class BakedGlow {
+    var size = Size.Unspecified
+    val image = mutableStateOf<ImageBitmap?>(null)
 }

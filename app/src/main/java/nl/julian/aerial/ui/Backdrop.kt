@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.util.lerp
+import androidx.compose.runtime.remember
 import nl.julian.aerial.theme.LocalSurfaces
 
 /**
@@ -31,33 +34,24 @@ fun AmbientBackdrop(modifier: Modifier = Modifier) {
 /**
  * Haze over the aerial while the home screen is up: a veil in the current
  * theme colour, so the video recedes behind the glass instead of competing
- * with it. Heavier at the bottom, where the dock and grid sit.
+ * with it. Heavier at the bottom, where the dock and grid sit. The legibility
+ * scrim (darker top and bottom bands, clear centre) is folded into the same
+ * gradient: one full-screen blend per frame instead of two, which a TV's GPU
+ * notices.
  */
 @Composable
 fun Haze(modifier: Modifier = Modifier) {
     val tint = LocalSurfaces.current.lowest
-    Box(
-        modifier.fillMaxSize().background(
-            Brush.verticalGradient(
-                0f to tint.copy(alpha = 0.08f),
-                0.5f to tint.copy(alpha = 0.14f),
-                1f to tint.copy(alpha = 0.30f),
-            )
+    val stops = remember(tint) {
+        fun haze(t: Float) = tint.copy(alpha = if (t < 0.5f) lerp(0.08f, 0.14f, t / 0.5f) else lerp(0.14f, 0.30f, (t - 0.5f) / 0.5f))
+        fun scrim(t: Float) = Color.Black.copy(
+            alpha = when {
+                t < 0.25f -> 0.45f * (1f - t / 0.25f)
+                t < 0.70f -> 0f
+                else -> 0.55f * (t - 0.70f) / 0.30f
+            }
         )
-    )
-}
-
-/** Legibility scrim: darkens only the top and bottom bands, keeping the centre clear. */
-@Composable
-fun Scrim(modifier: Modifier = Modifier) {
-    Box(
-        modifier.fillMaxSize().background(
-            Brush.verticalGradient(
-                0.0f to Color.Black.copy(alpha = 0.45f),
-                0.25f to Color.Transparent,
-                0.70f to Color.Transparent,
-                1.0f to Color.Black.copy(alpha = 0.55f),
-            )
-        )
-    )
+        listOf(0f, 0.125f, 0.25f, 0.5f, 0.7f, 0.85f, 1f).map { it to scrim(it).compositeOver(haze(it)) }.toTypedArray()
+    }
+    Box(modifier.fillMaxSize().background(Brush.verticalGradient(*stops)))
 }
