@@ -3,6 +3,7 @@ package nl.julian.aerial.ui
 import kotlinx.serialization.json.Json
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
@@ -29,10 +30,23 @@ object Translations {
     @Volatile private var exact: Map<String, String> = emptyMap()
     @Volatile private var patterns: List<Pair<Regex, Pair<List<Int>, String>>> = emptyList()
     private val memo = java.util.concurrent.ConcurrentHashMap<String, String>()
+    /** Bumped on every load and read by [tr], so translated texts redraw when the language changes. */
+    private val version = mutableIntStateOf(0)
+    @Volatile private var loaded: Locale? = null
 
-    /** Loads the TV's language, if there's a file for it. Call once at startup. */
-    fun load(context: Context) {
-        val lang = Locale.getDefault().language
+    /**
+     * Loads [language] (null = the TV's language), if there's a file for it,
+     * and makes it the app's locale, so dates and the clock in words follow.
+     * Call at startup and whenever the setting changes.
+     */
+    fun load(context: Context, language: String? = null) {
+        val system = context.resources.configuration.locales[0]
+        // Only the language changes: the TV's region still decides °C or °F.
+        val locale = language?.let { runCatching { Locale.Builder().setLocale(system).setLanguage(it).build() }.getOrNull() } ?: system
+        if (locale == loaded) return
+        loaded = locale
+        Locale.setDefault(locale)
+        val lang = locale.language
         val all = runCatching {
             val text = context.assets.open("translations/$lang.json").bufferedReader().use { it.readText() }
             Json.decodeFromString<Map<String, String>>(text)
@@ -47,9 +61,11 @@ object Translations {
             Regex(regex) to (order to value)
         }.sortedByDescending { (r, _) -> r.pattern.length }
         memo.clear()
+        version.intValue++
     }
 
     fun tr(text: String): String {
+        version.intValue
         if (exact.isEmpty() && patterns.isEmpty()) return text
         return memo.getOrPut(text) {
             exact[text] ?: patterns.firstNotNullOfOrNull { (regex, target) ->
@@ -63,7 +79,7 @@ object Translations {
     }
 }
 
-/** The text in the TV's language, when there's a translation for it. */
+/** The text in the chosen language (the TV's, by default), when there's a translation for it. */
 fun tr(text: String): String = Translations.tr(text)
 
 /** tv-material's Text, translated with [tr]. Imported in place of androidx.tv.material3.Text. */

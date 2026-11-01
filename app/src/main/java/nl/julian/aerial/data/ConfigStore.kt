@@ -172,6 +172,8 @@ data class LauncherConfig(
     val updateCheck: Boolean = true,
     /** Warn on the home screen when Aerial is no longer the default Home app. */
     val homeWarning: Boolean = true,
+    /** The language Aerial shows (a translations file, e.g. "nl"); null = the TV's language. */
+    val language: String? = null,
     /** The first-run setup was finished or skipped; false shows it (again). */
     val setupDone: Boolean = false,
     /** Keep Aerial out of the recent apps screen. */

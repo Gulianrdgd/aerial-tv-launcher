@@ -221,13 +221,16 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                 (if (config.links.isEmpty()) "None" else "${config.links.size} links") + " · a video, live stream, photo, or a web folder ending in /",
             ) { linkDialog = true },
         )),
-        SettingCategory(Symbols.Clock, "Clock & weather", listOf(
+        SettingCategory(Symbols.Language, "Language & region", listOf(
+            choice(Symbols.Language, "Language", config.language, LANGUAGES.keys.toList(), { LANGUAGES.getValue(it) }) { c, v -> c.copy(language = v) },
             choice(Symbols.Clock, "Clock", config.clockFormat, ClockFormat.entries, { it.label }) { c, v -> c.copy(clockFormat = v) },
-            choice(Symbols.Clock, "Clock face", config.clockFace, ClockFace.entries, { it.label }) { c, v -> c.copy(clockFace = v) },
-            choice(Symbols.Screensaver, "Screensaver clock", config.ambientClockFace, ClockFace.entries, { it.label }) { c, v -> c.copy(ambientClockFace = v) },
             choice(Symbols.Thermostat, "Temperature", config.tempUnit, TempUnit.entries, { it.label }) { c, v -> c.copy(tempUnit = v) },
             action(Symbols.Location, "Weather location", config.weatherCity.ifBlank { "Automatic (from the TV's timezone)" }) { cityDialog = true },
             action(Symbols.Calendar, "Date, time & timezone", "Android TV settings") { context.startSafely(Intent(Settings.ACTION_DATE_SETTINGS)) },
+        )),
+        SettingCategory(Symbols.Clock, "Clock", listOf(
+            choice(Symbols.Clock, "Clock face", config.clockFace, ClockFace.entries, { it.label }) { c, v -> c.copy(clockFace = v) },
+            choice(Symbols.Screensaver, "Screensaver clock", config.ambientClockFace, ClockFace.entries, { it.label }) { c, v -> c.copy(ambientClockFace = v) },
         )),
         SettingCategory(Symbols.Cloud, "Top bar", listOf(
             choice(
@@ -479,3 +482,9 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
 
 /** The next value of an enum, wrapping around (for settings rows that cycle on select). */
 internal inline fun <reified T : Enum<T>> T.next(): T = enumValues<T>().let { it[(ordinal + 1) % it.size] }
+
+/** Languages with a translations file, each in its own name; null follows the TV. Also offered in the setup wizard. */
+internal val LANGUAGES = linkedMapOf(
+    null to "TV language", "en" to "English", "nl" to "Nederlands", "de" to "Deutsch",
+    "fr" to "Français", "es" to "Español", "it" to "Italiano", "pt" to "Português",
+)

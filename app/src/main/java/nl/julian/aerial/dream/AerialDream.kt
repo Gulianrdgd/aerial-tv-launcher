@@ -7,6 +7,7 @@ import android.service.dreams.DreamService
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +93,7 @@ private fun DreamScreen() {
     var clip by remember { mutableStateOf<Aerial?>(null) }
 
     val cfg = config ?: return
+    LaunchedEffect(cfg.language) { Translations.load(context, cfg.language) }
     Box(Modifier.fillMaxSize()) {
         AerialBackground(
             config = cfg,

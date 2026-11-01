@@ -86,6 +86,7 @@ object Symbols {
     val Clock = R.drawable.ms_schedule
     val Thermostat = R.drawable.ms_device_thermostat
     val Location = R.drawable.ms_location_on
+    val Language = R.drawable.ms_language
     val Calendar = R.drawable.ms_calendar_month
     val Console = R.drawable.ms_sports_esports
     val MediaPlayer = R.drawable.ms_live_tv

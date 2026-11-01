@@ -68,8 +68,8 @@ private val CARD_RADIUS = 36.dp
 private val SHELL = 8.dp
 
 /**
- * First-run setup, one short step at a time: Home app, aerials, clock and
- * weather, the home screen, and access. Everything here is also in
+ * First-run setup, one short step at a time: language and region, Home
+ * app, aerials, the home screen, and access. Everything here is also in
  * Settings; Settings > System > Run setup again opens it later.
  *
  * Built like the home screen's panels: a see-through shell with a hairline
@@ -182,16 +182,17 @@ private fun StepPage(
     val context = LocalContext.current
     val (title, intro) = when (step) {
         0 -> "Welcome to Aerial" to "A few questions to set up your TV. Everything can be changed later in Settings."
-        1 -> "Home button" to "Aerial works best as the app the Home button opens."
-        2 -> "Aerials" to "What plays behind the home screen and as the screensaver."
-        3 -> "Clock & weather" to "How the time and temperature are shown, and where the weather is for."
+        // Right after the welcome, so the rest of the questions are in the right language.
+        1 -> "Language & region" to "Your language, how the time and temperature are shown, and where the weather is for."
+        2 -> "Home button" to "Aerial works best as the app the Home button opens."
+        3 -> "Aerials" to "What plays behind the home screen and as the screensaver."
         4 -> "Home screen" to "How your apps look."
         5 -> "Access" to "Optional extras that need permission from the TV."
         else -> "All set" to "Enjoy the view. Hold OK on an app for more options, and find the rest in Settings."
     }
     val first = remember { FocusRequester() }
     // Steps with choices start on the first one; the others on Start, Next or Finish.
-    val buttonsOnly = step == 0 || step == last || (step == 1 && isHome)
+    val buttonsOnly = step == 0 || step == last || (step == 2 && isHome)
 
     Column(Modifier.fillMaxWidth()) {
         Text(
@@ -207,23 +208,32 @@ private fun StepPage(
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             when (step) {
-                1 -> MenuRow(
-                    Symbols.Home, if (isHome) "Aerial is your Home app" else "Make Aerial the Home app",
-                    value = if (isHome) "Nothing to do here" else "Opens the TV's settings. Choose Aerial there.",
-                    onClick = { if (!isHome) onHome() },
-                )
-                2 -> {
-                    MenuRow(Symbols.Landscape, "Scenery", value = config.scenery.label, onClick = { update { it.copy(scenery = it.scenery.next()) } })
-                    MenuRow(Symbols.Moon, "Day and night", value = config.aerialTime.label, onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } })
-                    MenuRow(Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label, onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } })
-                }
-                3 -> {
+                1 -> {
+                    MenuRow(
+                        Symbols.Language, "Language", value = LANGUAGES.getValue(config.language),
+                        onClick = {
+                            update {
+                                val all = LANGUAGES.keys.toList()
+                                it.copy(language = all[(all.indexOf(it.language) + 1) % all.size])
+                            }
+                        },
+                    )
                     MenuRow(Symbols.Clock, "Clock", value = config.clockFormat.label, onClick = { update { it.copy(clockFormat = it.clockFormat.next()) } })
                     MenuRow(Symbols.Thermostat, "Temperature", value = config.tempUnit.label, onClick = { update { it.copy(tempUnit = it.tempUnit.next()) } })
                     MenuRow(
                         Symbols.Location, "Weather location", value = config.weatherCity.ifBlank { "Automatic (from the TV's timezone)" },
                         onClick = onCity,
                     )
+                }
+                2 -> MenuRow(
+                    Symbols.Home, if (isHome) "Aerial is your Home app" else "Make Aerial the Home app",
+                    value = if (isHome) "Nothing to do here" else "Opens the TV's settings. Choose Aerial there.",
+                    onClick = { if (!isHome) onHome() },
+                )
+                3 -> {
+                    MenuRow(Symbols.Landscape, "Scenery", value = config.scenery.label, onClick = { update { it.copy(scenery = it.scenery.next()) } })
+                    MenuRow(Symbols.Moon, "Day and night", value = config.aerialTime.label, onClick = { update { it.copy(aerialTime = it.aerialTime.next()) } })
+                    MenuRow(Symbols.MediaPlayer, "Video quality", value = config.videoQuality.label, onClick = { update { it.copy(videoQuality = it.videoQuality.next()) } })
                 }
                 4 -> {
                     MenuRow(

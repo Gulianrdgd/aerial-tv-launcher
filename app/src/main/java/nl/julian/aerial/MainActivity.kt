@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             ConfigStore.get(this@MainActivity).config.collect {
+                Translations.load(this@MainActivity, it.language)
                 idleAfterMs = it.idleMinutes * 60_000L
                 soundVolume = it.focusSounds.volume
                 getSystemService(ActivityManager::class.java)?.appTasks?.forEach { task ->
