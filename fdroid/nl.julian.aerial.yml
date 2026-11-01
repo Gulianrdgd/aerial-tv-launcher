@@ -63,7 +63,14 @@ Builds:
     gradle:
       - yes
 
+  - versionName: 0.6.2
+    versionCode: 9
+    commit: bb6b3fdb60ac06e37d84769f9c9dd4b3c08d23a4
+    subdir: app
+    gradle:
+      - yes
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.6.1
-CurrentVersionCode: 8
+CurrentVersion: 0.6.2
+CurrentVersionCode: 9
