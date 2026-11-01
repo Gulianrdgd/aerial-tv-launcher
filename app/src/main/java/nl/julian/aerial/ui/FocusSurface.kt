@@ -14,6 +14,8 @@ import androidx.compose.runtime.setValue
 import android.os.SystemClock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -96,6 +98,39 @@ fun FocusSurface(
         if (style == FocusStyle.Invert && container.alpha > 0f) Box(Modifier.matchParentSize().topHighlight(shape))
         content(focused)
     }
+}
+
+/**
+ * Round robin along a row: Left on the first item goes to the last, Right on
+ * the last to the first. Put it on every item; it tags the first and last with
+ * [first] and [last]. [jump] moves focus, e.g. after scrolling a lazy row so
+ * the target is composed.
+ */
+fun Modifier.wrapFocus(
+    index: Int,
+    count: Int,
+    first: FocusRequester,
+    last: FocusRequester,
+    enabled: Boolean = true,
+    jump: (FocusRequester, Int) -> Unit = { target, _ -> runCatching { target.requestFocus() } },
+): Modifier {
+    val isFirst = index == 0
+    val isLast = index == count - 1
+    return this
+        .then(if (isFirst) Modifier.focusRequester(first) else Modifier)
+        .then(if (isLast) Modifier.focusRequester(last) else Modifier)
+        .then(
+            if (!enabled || count < 2 || (!isFirst && !isLast)) Modifier
+            else Modifier.onPreviewKeyEvent { e ->
+                val (target, to) = when {
+                    isFirst && e.key == Key.DirectionLeft -> last to count - 1
+                    isLast && e.key == Key.DirectionRight -> first to 0
+                    else -> return@onPreviewKeyEvent false
+                }
+                if (e.type == KeyEventType.KeyDown) jump(target, to)
+                true
+            }
+        )
 }
 
 /** Space between a focused tile and its ring. */

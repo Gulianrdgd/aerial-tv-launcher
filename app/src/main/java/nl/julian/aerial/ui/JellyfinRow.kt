@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.focus.FocusRequester
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -53,14 +58,28 @@ private fun ServerRow(title: String, items: List<WatchNextItem>, app: String, ra
     SectionPanel(modifier, title = title, horizontalPadding = 0.dp) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val cardWidth = (maxWidth - PANEL_PADDING * 2 - GAP * (VISIBLE_CARDS - 1)) / VISIBLE_CARDS
+            val rowState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+            val first = remember { FocusRequester() }
+            val last = remember { FocusRequester() }
+            // Round robin: scroll the far end into view first, so it's there to take focus.
+            val jump = { target: FocusRequester, index: Int ->
+                scope.launch {
+                    rowState.scrollToItem(index)
+                    withFrameNanos { }
+                    runCatching { target.requestFocus() }
+                }
+                Unit
+            }
             LazyRow(
                 Modifier.focusRestorer(),
+                state = rowState,
                 contentPadding = PaddingValues(horizontal = PANEL_PADDING, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(GAP),
             ) {
-                items(items, key = { it.id }) { item ->
+                itemsIndexed(items, key = { _, it -> it.id }) { i, item ->
                     WatchNextCard(
-                        item, radius, Modifier.width(cardWidth),
+                        item, radius, Modifier.wrapFocus(i, items.size, first, last, jump = jump).width(cardWidth),
                         onClick = { AppRepository.launchIntent(context, app)?.let(context::startSafely) },
                     )
                 }

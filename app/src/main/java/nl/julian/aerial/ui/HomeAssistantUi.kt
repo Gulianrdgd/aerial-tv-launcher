@@ -1,5 +1,6 @@
 package nl.julian.aerial.ui
 
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,8 +54,10 @@ fun HomeAssistantRow(ha: HaConfig, modifier: Modifier = Modifier) {
     SectionPanel(modifier, title = "Home") {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             ha.buttons.chunked(4).forEach { ids ->
+                val first = remember { FocusRequester() }
+                val last = remember { FocusRequester() }
                 Row(Modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ids.forEach { id ->
+                    ids.forEachIndexed { i, id ->
                         val e = states[id]
                         val domain = id.substringBefore('.')
                         QuickTile(
@@ -69,7 +72,7 @@ fun HomeAssistantRow(ha: HaConfig, modifier: Modifier = Modifier) {
                                     refresh++
                                 }
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.wrapFocus(i, ids.size, first, last).weight(1f),
                         )
                     }
                     repeat(4 - ids.size) { Spacer(Modifier.weight(1f)) }

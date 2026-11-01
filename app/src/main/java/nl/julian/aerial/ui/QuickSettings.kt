@@ -1,5 +1,7 @@
 package nl.julian.aerial.ui
 
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.remember
 import nl.julian.aerial.data.QuickTileKind
 import androidx.compose.foundation.layout.Spacer
 import kotlinx.coroutines.delay
@@ -122,8 +124,10 @@ fun QuickSettings(
         // Rows of four, so every label fits.
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             tiles.chunked(4).forEach { kinds ->
+                val first = remember { FocusRequester() }
+                val last = remember { FocusRequester() }
                 Row(Modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    kinds.forEach { tile(it, Modifier.weight(1f)) }
+                    kinds.forEachIndexed { i, kind -> tile(kind, Modifier.wrapFocus(i, kinds.size, first, last).weight(1f)) }
                     repeat(4 - kinds.size) { Spacer(Modifier.weight(1f)) }
                 }
             }

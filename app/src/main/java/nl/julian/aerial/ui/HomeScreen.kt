@@ -50,13 +50,12 @@ import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -196,7 +195,6 @@ fun HomeScreen(
         AerialTheme(themeSeed, (config?.textSize ?: 100) / 100f, config?.highContrast == true, config?.themeSource == ThemeSource.Mono, config?.fontWeight ?: 0) {
             Box(Modifier.fillMaxSize().graphicsLayer { alpha = uiAlpha }) {
                 Haze()
-                Scrim()
                 val a = apps
                 val c = config
                 if (a != null && c != null) CompositionLocalProvider(LocalFrost provides frost.takeIf { c.glass != Glass.Tinted }, LocalReveal provides c.reveal, LocalPanelAlpha provides c.panelOpacity / 100f, LocalRoundness provides c.roundness / 100f) {
@@ -243,7 +241,7 @@ private fun HomeContent(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
+    val listState = rememberScrollState()
     val dockFocus = remember { FocusRequester() }
     val inputModes = LocalInputModeManager.current
     // One requester per app, so focus can follow a tile while it's being moved.
@@ -413,7 +411,7 @@ private fun HomeContent(
     // First show and every Home press: back to the top, focus on the dock.
     LaunchedEffect(homeTick) {
         moving = null
-        listState.scrollToItem(0)
+        listState.scrollTo(0)
         // Wait one frame so the dock's tiles are laid out and focusable.
         withFrameNanos { }
         // A TV is never in touch mode, but the window can start out in it,
@@ -427,7 +425,7 @@ private fun HomeContent(
             refocusDock = false
             withFrameNanos { }
             runCatching { dockFocus.requestFocus() }
-            listState.animateScrollToItem(0)
+            listState.animateScrollTo(0)
         }
         val pkg = moving ?: return@LaunchedEffect
         withFrameNanos { }
@@ -457,21 +455,26 @@ private fun HomeContent(
     // Only scroll when the focused item (plus its glow) would be cut off.
     val minimalScroll = rememberMinimalScroll(margin = 24.dp)
     val scrollTopOnFocus = Modifier.onFocusChanged {
-        if (it.hasFocus && listState.firstVisibleItemIndex + listState.firstVisibleItemScrollOffset > 0) {
-            scope.launch { listState.animateScrollToItem(0) }
+        if (it.hasFocus && listState.value > 0) {
+            scope.launch { listState.animateScrollTo(0) }
         }
     }
+    // A plain scrolling column, not a lazy one: a lazy list throws away the
+    // All apps grid whenever it scrolls out of view and rebuilds every tile
+    // (and replays its entrance) on the way back down. The home screen is
+    // short enough to keep composed.
     CompositionLocalProvider(LocalBringIntoViewSpec provides minimalScroll) {
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = SCREEN_MARGIN, end = SCREEN_MARGIN, top = 27.dp, bottom = 27.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(listState)
+            .padding(start = SCREEN_MARGIN, end = SCREEN_MARGIN, top = 27.dp, bottom = 27.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         // The bar and the dock sit at the very top. When focus moves into
         // either, scroll all the way up so the bar and the open aerial gap
         // above the dock are in view, not just the focused tile.
-        item(key = "widgets") {
+        key("widgets") {
             WidgetBand(
                 clockFormat = config.clockFormat,
                 clockFace = config.clockFace,
@@ -497,17 +500,17 @@ private fun HomeContent(
         }
         // Every section sits on the same translucent panel as the top bar.
         // Open space above the dock keeps the aerial the main thing on screen.
-        if (config.homeWarning && !isHome) item(key = "not-home") {
+        if (config.homeWarning && !isHome) key("not-home") {
             HomeNotice(onHide = { update { it.copy(homeWarning = false) } }, modifier = Modifier.padding(top = DOCK_GAP))
         }
         val shown = if (config.kidsMode) listOf(HomeSection.Dock, HomeSection.Apps) else config.sectionsAt(hour)
         shown.forEachIndexed { index, section -> when (section) {
-        HomeSection.Dock -> item(key = "dock") {
+        HomeSection.Dock -> key("dock") {
             SectionPanel(Modifier.then(scrollTopOnFocus).padding(top = if (index == 0) DOCK_GAP else 0.dp).reveal(index + 1, revealTick)) {
                 TileRow(home.dock, perRow, firstFocus = dockFocus, wrap = moving == null) { app, m -> tile(app, m, true) }
             }
         }
-        HomeSection.WatchNext -> item(key = "watch-next") {
+        HomeSection.WatchNext -> key("watch-next") {
             WatchNextRow(
                 radius = SECTION_TILE_RADIUS, modifier = Modifier.reveal(index + 1, revealTick),
                 hiddenApps = config.watchNextHidden,
@@ -515,21 +518,21 @@ private fun HomeContent(
             )
         }
         HomeSection.Jellyfin -> config.jellyfin?.let { login ->
-            item(key = "jellyfin") {
+            key("jellyfin") {
                 JellyfinRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick))
             }
         }
         HomeSection.Plex -> config.plex?.let { login ->
-            item(key = "plex") { PlexRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick)) }
+            key("plex") { PlexRow(login, SECTION_TILE_RADIUS, Modifier.reveal(index + 1, revealTick)) }
         }
         HomeSection.Home -> config.homeAssistant?.let { ha ->
-            item(key = "home-assistant") { HomeAssistantRow(ha, Modifier.reveal(index + 1, revealTick)) }
+            key("home-assistant") { HomeAssistantRow(ha, Modifier.reveal(index + 1, revealTick)) }
         }
         HomeSection.Recent -> {
             val byPkg = withInputs.associateBy { it.pkg }
             val recent = config.recent.filter { pkg -> home.dock.none { it.pkg == pkg } && pkg !in config.hidden }
                 .mapNotNull { byPkg[it] }.take(perRow)
-            if (recent.isNotEmpty()) item(key = "recent") {
+            if (recent.isNotEmpty()) key("recent") {
                 SectionPanel(Modifier.reveal(index + 1, revealTick), title = "Recent") {
                     TileRow(recent, perRow) { app, m ->
                         AppTile(
@@ -543,15 +546,15 @@ private fun HomeContent(
             }
         }
         HomeSection.Apps -> if (gridRows.isNotEmpty()) {
-            item(key = "apps") {
+            key("apps") {
                 SectionPanel(Modifier.reveal(index + 1, revealTick), title = "All apps") {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        gridRows.forEach { row -> TileRow(row, perRow, restoreFocus = false) { app, m -> tile(app, m, false) } }
+                        gridRows.forEach { row -> TileRow(row, perRow, restoreFocus = false, wrap = moving == null) { app, m -> tile(app, m, false) } }
                     }
                 }
             }
         }
-        HomeSection.Quick -> item(key = "quick") {
+        HomeSection.Quick -> key("quick") {
             QuickSettings(
                 scenery = config.scenery,
                 onCycleScenery = {
@@ -758,8 +761,8 @@ private fun TileRow(
     columns: Int,
     modifier: Modifier = Modifier,
     firstFocus: FocusRequester? = null,
-    /** Right on the last tile jumps back to the first (needs [firstFocus]). */
-    wrap: Boolean = false,
+    /** Right on the last tile jumps back to the first, Left on the first to the last. */
+    wrap: Boolean = true,
     /**
      * Re-entering the row returns to the tile focused last. Right for the
      * dock (coming back from the top bar), wrong between rows of a grid:
@@ -768,6 +771,8 @@ private fun TileRow(
     restoreFocus: Boolean = true,
     tile: @Composable (AppEntry, Modifier) -> Unit,
 ) {
+    val first = firstFocus ?: remember { FocusRequester() }
+    val last = remember { FocusRequester() }
     Row(
         modifier.fillMaxWidth().then(if (restoreFocus) Modifier.focusRestorer() else Modifier).focusGroup(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -775,16 +780,7 @@ private fun TileRow(
         apps.forEachIndexed { i, app ->
             // Keyed by package so a moved tile keeps its composable (and focus).
             key(app.pkg) {
-                val m = when {
-                    i == 0 && firstFocus != null -> Modifier.focusRequester(firstFocus)
-                    i == apps.lastIndex && wrap && firstFocus != null -> Modifier.onPreviewKeyEvent { e ->
-                        if (e.key != Key.DirectionRight) return@onPreviewKeyEvent false
-                        if (e.type == KeyEventType.KeyDown) runCatching { firstFocus.requestFocus() }
-                        true
-                    }
-                    else -> Modifier
-                }
-                tile(app, m.weight(1f))
+                tile(app, Modifier.wrapFocus(i, apps.size, first, last, enabled = wrap).weight(1f))
             }
         }
         repeat(columns - apps.size) { EmptyTileSlot(Modifier.weight(1f)) }
