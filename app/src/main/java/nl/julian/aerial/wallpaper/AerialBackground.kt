@@ -55,6 +55,8 @@ import nl.julian.aerial.ui.AmbientBackdrop
 private const val STALL_MS = 8_000L
 /** When, after a clip's first frame, the picture is sampled for the UI colours. */
 private const val SAMPLE_DELAY_MS = 1_500L
+/** How often frosted glass takes a new frame of the picture. */
+private const val FROST_EVERY_MS = 8_000L
 
 /**
  * Apple TV-style aerial video behind the home screen: muted, aspect-filled,
@@ -261,10 +263,16 @@ fun AerialBackground(
         onFrame(null)
         val view = surfaceView ?: return@LaunchedEffect
         if (sampleWidth == 0) return@LaunchedEffect
+        // The first frame soon, then a new one now and then: each fades in over
+        // the last (see Frost), and a fade redraws the panels while it runs.
+        var wait = 1_000L
         while (true) {
-            delay(3_000)
+            delay(wait)
             if (photo == null && reveal.value > 0.5f) {
-                FrameSampler.frost(view, sampleWidth)?.let { onFrame(it.asImageBitmap()) }
+                FrameSampler.frost(view, sampleWidth)?.let {
+                    onFrame(it.asImageBitmap())
+                    wait = FROST_EVERY_MS
+                }
             }
         }
     }

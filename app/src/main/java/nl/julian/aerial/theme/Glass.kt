@@ -1,6 +1,8 @@
 package nl.julian.aerial.theme
 
-import androidx.compose.runtime.State
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.positionInRoot
@@ -60,11 +62,32 @@ val LocalPanelAlpha = staticCompositionLocalOf { 0.62f }
 private val PanelRim = Color.White.copy(alpha = 0.10f)
 
 /**
- * Frosted glass: holds a tiny frame of the video, stretched across the screen
- * behind the panels; null = tinted. A State, read only while drawing, so a
- * new frame redraws the panels without recomposing them.
+ * Frosted glass: a blurred frame of the video, stretched across the screen
+ * behind the panels; null = tinted. Read only while drawing, so a new frame
+ * redraws the panels without recomposing them.
  */
-val LocalFrost = staticCompositionLocalOf<State<ImageBitmap?>?> { null }
+val LocalFrost = staticCompositionLocalOf<Frost?> { null }
+
+/**
+ * Frosted glass's picture. Each new frame fades in over the one before, so
+ * the glass drifts along with the video instead of jumping to it.
+ */
+class Frost {
+    var previous by mutableStateOf<ImageBitmap?>(null)
+        private set
+    var current by mutableStateOf<ImageBitmap?>(null)
+        private set
+    val fade = Animatable(1f)
+
+    suspend fun show(frame: ImageBitmap?) {
+        previous = if (frame == null) null else current
+        current = frame
+        fade.snapTo(0f)
+        fade.animateTo(1f, tween(FROST_FADE_MS, easing = LinearEasing))
+    }
+}
+
+private const val FROST_FADE_MS = 2_000
 
 /** Translucent panel: dark fill plus a hairline rim; over the blurred video when [LocalFrost] has a frame. */
 @Composable
@@ -76,14 +99,18 @@ fun Modifier.panel(shape: Shape): Modifier {
         .onGloballyPositioned { origin = it.positionInRoot() }
         .clip(shape)
         .drawBehind {
-            val frame = frost.value ?: return@drawBehind
+            val frame = frost.current ?: return@drawBehind
             // Lined up with the screen, so the panel shows the blurred picture right behind it.
-            drawImage(
-                frame,
+            fun draw(image: ImageBitmap, alpha: Float) = drawImage(
+                image,
                 dstOffset = IntOffset(-origin.x.toInt(), -origin.y.toInt()),
                 dstSize = IntSize(root.width, root.height),
+                alpha = alpha,
                 filterQuality = FilterQuality.Low,
             )
+            val fade = frost.fade.value
+            if (fade < 1f) frost.previous?.let { draw(it, 1f) }
+            draw(frame, fade)
         }
         .background(LocalSurfaces.current.lowest.copy(alpha = LocalPanelAlpha.current - 0.24f), shape)
         .border(1.dp, PanelRim, shape)

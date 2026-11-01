@@ -34,6 +34,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.geometry.Rect
 import nl.julian.aerial.data.Glass
 import nl.julian.aerial.theme.LocalFrost
+import nl.julian.aerial.theme.Frost
 import androidx.compose.ui.graphics.ImageBitmap
 import nl.julian.aerial.remote.RemoteButtonsService
 import androidx.compose.ui.graphics.Color
@@ -165,7 +166,8 @@ fun HomeScreen(
     var seed by remember { mutableStateOf<Int?>(null) }
     var clip by remember { mutableStateOf<Aerial?>(null) }
     val themeSeed = if (config?.themeSource == ThemeSource.Fixed) config?.themeColor else seed
-    val frost = remember { mutableStateOf<ImageBitmap?>(null) }
+    val frost = remember { Frost() }
+    val frostScope = rememberCoroutineScope()
     // The staggered entrance plays on cold start and when waking from the
     // screensaver, not on every Home press.
     var revealTick by remember { mutableIntStateOf(0) }
@@ -188,7 +190,7 @@ fun HomeScreen(
             isDay = weather?.isDay,
             onSeed = { seed = it },
             onClip = { clip = it },
-            onFrame = { frost.value = it },
+            onFrame = { frostScope.launch { frost.show(it) } },
         )
         } ?: AmbientBackdrop()
         config?.let { Seasonal(it) }
