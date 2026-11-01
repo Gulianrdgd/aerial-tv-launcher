@@ -1,0 +1,6 @@
+Choose Aerial's language in Settings › Language & region, next to the clock, temperature and weather location (also in the setup).
+Smoother scrolling to All apps, and less work for the TV's graphics chip.
+Left and Right wrap around in every row of the home screen.
+Frosted glass is smooth instead of blocky.
+"When the TV turns on" works after standby, with the Remote buttons service on.
+Fixed: the notification badge was cut off on the stacked buttons.
