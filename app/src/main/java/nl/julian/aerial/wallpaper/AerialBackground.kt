@@ -264,7 +264,7 @@ fun AerialBackground(
         while (true) {
             delay(3_000)
             if (photo == null && reveal.value > 0.5f) {
-                FrameSampler.frame(view, sampleWidth, sampleWidth * 9 / 16)?.let { onFrame(it.asImageBitmap()) }
+                FrameSampler.frost(view, sampleWidth)?.let { onFrame(it.asImageBitmap()) }
             }
         }
     }

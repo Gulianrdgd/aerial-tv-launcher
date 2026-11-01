@@ -402,7 +402,12 @@ private fun RailSegment(
                     painterResource(icon), contentDescription = if (iconOnly) label else null,
                     modifier = Modifier.size(if (iconOnly) 22.dp else 26.dp),
                 )
-                if (badge > 0) Badge(badge, Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-6).dp))
+                // Stacked segments are only about as tall as the icon, and clip:
+                // a smaller badge that stays inside them.
+                if (badge > 0) {
+                    if (iconOnly) Badge(badge, Modifier.align(Alignment.TopEnd).offset(x = 7.dp, y = (-2).dp), size = 14.dp)
+                    else Badge(badge, Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-6).dp))
+                }
             }
             if (!iconOnly) Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
         }
@@ -411,16 +416,16 @@ private fun RailSegment(
 
 /** M3 badge: a small error-coloured pill with the count. */
 @Composable
-private fun Badge(count: Int, modifier: Modifier) {
+private fun Badge(count: Int, modifier: Modifier, size: Dp = 18.dp) {
     val cs = MaterialTheme.colorScheme
     Box(
-        modifier.height(18.dp).aspectRatio(if (count > 9) 1.5f else 1f, matchHeightConstraintsFirst = true)
+        modifier.height(size).aspectRatio(if (count > 9) 1.5f else 1f, matchHeightConstraintsFirst = true)
             .background(cs.error, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             if (count > 99) "99+" else count.toString(),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 12.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = if (size < 18.dp) 9.sp else 11.sp, lineHeight = 12.sp),
             color = cs.onError,
         )
     }
