@@ -3,10 +3,13 @@ package nl.julian.aerial.remote
 import nl.julian.aerial.data.RemoteKey
 import nl.julian.aerial.data.AppRepository
 import android.accessibilityservice.AccessibilityService
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -37,7 +40,17 @@ class RemoteButtonsService : AccessibilityService() {
 
     private var sleepJob: Job? = null
 
+    /** "When the TV turns on" lives here while the service is on (see MainActivity.runStartup). */
+    private val screenOn = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            scope.launch { MainActivity.runStartup(this@RemoteButtonsService) }
+        }
+    }
+
     override fun onServiceConnected() {
+        registerReceiver(screenOn, IntentFilter(Intent.ACTION_SCREEN_ON))
+        // Bound by the system shortly after a boot: start with the chosen app or input.
+        if (SystemClock.elapsedRealtime() < 3 * 60_000L) scope.launch { MainActivity.runStartup(this@RemoteButtonsService) }
         val store = ConfigStore.get(this)
         scope.launch {
             store.config.collect {
@@ -104,6 +117,7 @@ class RemoteButtonsService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(screenOn) }
         scope.cancel()
         super.onDestroy()
     }

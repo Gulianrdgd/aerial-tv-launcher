@@ -25,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.ui.HomeScreen
+import nl.julian.aerial.remote.RemoteButtonsService
 
 class MainActivity : ComponentActivity() {
     /** Bumped on every Home press while we're already home: scroll up + replay entry. */
@@ -162,11 +163,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun runStartup() {
-        lifecycleScope.launch {
-            val target = ConfigStore.get(this@MainActivity).config.first().startup ?: return@launch
-            val pkg = if (target.startsWith("app:")) target.removePrefix("app:") else target
-            AppRepository.launchIntent(this@MainActivity, pkg)?.let { runCatching { startActivity(it) } }
-        }
+        // With the remote buttons service on, it does this instead: it outlives
+        // the home screen in standby and may open apps from the background.
+        if (RemoteButtonsService.isEnabled(this)) return
+        lifecycleScope.launch { runStartup(this@MainActivity) }
     }
 
     override fun onDestroy() {
@@ -197,5 +197,12 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val EXTRA_OPEN_INPUTS = "nl.julian.aerial.OPEN_INPUTS"
         const val EXTRA_SCREENSAVER = "nl.julian.aerial.SCREENSAVER"
+
+        /** Opens the app or input chosen under "When the TV turns on", if any. */
+        suspend fun runStartup(context: Context) {
+            val target = ConfigStore.get(context).config.first().startup ?: return
+            val pkg = if (target.startsWith("app:")) target.removePrefix("app:") else target
+            AppRepository.launchIntent(context, pkg)?.let { runCatching { context.startActivity(it) } }
+        }
     }
 }
