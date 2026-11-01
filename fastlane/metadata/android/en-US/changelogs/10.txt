@@ -1,0 +1,2 @@
+The aerial comes back after the TV wakes from standby, instead of staying black.
+Holding a button no longer makes the selection jump ahead, in Settings and on the home screen.
