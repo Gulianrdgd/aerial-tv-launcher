@@ -146,6 +146,9 @@ fun AerialBackground(
                     .setPrioritizeTimeOverSizeThresholds(true)
                     .build()
             )
+            // Media3 holds a wake lock during playback by default. A wallpaper
+            // has no use for it, and it may keep a TV from going to standby.
+            .setWakeMode(C.WAKE_MODE_NONE)
             .build().apply {
                 volume = 0f
                 // Muted anyway: don't decode or play out the audio at all, which
