@@ -1,0 +1,1 @@
+Frosted glass now drifts along with the aerial: each new picture fades in over the last one instead of jumping.
