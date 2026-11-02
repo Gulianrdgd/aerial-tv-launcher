@@ -1,0 +1,4 @@
+Settings opens faster, and the app grid shows at once after the TV has closed Aerial in the background.
+New: Settings › System › Keep Aerial in memory, so Home opens instantly after other apps.
+Less work while you're in other apps: Home Assistant stops checking, and Aerial gives memory back.
+Smoother overall: more work moved off the main thread, and app banners kept in graphics memory.
