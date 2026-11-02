@@ -107,14 +107,12 @@ class MainActivity : ComponentActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         lastInput = SystemClock.uptimeMillis()
         if (event.action == KeyEvent.ACTION_DOWN && event.keyCode in DPAD_KEYS) {
-            // A held key repeats faster than a slow TV can draw: those repeats
-            // queue up and then all land at once, and focus skips ahead. So a
-            // repeat waits until the last move is on screen; presses never do.
-            if (event.repeatCount > 0 && moveDrawPending) return true
-            if (!moveDrawPending) {
-                moveDrawPending = true
-                Choreographer.getInstance().postFrameCallback { moveDrawPending = false }
-            }
+            // On a slow TV, presses and held-key repeats come in faster than it
+            // can draw: they queue up and then all land at once, and focus
+            // skips ahead. So one move per drawn frame; the rest are dropped.
+            if (moveDrawPending) return true
+            moveDrawPending = true
+            Choreographer.getInstance().postFrameCallback { moveDrawPending = false }
         }
         if (soundVolume > 0f && !idle.value && !pictureOff.value && event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
             val effect = when (event.keyCode) {
