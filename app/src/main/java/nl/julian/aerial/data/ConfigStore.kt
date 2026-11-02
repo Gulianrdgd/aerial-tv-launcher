@@ -178,6 +178,8 @@ data class LauncherConfig(
     val setupDone: Boolean = false,
     /** Keep Aerial out of the recent apps screen. */
     val hideFromRecents: Boolean = false,
+    /** A foreground service, so the TV doesn't kill the launcher behind other apps (see KeepInMemoryService). */
+    val keepInMemory: Boolean = false,
     /** Font size multiplier, in percent. */
     val textSize: Int = 100,
     val highContrast: Boolean = false,

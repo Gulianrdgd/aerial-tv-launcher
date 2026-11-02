@@ -11,6 +11,7 @@ import android.media.AudioManager
 import nl.julian.aerial.ui.FocusMove
 import android.content.Intent
 import android.os.Bundle
+import coil3.SingletonImageLoader
 import android.os.SystemClock
 import android.view.Choreographer
 import android.view.KeyEvent
@@ -22,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import nl.julian.aerial.wallpaper.Aerials
 import kotlinx.coroutines.launch
 import nl.julian.aerial.data.ConfigStore
 import nl.julian.aerial.ui.HomeScreen
@@ -48,12 +51,17 @@ class MainActivity : ComponentActivity() {
     private var screensaverOnResume = false
     @Volatile
     private var soundVolume = 0f
+    private var hiddenFromRecents: Boolean? = null
+    private var keptInMemory: Boolean? = null
     /** A D-pad move hasn't been drawn yet (see dispatchKeyEvent). */
     private var moveDrawPending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Translations.load(this)
+        Translations.loadInBackground(this)
+        // 289 clips of JSON: parsed in the background while the settings load, not
+        // on the main thread when the home screen first asks for them.
+        lifecycleScope.launch(Dispatchers.IO) { Aerials.load(applicationContext) }
         if (intent.getBooleanExtra(EXTRA_OPEN_INPUTS, false)) inputsTick.intValue++
         // The aerial SurfaceView sits behind the window; an opaque window
         // background would cover it.
@@ -78,8 +86,16 @@ class MainActivity : ComponentActivity() {
                 Translations.load(this@MainActivity, it.language)
                 idleAfterMs = it.idleMinutes * 60_000L
                 soundVolume = it.focusSounds.volume
-                getSystemService(ActivityManager::class.java)?.appTasks?.forEach { task ->
-                    runCatching { task.setExcludeFromRecents(it.hideFromRecents) }
+                // Every app launch saves the config (recent apps); these are binder calls, so only on a change.
+                if (it.keepInMemory != keptInMemory) {
+                    keptInMemory = it.keepInMemory
+                    KeepInMemoryService.apply(this@MainActivity, it.keepInMemory)
+                }
+                if (it.hideFromRecents != hiddenFromRecents) {
+                    hiddenFromRecents = it.hideFromRecents
+                    getSystemService(ActivityManager::class.java)?.appTasks?.forEach { task ->
+                        runCatching { task.setExcludeFromRecents(it.hideFromRecents) }
+                    }
                 }
             }
         }
@@ -179,6 +195,13 @@ class MainActivity : ComponentActivity() {
         // the home screen in standby and may open apps from the background.
         if (RemoteButtonsService.isEnabled(this)) return
         lifecycleScope.launch { runStartup(this@MainActivity) }
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        // Behind another app, give back what reloads cheaply: a launcher using
+        // less memory is less likely to be killed, and Home then opens at once.
+        if (level >= TRIM_MEMORY_UI_HIDDEN) SingletonImageLoader.get(this).memoryCache?.clear()
     }
 
     override fun onDestroy() {

@@ -15,6 +15,9 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Optional: "Keep Aerial in memory" (Settings > System) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Streams the aerial videos and fetches weather -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Continue Watching: read other apps' Watch Next programs -->
@@ -62,6 +65,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Optional: keeps the launcher loaded so Home opens it at once (Settings > System) -->
+        <service
+            android:name=".KeepInMemoryService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the home screen app loaded so the Home button opens it at once" />
+        </service>
 
         <!-- Now Playing (media sessions) and notifications; granted with adb (see README) -->
         <service

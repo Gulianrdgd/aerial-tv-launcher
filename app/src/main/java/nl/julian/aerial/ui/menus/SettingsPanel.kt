@@ -191,6 +191,7 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
                 }
             },
             toggle(Symbols.Hide, "Hide from recent apps", config.hideFromRecents) { it.copy(hideFromRecents = !it.hideFromRecents) },
+            toggle(Symbols.Home, "Keep Aerial in memory", config.keepInMemory, "Home opens at once after other apps, for a little memory") { it.copy(keepInMemory = !it.keepInMemory) },
             toggle(Symbols.Home, "Warn when Aerial isn't Home", config.homeWarning) { it.copy(homeWarning = !it.homeWarning) },
         )),
         SettingCategory(Symbols.Landscape, "Aerials", listOfNotNull(
