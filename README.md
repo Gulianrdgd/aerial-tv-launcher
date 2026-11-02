@@ -66,11 +66,12 @@ Aerial installs as a normal APK, but two things need a one-time adb command from
    adb connect <your TV's IP address>
    ```
 
-3. Download and install Aerial:
+3. Download and install Aerial. The last line compiles it right away: Android otherwise runs an app installed over adb in its slow interpreter until a maintenance job gets to it, which on a TV that's always on can take days. Compiled, Settings opened in about half the time on a Philips TV.
 
    ```sh
    curl -L -o aerial.apk https://github.com/Gulianrdgd/aerial-tv-launcher/releases/latest/download/aerial.apk
    adb install -r aerial.apk
+   adb shell cmd package compile -m speed -f nl.julian.aerial
    ```
 
 4. Let Aerial show what's playing and your notifications (see [Permissions](#permissions)):
@@ -79,7 +80,7 @@ Aerial installs as a normal APK, but two things need a one-time adb command from
    adb shell cmd notification allow_listener nl.julian.aerial/nl.julian.aerial.media.LauncherListenerService
    ```
 
-To update, run the two commands in step 3 again. Your settings stay.
+To update, run the three commands in step 3 again. Your settings stay.
 
 ### Make it your home screen
 
