@@ -84,7 +84,14 @@ Builds:
     gradle:
       - yes
 
+  - versionName: 0.6.5
+    versionCode: 12
+    commit: f4d97d2cb7ed5b332443c83adace6e4f33fa5f60
+    subdir: app
+    gradle:
+      - yes
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.6.4
-CurrentVersionCode: 11
+CurrentVersion: 0.6.5
+CurrentVersionCode: 12
