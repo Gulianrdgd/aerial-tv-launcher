@@ -1,0 +1,10 @@
+# Hand-written rules, merged with the generated profile in src/release/generated.
+# The generator only walks the home screen, so Settings, the panels and the
+# setup were left to the interpreter on a fresh install: a step through
+# Settings took about 300 ms on a Philips TV. All of Aerial's own code is
+# small enough to compile ahead of time, and so are the tv-material
+# components the menus are built from.
+HSPLnl/julian/aerial/**->**(**)**
+Lnl/julian/aerial/**;
+HSPLandroidx/tv/material3/**->**(**)**
+Landroidx/tv/material3/**;
