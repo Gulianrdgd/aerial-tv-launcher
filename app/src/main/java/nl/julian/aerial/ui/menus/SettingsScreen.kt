@@ -24,6 +24,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyColumn
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -157,6 +160,14 @@ fun SettingsScreen(
     val rows = remember(shown, category.items.size) { List(category.items.size) { FocusRequester() } }
     val pickerFirst = remember { FocusRequester() }
     val host = remember { SettingsHost() }
+    /**
+     * The right pane's rows are a lazy list, as in the TV's own settings:
+     * only the rows on screen are built, so a category with many settings
+     * opens as fast as a short one. A new category starts at the top.
+     */
+    val rowsState = remember(shown) { LazyListState() }
+    /** The right pane fills in the frame after the panel opens, so the panel itself shows sooner. */
+    var paneReady by remember { mutableStateOf(false) }
     /** The row focused last, so focus goes back to it when its options or page close. */
     var lastRow by remember { mutableIntStateOf(0) }
     var restoreRow by remember { mutableIntStateOf(0) }
@@ -238,7 +249,6 @@ fun SettingsScreen(
                     Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
                         .onFocusChanged { inRight = it.hasFocus }
                         .onPreviewKeyEvent { e ->
                             if (e.key == Key.DirectionLeft && e.type == KeyEventType.KeyDown) {
@@ -250,9 +260,13 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     val open = picking?.let { category.items.getOrNull(it) as? SettingItem.Choice }
+                    val scrolling = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     when {
-                        subpage != null -> CompositionLocalProvider(LocalSettingsHost provides host) { subpage() }
-                        open != null -> {
+                        !paneReady -> Unit
+                        subpage != null -> Column(scrolling, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            CompositionLocalProvider(LocalSettingsHost provides host) { subpage() }
+                        }
+                        open != null -> Column(scrolling, verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             open.description?.let { Hint(it) }
                             open.options.forEachIndexed { o, label ->
                                 MenuRow(
@@ -270,14 +284,19 @@ fun SettingsScreen(
                             }
                         }
                         else -> {
-                            category.items.forEachIndexed { i, item ->
-                                ItemRow(item, rows[i], onFocused = { lastRow = i }) { picking = i }
+                            LazyColumn(Modifier.fillMaxSize(), state = rowsState, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                itemsIndexed(category.items) { i, item ->
+                                    ItemRow(item, rows[i], onFocused = { lastRow = i }) { picking = i }
+                                }
                             }
                             // Back from a choice or a page: focus the row that opened it.
                             LaunchedEffect(restoreRow) {
                                 if (restoreRow == 0) return@LaunchedEffect
+                                val row = lastRow.coerceIn(rows.indices)
                                 withFrameNanos { }
-                                runCatching { rows[lastRow.coerceIn(rows.indices)].requestFocus() }
+                                if (rowsState.layoutInfo.visibleItemsInfo.none { it.index == row }) rowsState.scrollToItem(row)
+                                withFrameNanos { }
+                                runCatching { rows[row].requestFocus() }
                             }
                         }
                     }
@@ -299,11 +318,16 @@ fun SettingsScreen(
     LaunchedEffect(enterRight) {
         if (enterRight == 0) return@LaunchedEffect
         withFrameNanos { }
+        // The first row may have scrolled out of the lazy list, and only built rows take focus.
+        if (rows.isNotEmpty() && rowsState.firstVisibleItemIndex > 0) rowsState.scrollToItem(0)
+        withFrameNanos { }
         runCatching { rows.firstOrNull()?.requestFocus() }
     }
     LaunchedEffect(Unit) {
         withFrameNanos { }
         toLeft()
+        withFrameNanos { }
+        paneReady = true
     }
 }
 

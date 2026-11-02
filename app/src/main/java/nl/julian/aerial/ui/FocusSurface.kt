@@ -145,7 +145,7 @@ private const val LONG_PRESS_MS = 500L
  * short press clicks on release; a hold fires [onLongClick] once and its
  * release never clicks.
  */
-private fun Modifier.okPressAndHold(onClick: () -> Unit, onLongClick: () -> Unit): Modifier = composed {
+internal fun Modifier.okPressAndHold(onClick: () -> Unit, onLongClick: () -> Unit): Modifier = composed {
     var downAt by remember { mutableLongStateOf(0L) }
     var held by remember { mutableStateOf(false) }
     onPreviewKeyEvent { e ->

@@ -52,6 +52,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -159,7 +161,10 @@ fun SettingsPanel(config: LauncherConfig, onDismiss: () -> Unit) {
         value = if (config.updateCheck) UpdateCheck.newer(context) else null
     }
     val remoteOn = remember { RemoteButtonsService.isEnabled(context) }
-    val packs = remember { IconPacks.installed(context) }
+    // A package-manager query: off the main thread, so it doesn't hold up opening Settings.
+    val packs by produceState(emptyList<Pair<String, String>>()) {
+        value = withContext(Dispatchers.IO) { IconPacks.installed(context) }
+    }
 
     val categories = listOf(
         SettingCategory(Symbols.Settings, "System", listOfNotNull(
