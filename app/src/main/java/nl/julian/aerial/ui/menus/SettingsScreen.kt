@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -137,12 +138,23 @@ fun SettingsScreen(
     subpage: (@Composable () -> Unit)? = null,
 ) {
     var selected by remember { mutableIntStateOf(0) }
+    /**
+     * The category the right pane shows. It follows [selected] once focus
+     * rests there: rebuilding the pane is the slow part on a TV, and doing it
+     * at every step made moving through the list lag and overshoot.
+     */
+    var shown by remember { mutableIntStateOf(0) }
+    LaunchedEffect(selected) {
+        if (shown == selected) return@LaunchedEffect
+        delay(SHOW_CATEGORY_AFTER_MS)
+        shown = selected
+    }
     /** The choice whose options are open in the right pane, by index in the selected category. */
     var picking by remember { mutableStateOf<Int?>(null) }
     var inRight by remember { mutableStateOf(false) }
     val left = remember(categories.size) { List(categories.size) { FocusRequester() } }
-    val category = categories[selected.coerceIn(categories.indices)]
-    val rows = remember(selected, category.items.size) { List(category.items.size) { FocusRequester() } }
+    val category = categories[shown.coerceIn(categories.indices)]
+    val rows = remember(shown, category.items.size) { List(category.items.size) { FocusRequester() } }
     val pickerFirst = remember { FocusRequester() }
     val host = remember { SettingsHost() }
     /** The row focused last, so focus goes back to it when its options or page close. */
@@ -200,7 +212,7 @@ fun SettingsScreen(
                     categories.forEachIndexed { i, c ->
                         MenuRow(
                             c.icon, c.name,
-                            onClick = { enterRight++ },
+                            onClick = { shown = selected; enterRight++ },
                             focusRequester = left[i],
                             modifier = Modifier
                                 .onFocusChanged {
@@ -211,6 +223,7 @@ fun SettingsScreen(
                                 }
                                 .onPreviewKeyEvent { e ->
                                     if (e.key == Key.DirectionRight && e.type == KeyEventType.KeyDown) {
+                                        shown = selected
                                         enterRight++
                                         true
                                     } else false
@@ -375,3 +388,6 @@ private fun Switch(checked: Boolean) {
 private fun SelectedMark() {
     Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
 }
+
+/** How long focus rests on a category before the right pane shows it. */
+private const val SHOW_CATEGORY_AFTER_MS = 150L
