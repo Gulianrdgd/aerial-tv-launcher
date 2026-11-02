@@ -1,0 +1,2 @@
+Faster Settings: moving through the categories no longer lags or skips ahead.
+Aerial's code is compiled ahead of time on more of the app, and quick button presses can't run ahead of the screen.
