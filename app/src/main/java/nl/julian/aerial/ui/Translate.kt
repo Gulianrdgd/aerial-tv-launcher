@@ -39,11 +39,26 @@ object Translations {
      * and makes it the app's locale, so dates and the clock in words follow.
      * Call at startup and whenever the setting changes.
      */
+    /** Open until the first load is done; [tr] waits on it, so no text shows in English first. */
+    private val firstLoad = java.util.concurrent.CountDownLatch(1)
+
+    /**
+     * Starts the first load on a background thread: parsing the file and
+     * building its placeholder patterns used to hold up the main thread at
+     * every start. The home screen waits for the settings anyway, so by the
+     * time it shows text, this is done.
+     */
+    fun loadInBackground(context: Context) {
+        val app = context.applicationContext
+        Thread({ load(app) }, "translations").start()
+    }
+
+    @Synchronized
     fun load(context: Context, language: String? = null) {
         val system = context.resources.configuration.locales[0]
         // Only the language changes: the TV's region still decides °C or °F.
         val locale = language?.let { runCatching { Locale.Builder().setLocale(system).setLanguage(it).build() }.getOrNull() } ?: system
-        if (locale == loaded) return
+        if (locale == loaded) return firstLoad.countDown()
         loaded = locale
         Locale.setDefault(locale)
         val lang = locale.language
@@ -62,9 +77,11 @@ object Translations {
         }.sortedByDescending { (r, _) -> r.pattern.length }
         memo.clear()
         version.intValue++
+        firstLoad.countDown()
     }
 
     fun tr(text: String): String {
+        if (firstLoad.count > 0) firstLoad.await()
         version.intValue
         if (exact.isEmpty() && patterns.isEmpty()) return text
         return memo.getOrPut(text) {

@@ -69,10 +69,11 @@ fun QuickSettings(
     val net by networkFlow(app).collectAsStateWithLifecycle(NetKind.None)
     val bt by bluetoothOnFlow(app).collectAsStateWithLifecycle(null)
 
+    // Ticks only while the sleep timer counts down; otherwise nothing here changes.
     val now by produceState(System.currentTimeMillis(), sleepAt) {
-        while (true) {
-            value = System.currentTimeMillis()
+        while (sleepAt > value) {
             delay(30_000)
+            value = System.currentTimeMillis()
         }
     }
     val tile: @Composable (QuickTileKind, Modifier) -> Unit = { kind, m ->

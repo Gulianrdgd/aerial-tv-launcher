@@ -18,6 +18,9 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
@@ -46,6 +49,47 @@ object AppRepository {
     @Volatile
     var memoryCache: List<AppEntry>? = null
         private set
+
+    /** The app list as of the last scan, next to the icon cache. */
+    private const val LIST_FILE = "apps.json"
+    private val json = Json { ignoreUnknownKeys = true }
+
+    @Serializable
+    private data class SavedList(val locale: String, val bannerW: Int, val apps: List<SavedApp>)
+
+    @Serializable
+    private data class SavedApp(val pkg: String, val label: String, val stamp: Long, val isSystem: Boolean, val banner: Boolean, val icon: Boolean)
+
+    /**
+     * The apps as of the last scan, read from disk: no package manager, only
+     * the cached banners. After a cold start (TVs often kill the launcher
+     * behind a streaming app) the grid shows from this at once, and [scan]
+     * checks it after, reusing every entry that hasn't changed.
+     */
+    suspend fun saved(context: Context): List<AppEntry>? = memoryCache ?: withContext(scanDispatcher) {
+        val list = runCatching {
+            json.decodeFromString<SavedList>(File(context.filesDir, LIST_FILE).readText())
+        }.getOrNull() ?: return@withContext null
+        // App names come in the TV's language; a different one means a fresh scan.
+        if (list.locale != systemLocale(context)) return@withContext null
+        val dir = File(context.filesDir, "iconcache")
+        fun decode(name: String) = runCatching { BitmapFactory.decodeFile(File(dir, name).absolutePath, hardware()) }.getOrNull()
+            ?.asImageBitmap()
+        coroutineScope {
+            list.apps.map { a ->
+                async {
+                    AppEntry(
+                        pkg = a.pkg, label = a.label,
+                        banner = if (a.banner) decode("${a.pkg}-${a.stamp}-b${list.bannerW}.webp") else null,
+                        icon = if (a.icon) decode("${a.pkg}-${a.stamp}-i128.webp") else null,
+                        stamp = a.stamp, isSystem = a.isSystem,
+                    )
+                }
+            }.awaitAll()
+        }.also { if (memoryCache == null) memoryCache = it }
+    }
+
+    private fun systemLocale(context: Context) = context.resources.configuration.locales[0].toLanguageTag()
 
     // Leave a core free for the render thread while banners decode.
     private val scanDispatcher = Dispatchers.IO.limitedParallelism(
@@ -96,9 +140,6 @@ object AppRepository {
                 }
                 if (banner != null) validCacheNames.add(bannerName)
                 if (icon != null) validCacheNames.add(iconName)
-                // Upload textures ahead of first draw.
-                banner?.prepareToDraw()
-                icon?.prepareToDraw()
 
                 AppEntry(
                     pkg = pkg,
@@ -116,8 +157,15 @@ object AppRepository {
         }
         val result = entries.sortedBy { it.label.lowercase() }
         // Same content → same instance, so nothing downstream recomposes.
-        if (result == memoryCache) return@coroutineScope memoryCache!!
+        val listFile = File(context.filesDir, LIST_FILE)
+        if (result == memoryCache && listFile.exists()) return@coroutineScope memoryCache!!
         memoryCache = result
+        runCatching {
+            val saved = SavedList(systemLocale(context), bannerW, result.map {
+                SavedApp(it.pkg, it.label, it.stamp, it.isSystem, it.banner != null, it.icon != null)
+            })
+            listFile.writeText(json.encodeToString(SavedList.serializer(), saved))
+        }
         result
     }
 
@@ -146,10 +194,17 @@ object AppRepository {
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
+    /**
+     * Banners and icons as hardware bitmaps: they live in graphics memory, not
+     * the app's heap, and need no upload when first drawn. Less heap also makes
+     * the launcher less likely to be killed behind other apps.
+     */
+    private fun hardware() = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.HARDWARE }
+
     /** Reads [dir]/[name]; on a miss runs [create] and persists it as lossless WebP. */
     private fun cachedBitmap(dir: File, name: String, create: () -> Bitmap?): Bitmap? {
         val f = File(dir, name)
-        if (f.exists()) BitmapFactory.decodeFile(f.absolutePath)?.let { return it }
+        if (f.exists()) BitmapFactory.decodeFile(f.absolutePath, hardware())?.let { return it }
         val bmp = create() ?: return null
         runCatching {
             f.outputStream().use { out ->
@@ -161,6 +216,7 @@ object AppRepository {
                 }
             }
         }
-        return bmp
+        // Not recycled: toBitmap() can hand back the app's own drawable bitmap, shared by Resources.
+        return bmp.copy(Bitmap.Config.HARDWARE, false) ?: bmp
     }
 }

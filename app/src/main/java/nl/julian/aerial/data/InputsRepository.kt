@@ -11,6 +11,11 @@ import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** What's plugged into an input, from the TV's own device-type tag. */
@@ -31,44 +36,44 @@ data class TvInput(
 /** The TV's own inputs (HDMI ports, antenna, …), for the input switcher row. */
 object InputsRepository {
 
-    fun inputs(context: Context): Flow<List<TvInput>> = callbackFlow {
-        val manager = context.getSystemService(TvInputManager::class.java)
-        if (manager == null) {
-            trySend(emptyList())
-            awaitClose { }
-            return@callbackFlow
-        }
-        fun list() = runCatching {
-            manager.tvInputList
-                // Hardware-backed inputs only (ids end in HW<n>): HDMI ports,
-                // component, tuners. Apps such as VLC also register "inputs".
-                .filter { !it.isHidden(context) && (it.isPassthroughInput || PORT.containsMatchIn(it.id) && "/HW" in it.id) }
-                .map { info ->
-                    // Philips stores the literal text "null" for ports without a custom name.
-                    val custom = info.loadCustomLabel(context)?.toString()?.takeUnless { it.isBlank() || it.startsWith("null") }
-                    val (label, device) = parseLabel(custom ?: friendlyName(info.loadLabel(context).toString()))
-                    TvInput(
-                        id = info.id,
-                        label = label,
-                        type = info.type,
-                        device = device,
-                        passthrough = info.isPassthroughInput,
-                        connected = manager.getInputState(info.id) != TvInputManager.INPUT_STATE_DISCONNECTED,
-                    )
-                }
-                .let(::ordered)
-        }.getOrDefault(emptyList())
+    fun inputs(context: Context): Flow<List<TvInput>> {
+        val manager = context.getSystemService(TvInputManager::class.java) ?: return flowOf(emptyList())
+        // The callbacks only say "something changed"; the list itself (a binder
+        // call per input, plus labels) is built off the main thread, every time
+        // the home screen comes back as well as on each change.
+        return callbackFlow {
+            val callback = object : TvInputManager.TvInputCallback() {
+                override fun onInputAdded(inputId: String) { trySend(Unit) }
+                override fun onInputRemoved(inputId: String) { trySend(Unit) }
+                override fun onInputUpdated(inputId: String) { trySend(Unit) }
+                override fun onInputStateChanged(inputId: String, state: Int) { trySend(Unit) }
+            }
+            trySend(Unit)
+            manager.registerCallback(callback, Handler(Looper.getMainLooper()))
+            awaitClose { manager.unregisterCallback(callback) }
+        }.conflate().map { list(context, manager) }.flowOn(Dispatchers.IO).distinctUntilChanged()
+    }
 
-        val callback = object : TvInputManager.TvInputCallback() {
-            override fun onInputAdded(inputId: String) { trySend(list()) }
-            override fun onInputRemoved(inputId: String) { trySend(list()) }
-            override fun onInputUpdated(inputId: String) { trySend(list()) }
-            override fun onInputStateChanged(inputId: String, state: Int) { trySend(list()) }
-        }
-        trySend(list())
-        manager.registerCallback(callback, Handler(Looper.getMainLooper()))
-        awaitClose { manager.unregisterCallback(callback) }
-    }.distinctUntilChanged()
+    private fun list(context: Context, manager: TvInputManager): List<TvInput> = runCatching {
+        manager.tvInputList
+            // Hardware-backed inputs only (ids end in HW<n>): HDMI ports,
+            // component, tuners. Apps such as VLC also register "inputs".
+            .filter { !it.isHidden(context) && (it.isPassthroughInput || PORT.containsMatchIn(it.id) && "/HW" in it.id) }
+            .map { info ->
+                // Philips stores the literal text "null" for ports without a custom name.
+                val custom = info.loadCustomLabel(context)?.toString()?.takeUnless { it.isBlank() || it.startsWith("null") }
+                val (label, device) = parseLabel(custom ?: friendlyName(info.loadLabel(context).toString()))
+                TvInput(
+                    id = info.id,
+                    label = label,
+                    type = info.type,
+                    device = device,
+                    passthrough = info.isPassthroughInput,
+                    connected = manager.getInputState(info.id) != TvInputManager.INPUT_STATE_DISCONNECTED,
+                )
+            }
+            .let(::ordered)
+    }.getOrDefault(emptyList())
 
     /**
      * HDMI ports first, then other hardware (component, …), tuners last;

@@ -11,6 +11,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Animatable
 import android.graphics.Bitmap
@@ -54,10 +58,16 @@ fun AppTile(
     focusColor: FocusColor = FocusColor.White,
 ) {
     val showBanner = !tinted && app.banner != null
+    // The app's colour takes a colour analysis of its banner: in the background,
+    // so a grid of tiles doesn't do one each on the main thread as it builds.
+    val appColor by produceState<Color?>(null, focusColor == FocusColor.App, app.banner, app.icon) {
+        if (focusColor != FocusColor.App) return@produceState
+        value = withContext(Dispatchers.Default) { (app.banner ?: app.icon)?.let(::accentOf) }
+    }
     val ring = when (focusColor) {
         FocusColor.White -> null
         FocusColor.Aerial -> MaterialTheme.colorScheme.primary
-        FocusColor.App -> remember(app.banner, app.icon) { (app.banner ?: app.icon)?.let(::accentOf) }
+        FocusColor.App -> appColor
     }
     val scope = rememberCoroutineScope()
     val tilt = remember { Animatable(0f) }
@@ -134,7 +144,9 @@ object FocusMove {
 
 /** The banner's most characteristic colour (Material's quantize + score), for the focus ring. */
 private fun accentOf(art: ImageBitmap): Color? = runCatching {
-    val small = Bitmap.createScaledBitmap(art.asAndroidBitmap(), 32, 18, true)
+    // Banners are hardware bitmaps (in graphics memory), which can't be read pixel by pixel.
+    val source = art.asAndroidBitmap().let { if (it.config == Bitmap.Config.HARDWARE) it.copy(Bitmap.Config.ARGB_8888, false) else it }
+    val small = Bitmap.createScaledBitmap(source, 32, 18, true)
     val pixels = IntArray(32 * 18).also { small.getPixels(it, 0, 32, 0, 0, 32, 18) }
     Score.score(QuantizerCelebi.quantize(pixels, 16)).firstOrNull()?.let { Color(it) }
 }.getOrNull()

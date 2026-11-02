@@ -6,8 +6,6 @@ import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
 import android.media.tv.TvContract.WatchNextPrograms
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +41,8 @@ object WatchNextRepository {
     /** Live list, newest engagement first. Re-queries whenever any app updates it. */
     fun items(context: Context): Flow<List<WatchNextItem>> = callbackFlow {
         val resolver = context.contentResolver
-        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        // No handler: onChange comes on a binder thread, so the re-query stays off the main thread.
+        val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) { trySend(query(context)) }
         }
         trySend(query(context))

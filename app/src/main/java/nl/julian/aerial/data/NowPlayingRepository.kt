@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import androidx.compose.runtime.Immutable
+import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.channels.awaitClose
@@ -104,7 +105,7 @@ object NowPlayingRepository {
             title = title,
             artist = meta.getString(MediaMetadata.METADATA_KEY_ARTIST)
                 ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE),
-            art = art?.asImageBitmap(),
+            art = art?.let { small(it, title, meta.getString(MediaMetadata.METADATA_KEY_ARTIST)) },
             artUri = meta.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
                 ?: meta.getString(MediaMetadata.METADATA_KEY_ART_URI),
             playing = state.state == PlaybackState.STATE_PLAYING,
@@ -115,4 +116,22 @@ object NowPlayingRepository {
             controls = c.transportControls,
         )
     }
+
+    /**
+     * Album art arrives at full size (often 640 px or more) and shows at 84 dp
+     * at most, so it's shrunk once per song. Every playback update hands over
+     * a fresh copy of the same picture, hence the key instead of the bitmap.
+     */
+    private var lastArt: Pair<String, ImageBitmap>? = null
+
+    private fun small(art: Bitmap, title: String, artist: String?): ImageBitmap {
+        val key = "$title|$artist|${art.width}x${art.height}"
+        lastArt?.takeIf { it.first == key }?.let { return it.second }
+        val scale = ART_PX.toFloat() / maxOf(art.width, art.height)
+        val shrunk = if (scale >= 1f) art
+        else Bitmap.createScaledBitmap(art, (art.width * scale).toInt().coerceAtLeast(1), (art.height * scale).toInt().coerceAtLeast(1), true)
+        return shrunk.asImageBitmap().also { lastArt = key to it }
+    }
+
+    private const val ART_PX = 256
 }

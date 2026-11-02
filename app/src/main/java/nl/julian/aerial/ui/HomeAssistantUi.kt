@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -45,10 +48,14 @@ fun HomeAssistantRow(ha: HaConfig, modifier: Modifier = Modifier) {
     if (ha.buttons.isEmpty()) return
     val scope = rememberCoroutineScope()
     var refresh by remember { mutableStateOf(0) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    // Only while Aerial is on screen: Compose keeps effects running behind other apps.
     val states by produceState(emptyMap<String, HaEntity>(), ha, refresh) {
-        while (true) {
-            HomeAssistant.states(ha).onSuccess { all -> value = all.filter { it.id in ha.buttons }.associateBy { it.id } }
-            delay(30_000)
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                HomeAssistant.states(ha).onSuccess { all -> value = all.filter { it.id in ha.buttons }.associateBy { it.id } }
+                delay(30_000)
+            }
         }
     }
     SectionPanel(modifier, title = "Home") {
@@ -91,13 +98,17 @@ fun DoorbellWatcher(ha: HaConfig) {
     val bell = ha.doorbell ?: return
     val cam = ha.camera ?: return
     var ringing by remember { mutableStateOf(false) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(ha) {
-        var last: String? = null
-        while (true) {
-            val now = HomeAssistant.state(ha, bell)
-            if (now == "on" && last != null && last != "on") ringing = true
-            last = now
-            delay(3_000)
+        // Only while Aerial is on screen, as documented; it used to keep asking behind other apps too.
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            var last: String? = null
+            while (true) {
+                val now = HomeAssistant.state(ha, bell)
+                if (now == "on" && last != null && last != "on") ringing = true
+                last = now
+                delay(3_000)
+            }
         }
     }
     if (!ringing) return

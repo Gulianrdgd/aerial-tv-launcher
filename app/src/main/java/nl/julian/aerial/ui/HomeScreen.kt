@@ -153,6 +153,8 @@ fun HomeScreen(
         AppRepository.packageChanges(context.applicationContext).collect { rescanTick++ }
     }
     val apps by produceState(AppRepository.memoryCache, rescanTick) {
+        // Cold start: the grid from the last scan first, then the scan checks it.
+        if (value == null) value = AppRepository.saved(context.applicationContext)
         value = withContext(Dispatchers.Default) { AppRepository.scan(context.applicationContext) }
     }
     val store = remember { ConfigStore.get(context) }
@@ -297,7 +299,8 @@ private fun HomeContent(
     var isHome by remember { mutableStateOf(true) }
     var awaySince by remember { mutableStateOf(0L) }
     LifecycleResumeEffect(Unit) {
-        isHome = isDefaultHome(context)
+        // A package-manager call, on every return to the home screen: off the main thread.
+        scope.launch { isHome = withContext(Dispatchers.IO) { isDefaultHome(context) } }
         // Kids mode: the time away in an app counts toward today's total.
         if (awaySince > 0) {
             val minutes = ((System.currentTimeMillis() - awaySince) / 60_000).toInt()
